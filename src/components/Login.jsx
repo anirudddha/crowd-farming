@@ -16,15 +16,28 @@ const Login = () => {
       localStorage.setItem('token', response.data.token); // Store token
       navigate('/dashboard'); // Redirect after login
     } catch (error) {
+      // console.log(password);
       console.error('Login failed:', error);
-      alert('Invalid credentials');
+      alert('Invalid credentials: ' + (error.response?.data?.error || 'Unknown error'));
     }
   };
 
   return (
     <form onSubmit={handleLogin}>
-      <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
       <button type="submit">Login</button>
     </form>
   );
