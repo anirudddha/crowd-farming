@@ -1,0 +1,48 @@
+/* FarmCard.css */
+
+.farm-card {
+    background-color: #ffffff; /* White background for the card */
+    border: 1px solid #e0e0e0; /* Light gray border */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    padding: 20px; /* Padding inside the card */
+    margin: 20px; /* Space between cards */
+    transition: transform 0.2s, box-shadow 0.2s; /* Smooth transform on hover */
+    max-width: 300px; /* Fixed width for consistency */
+    text-align: center; /* Center text */
+  }
+  
+  .farm-card:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+  }
+  
+  .farm-card h2 {
+    color: #2c3e50; /* Dark blue color for the title */
+    font-size: 1.5rem; /* Title font size */
+    margin-bottom: 10px; /* Space below the title */
+  }
+  
+  .farm-card p {
+    color: #555; /* Dark gray for text */
+    margin: 5px 0; /* Space between paragraphs */
+    line-height: 1.5; /* Improved line height for readability */
+  }
+  
+  .farm-card a {
+    display: inline-block; /* Make the link block-level for padding */
+    margin-top: 15px; /* Space above the link */
+    color: #3498db; /* Link color */
+    text-decoration: none; /* Remove underline */
+    font-weight: bold; /* Bold text */
+    border: 2px solid #3498db; /* Border to match link color */
+    border-radius: 5px; /* Rounded corners for the button */
+    padding: 10px 20px; /* Padding inside the link */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover */
+  }
+  
+  .farm-card a:hover {
+    background-color: #3498db; /* Background color on hover */
+    color: white; /* Change text color on hover */
+  }
+  

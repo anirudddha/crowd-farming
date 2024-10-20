@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import FarmCard from '../components/FarmCard';
+import '../styles/FarmListings.css'; // Import the CSS file
 
 const FarmListings = () => {
   const [farms, setFarms] = useState([]);
@@ -23,12 +24,16 @@ const FarmListings = () => {
   }, []);
 
   return (
-    <div>
+    <div className="farm-listings">
       <h2>Farm Listings</h2>
       {loading ? (
         <p>Loading...</p>
       ) : farms.length > 0 ? (
-        farms.map((farm) => <FarmCard key={farm._id} farm={farm} />)
+        <div className="farms-grid">
+          {farms.map((farm) => (
+            <FarmCard key={farm._id} farm={farm} />
+          ))}
+        </div>
       ) : (
         <p>No farms available.</p>
       )}

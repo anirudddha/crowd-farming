@@ -1,67 +1,95 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import '../styles/CreateCampaign.css'; // Import the CSS file
 
 const CreateCampaign = () => {
+  // State to manage form data
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     targetAmount: '',
-    raisedAmount: '', // Add raisedAmount to state
+    raisedAmount: '',
     location: '',
   });
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  // Handle form input changes
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  // Handle form submission
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent page refresh on form submission
 
-    // Make sure to send all required fields, including raisedAmount
-    axios.post('http://localhost:5000/api/campaigns', formData)
-      .then((response) => {
-        alert('Campaign created!');
-        setFormData({ name: '', description: '', targetAmount: '', raisedAmount: '', location: '' }); // Reset form
+    // Send a POST request to the backend with the form data
+    axios
+      .post('http://localhost:5000/api/campaigns', formData)
+      .then(() => {
+        alert('Campaign created!'); // Alert user on success
+        // Reset the form after successful submission
+        setFormData({
+          name: '',
+          description: '',
+          targetAmount: '',
+          raisedAmount: '',
+          location: '',
+        });
       })
-      .catch((error) => console.error('Error creating campaign:', error));
+      .catch((error) => console.error('Error creating campaign:', error)); // Log any errors
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        name="name"
-        placeholder="Name"
-        value={formData.name}
-        onChange={handleChange}
-      />
-      <textarea
-        name="description"
-        placeholder="Description"
-        value={formData.description}
-        onChange={handleChange}
-      ></textarea>
-      <input
-        type="number"
-        name="targetAmount"
-        placeholder="Target Amount"
-        value={formData.targetAmount}
-        onChange={handleChange}
-      />
-      <input
-        type="number" // Change to number for raisedAmount
-        name="raisedAmount"
-        placeholder="Raised Amount" // Placeholder for raisedAmount
-        value={formData.raisedAmount} // Bind the raisedAmount state
-        onChange={handleChange}
-      />
-      <input
-        type="text"
-        name="location"
-        placeholder="Location"
-        value={formData.location}
-        onChange={handleChange}
-      />
-      <button type="submit">Create Campaign</button>
-    </form>
+    <div className="form-container">
+      <h1>Create Campaign</h1>
+      <form onSubmit={handleSubmit} className="campaign-form">
+        {/* Campaign Name */}
+        <input
+          type="text"
+          name="name"
+          placeholder="Campaign Name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
+        {/* Campaign Description */}
+        <textarea
+          name="description"
+          placeholder="Campaign Description"
+          value={formData.description}
+          onChange={handleChange}
+          required
+        />
+        {/* Target Amount */}
+        <input
+          type="number"
+          name="targetAmount"
+          placeholder="Target Amount"
+          value={formData.targetAmount}
+          onChange={handleChange}
+          required
+        />
+        {/* Raised Amount */}
+        <input
+          type="number"
+          name="raisedAmount"
+          placeholder="Raised Amount"
+          value={formData.raisedAmount}
+          onChange={handleChange}
+        />
+        {/* Location */}
+        <input
+          type="text"
+          name="location"
+          placeholder="Location"
+          value={formData.location}
+          onChange={handleChange}
+          required
+        />
+        {/* Submit Button */}
+        <button type="submit" className="submit-button">
+          Create Campaign
+        </button>
+      </form>
+    </div>
   );
 };
 

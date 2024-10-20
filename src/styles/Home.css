@@ -1,0 +1,93 @@
+/* Resetting body margin and setting a background color */
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9; /* Light background for contrast */
+  }
+  
+  /* Main container for the Home page */
+  .home-container {
+    padding: 2rem;
+    max-width: auto; /* Limit width for readability */
+    margin: auto; /* Center align */
+    text-align: center; /* Center text */
+    background-color: #fff; /* White background for content */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  }
+  
+  /* Styling the main heading */
+  .home-container h2 {
+    color: #4caf50; /* Green color for emphasis */
+    margin-bottom: 1rem;
+  }
+  
+  /* Styling the paragraph */
+  .home-container p {
+    color: #555; /* Darker gray for text */
+    margin-bottom: 2rem; /* Spacing below paragraph */
+  }
+  
+  /* Features section */
+  .features {
+    display: flex; /* Flex layout for feature items */
+    justify-content: space-around; /* Space out items evenly */
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+    margin-bottom: 2rem; /* Space below features */
+  }
+  
+  /* Individual feature styling */
+  .feature {
+    background-color: #e8f5e9; /* Light green background */
+    border: 1px solid #c8e6c9; /* Light green border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 1rem;
+    flex: 1; /* Grow to fill space */
+    margin: 0.5rem; /* Margin between features */
+    min-width: 200px; /* Minimum width for responsive design */
+  }
+  
+  /* Feature heading styling */
+  .feature h3 {
+    color: #388e3c; /* Darker green for headings */
+  }
+  
+  /* Call to Action section */
+  .call-to-action {
+    margin-top: 2rem; /* Space above CTA */
+  }
+  
+  /* CTA button styling */
+  .cta-button {
+    background-color: #4caf50; /* Green background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    padding: 12px 20px; /* Padding for button */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 1rem; /* Font size */
+    transition: background-color 0.3s; /* Smooth transition */
+  }
+  
+  /* Hover effect for CTA button */
+  .cta-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .features {
+      flex-direction: column; /* Stack features on smaller screens */
+      align-items: center; /* Center align items */
+    }
+  
+    .feature {
+      width: 100%; /* Full width on small screens */
+      margin: 0.5rem 0; /* Margin above and below */
+    }
+  
+    .cta-button {
+      width: 100%; /* Full width for the button */
+    }
+  }
+  
