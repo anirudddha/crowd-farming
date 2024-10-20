@@ -1,0 +1,53 @@
+/* Container for the campaign details */
+.campaign-details-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Campaign Card Styling */
+  .campaign-details-card {
+    padding: 20px;
+  }
+  
+  .campaign-details-card h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  .campaign-details-card p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+  }
+  
+  /* Campaign Info Section */
+  .campaign-info p {
+    font-size: 18px;
+    margin: 5px 0;
+    color: #444;
+  }
+  
+  /* Invest Button */
+  .invest-button {
+    display: block;
+    margin: 20px 0;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .invest-button:hover {
+    background-color: #218838;
+  }
+  

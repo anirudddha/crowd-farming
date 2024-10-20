@@ -11,6 +11,7 @@ const auth = (req, res, next) => {
   }
 
   // Extract the token by removing 'Bearer ' prefix
+//   const token = authHeader;
   const token = authHeader.split(' ')[1];
   console.log('Extracted Token:', token);
 

@@ -14,6 +14,16 @@ exports.getCampaigns = async (req, res) => {
   }
 };
 
+exports.getCampaignsById = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
+    res.json(campaign);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Create a new campaign
 exports.createCampaign = async (req, res) => {
   const { name, description, targetAmount, raisedAmount, location } = req.body;
