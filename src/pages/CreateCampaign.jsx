@@ -19,10 +19,17 @@ const CreateCampaign = () => {
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault(); // Prevent page refresh on form submission
-
-    // Send a POST request to the backend with the form data
-    axios
-      .post('http://localhost:5000/api/campaigns', formData)
+  
+    axios.post(
+      'http://localhost:5000/api/campaigns', 
+      formData, // First argument: Data to be sent
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}` // Attach token in the header
+        },
+      }
+    )
       .then(() => {
         alert('Campaign created!'); // Alert user on success
         // Reset the form after successful submission
@@ -36,6 +43,7 @@ const CreateCampaign = () => {
       })
       .catch((error) => console.error('Error creating campaign:', error)); // Log any errors
   };
+  
 
   return (
     <div className="form-container">

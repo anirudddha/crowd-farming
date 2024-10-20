@@ -1,4 +1,7 @@
 const Campaign = require('../models/Campaign');
+const express = require('express');
+const app = express();
+app.use(express.json());
 
 // Get all campaigns
 exports.getCampaigns = async (req, res) => {
@@ -14,7 +17,9 @@ exports.getCampaigns = async (req, res) => {
 // Create a new campaign
 exports.createCampaign = async (req, res) => {
   const { name, description, targetAmount, raisedAmount, location } = req.body;
-  
+ // Extract the user ID from the authenticated user
+  const userId = req.user; // Use optional chaining to avoid TypeError
+  // console.log(req.user);
   try {
     const newCampaign = new Campaign({
       name,
@@ -22,6 +27,7 @@ exports.createCampaign = async (req, res) => {
       targetAmount,
       raisedAmount,
       location,
+      userId, // Add userId to the campaign
     });
 
     const campaign = await newCampaign.save();
@@ -31,6 +37,7 @@ exports.createCampaign = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
 
 // Update an existing campaign
 exports.updateCampaign = async (req, res) => {
