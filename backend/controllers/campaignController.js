@@ -24,6 +24,35 @@ exports.getCampaignsById = async (req, res) => {
   }
 };
 
+exports.invest = async (req, res) => {
+  const { amount, userId } = req.body; // Extract investment amount and user ID from request
+
+  try {
+    // Update the campaign's raisedAmount atomically
+    const campaign = await Campaign.findByIdAndUpdate(
+      userId, // Campaign ID from route params
+      { $inc: { raisedAmount: amount } }, // Increment raisedAmount
+      { new: true } // Return the updated document
+    );
+
+    if (!campaign) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    // Track the investment in the user's investments array
+    // await User.findByIdAndUpdate(
+    //   userId,
+    //   { $push: { investments: { campaignId: campaign._id, amount } } }, // Add investment entry
+    //   { new: true } // Return the updated document
+    // );
+
+    res.json({ message: 'Investment successful!', campaign });
+  } catch (error) {
+    console.error('Investment error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Create a new campaign
 exports.createCampaign = async (req, res) => {
   const { name, description, targetAmount, raisedAmount, location } = req.body;

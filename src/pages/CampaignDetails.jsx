@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/CampaignDetails.css'; // Import CSS file
+import '../styles/CampaignDetails.css';
 
 const CampaignDetails = () => {
-  const { id } = useParams(); // Get campaign ID from URL params
+  const { id } = useParams(); // Get campaign ID from URL
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [investmentAmount, setInvestmentAmount] = useState(''); // Track investment input
 
-  // Fetch campaign details when component mounts
+  // Fetch campaign details
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       try {
-        console.log(id);
         const response = await axios.get(`http://localhost:5000/api/campaigns/${id}`);
-        console.log(response);
         setCampaign(response.data);
       } catch (error) {
         console.error('Error fetching campaign details:', error);
@@ -26,10 +25,21 @@ const CampaignDetails = () => {
     fetchCampaignDetails();
   }, [id]);
 
-  // Handle Invest button click
-  const handleInvest = () => {
-    alert('Thank you for your investment!');
-    // Here you can implement investment logic (e.g., open a payment page)
+  // Handle investment submission
+  const handleInvest = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
+        amount: parseFloat(investmentAmount), // Convert input to number
+        userId: id,
+      });
+      alert('Investment successful!');
+      setCampaign(response.data.campaign); // Update campaign with new raisedAmount
+      setInvestmentAmount(''); // Reset input field
+    } catch (error) {
+      console.error('Error investing:', error);
+      alert('Investment failed!');
+    }
   };
 
   return (
@@ -45,7 +55,18 @@ const CampaignDetails = () => {
             <p><strong>Raised Amount:</strong> ${campaign.raisedAmount}</p>
             <p><strong>Location:</strong> {campaign.location}</p>
           </div>
-          <button className="invest-button" onClick={handleInvest}>Invest Now</button>
+
+          {/* Investment Form */}
+          <form onSubmit={handleInvest} className="investment-form">
+            <input
+              type="number"
+              placeholder="Enter amount to invest"
+              value={investmentAmount}
+              onChange={(e) => setInvestmentAmount(e.target.value)}
+              required
+            />
+            <button type="submit" className="invest-button">Invest Now</button>
+          </form>
         </div>
       ) : (
         <p>Campaign not found.</p>

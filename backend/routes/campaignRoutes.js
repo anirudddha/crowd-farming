@@ -5,7 +5,8 @@ const {
   createCampaign,
   updateCampaign,
   deleteCampaign,
-  getCampaignsById
+  getCampaignsById,
+  invest,
 } = require('../controllers/campaignController');
 
 const auth = require('../middleware/userAuth');
@@ -15,6 +16,9 @@ router.get('/', getCampaigns);
 
 // GET campaign by id
 router.get('/:id',getCampaignsById);
+
+//Invest amount
+router.put('/:id/raisedAmount',invest);
 
 // POST a new campaign
 router.post('/', auth, createCampaign); // Ensure auth middleware is used here
