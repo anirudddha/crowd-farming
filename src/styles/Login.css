@@ -1,145 +1,80 @@
-/* General body styling */
+/* Resetting body margin and setting a background color */
 body {
   margin: 0;
-  font-family: 'Poppins', sans-serif; /* Modern, clean font */
-  background-color: #f8f9fa; /* Soft background */
-  color: #343a40;
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f0f0;
 }
 
-/* Container for the profile page */
-.profile-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Profile title styling */
-.profile-title {
-  font-size: 2.5rem;
-  color: #007bff;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-/* Subtitle under profile title */
-.profile-subtitle {
-  font-size: 1.2rem;
-  color: #6c757d;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-/* Campaign and investment section headings */
-.campaign-heading,
-.investment-heading {
-  font-size: 2rem;
-  color: #343a40;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid #e9ecef;
-  padding-bottom: 0.5rem;
-}
-
-/* Campaign and investment lists */
-.campaign-list, 
-.investment-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
-  gap: 2rem;
-  list-style: none;
-  padding: 0;
-}
-
-/* Campaign and investment cards */
-.campaign-card,
-.investment-card {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  position: relative;
-}
-
-.campaign-card:hover,
-.investment-card:hover {
-  transform: translateY(-5px); /* Subtle lift effect on hover */
-}
-
-.campaign-name,
-.investment-farm {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #007bff;
-  margin-bottom: 0.75rem;
-}
-
-/* Campaign and investment description */
-.campaign-description,
-.investment-amount,
-.investment-date {
-  font-size: 1rem;
-  color: #6c757d;
-  margin-bottom: 0.5rem;
-}
-
-.campaign-details,
-.investment-details {
+/* Centering the form container */
+.login-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  justify-content: center;
+  min-height: 100vh; /* Full-page height */
+  background-color: #fff;
+  padding: 2rem;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
-.campaign-details span,
-.investment-details span {
-  font-size: 0.9rem;
-  color: #495057;
+/* Styling the heading */
+.login-title {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 2rem;
 }
 
-/* Special highlight for investment amount */
-.investment-amount {
-  font-weight: 600;
-  color: #28a745; /* Green for positive financials */
+/* Styling the form */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px; /* Limiting form width */
 }
 
-/* No campaigns or investments text */
-.no-campaigns,
-.no-investments {
-  font-size: 1.1rem;
-  color: #6c757d;
-  text-align: center;
-  margin-top: 1.5rem;
+/* Styling input fields */
+.login-form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fafafa;
+  font-size: 1rem;
 }
 
-/* Button Styling */
-.button-primary {
-  background-color: #007bff;
+/* Adding focus effect on input fields */
+.login-form input:focus {
+  outline: none;
+  border-color: #007bff; /* Blue border on focus */
+  background-color: #fff; /* Lighter background on focus */
+}
+
+/* Styling the submit button */
+.login-form button {
+  background-color: #4caf50;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  transition: background-color 0.3s;
 }
 
-.button-primary:hover {
+/* Hover effect on the submit button */
+.login-form button:hover {
   background-color: #0056b3;
 }
 
-/* Responsive Design for smaller screens */
+/* Small screens adjustments */
 @media (max-width: 600px) {
-  .profile-title {
-      font-size: 2rem;
-  }
-  
-  .profile-container {
+  .login-container {
       padding: 1rem;
   }
-  
-  .campaign-name, 
-  .investment-farm {
-      font-size: 1.2rem;
+
+  .login-form input,
+  .login-form button {
+      font-size: 0.9rem;
   }
 }

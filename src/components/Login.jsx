@@ -30,6 +30,7 @@ const Login = () => {
       <h1>Login</h1>
       <form onSubmit={handleLogin} className="login-form">
         <input
+          style={{ width: "auto" }}
           type="email"
           placeholder="Email"
           value={email}
@@ -37,6 +38,7 @@ const Login = () => {
           required
         />
         <input
+          style={{ width: "auto" }}
           type="password"
           placeholder="Password"
           value={password}
