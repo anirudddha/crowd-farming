@@ -10,8 +10,7 @@ const FarmListings = () => {
   useEffect(() => {
     const fetchFarms = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/campaigns'); // Adjust URL if needed
-        console.log('Fetched data:', response.data);
+        const response = await axios.get('http://localhost:5000/api/campaigns');
         setFarms(response.data);
       } catch (error) {
         console.error('Error fetching campaigns:', error);
@@ -25,7 +24,7 @@ const FarmListings = () => {
 
   return (
     <div className="farm-listings">
-      <h2>Farm Listings</h2>
+      <h2>Explore Our Farms</h2>
       {loading ? (
         <p>Loading...</p>
       ) : farms.length > 0 ? (

@@ -3,14 +3,27 @@ import { Link } from 'react-router-dom';
 import '../styles/FarmCard.css'; // Import the CSS file
 
 const FarmCard = ({ farm }) => {
+  // Use a placeholder image if no image is available
+  const placeholderImage = 'https://images.pexels.com/photos/96715/pexels-photo-96715.jpeg?cs=srgb&dl=pexels-alejandro-barron-21404-96715.jpg&fm=jpg';
+
   return (
     <div className="farm-card">
-      <h2>{farm.name}</h2>
-      <p>{farm.description}</p>
-      <p><strong>Target Amount:</strong> ${farm.targetAmount}</p>
-      <p><strong>Raised Amount:</strong> ${farm.raisedAmount}</p>
-      <p><strong>Location:</strong> {farm.location}</p>
-      <Link to={`/campaign/${farm._id}`}>View Campaign</Link>
+      <img 
+        src={farm.image || placeholderImage} 
+        alt={farm.name} 
+        className="farm-image" 
+      />
+      <div className="farm-content">
+        <h3 className="farm-name">{farm.name}</h3>
+        <p className="farm-description">{farm.description || 'No description available.'}</p>
+        <div className="farm-details">
+          <span className="farm-location">📍 {farm.location}</span>
+          <span className="farm-target">🎯 Target: ${farm.targetAmount}</span>
+        </div>
+        <Link to={`/campaign/${farm._id}`} className="view-details-button">
+          View Details
+        </Link>
+      </div>
     </div>
   );
 };

@@ -1,48 +1,73 @@
-/* FarmCard.css */
-
 .farm-card {
-    background-color: #ffffff; /* White background for the card */
-    border: 1px solid #e0e0e0; /* Light gray border */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    padding: 20px; /* Padding inside the card */
-    margin: 20px; /* Space between cards */
-    transition: transform 0.2s, box-shadow 0.2s; /* Smooth transform on hover */
-    max-width: 300px; /* Fixed width for consistency */
-    text-align: center; /* Center text */
-  }
-  
-  .farm-card:hover {
-    transform: translateY(-5px); /* Lift effect on hover */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
-  }
-  
-  .farm-card h2 {
-    color: #2c3e50; /* Dark blue color for the title */
-    font-size: 1.5rem; /* Title font size */
-    margin-bottom: 10px; /* Space below the title */
-  }
-  
-  .farm-card p {
-    color: #555; /* Dark gray for text */
-    margin: 5px 0; /* Space between paragraphs */
-    line-height: 1.5; /* Improved line height for readability */
-  }
-  
-  .farm-card a {
-    display: inline-block; /* Make the link block-level for padding */
-    margin-top: 15px; /* Space above the link */
-    color: #3498db; /* Link color */
-    text-decoration: none; /* Remove underline */
-    font-weight: bold; /* Bold text */
-    border: 2px solid #3498db; /* Border to match link color */
-    border-radius: 5px; /* Rounded corners for the button */
-    padding: 10px 20px; /* Padding inside the link */
-    transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover */
-  }
-  
-  .farm-card a:hover {
-    background-color: #3498db; /* Background color on hover */
-    color: white; /* Change text color on hover */
-  }
-  
+  background-color: #ffffff; /* White background for the card */
+  border-radius: 15px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.farm-card:hover {
+  transform: translateY(-5px); /* Lift effect on hover */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+}
+
+.farm-image {
+  width: 100%; /* Full width */
+  height: 180px; /* Fixed height */
+  object-fit: cover; /* Maintain aspect ratio */
+}
+
+.farm-content {
+  padding: 15px; /* Padding inside the content area */
+}
+
+.farm-name {
+  font-size: 1.5rem; /* Title font size */
+  font-weight: bold; /* Bold title */
+  color: #2c3e50; /* Dark blue color for title */
+  text-align: center; /* Center title */
+  margin: 10px 0; /* Space above and below the title */
+}
+
+.farm-description {
+  font-size: 0.95rem; /* Description font size */
+  color: #7f8c8d; /* Dark gray for text */
+  margin-bottom: 10px; /* Space below description */
+  height: 50px; /* Fixed height to prevent overflow */
+  overflow: hidden; /* Hide overflow */
+  text-overflow: ellipsis; /* Add ellipsis for overflow */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.farm-details {
+  display: flex;
+  justify-content: space-between; /* Space between details */
+  align-items: center; /* Center items vertically */
+  margin-top: auto; /* Push down to the bottom */
+}
+
+.farm-location, .farm-target {
+  font-size: 0.9rem; /* Details font size */
+  color: #34495e; /* Dark gray for text */
+  font-weight: bold; /* Bold text */
+}
+
+.view-details-button {
+  display: block; /* Block display for full width */
+  text-align: center; /* Center text */
+  background-color: #339b32; /* Green background */
+  color: white; /* White text */
+  padding: 10px; /* Padding inside button */
+  border-radius: 10px; /* Rounded corners */
+  font-size: 1rem; /* Font size for button */
+  font-weight: bold; /* Bold button text */
+  margin-top: 15px; /* Space above the button */
+  text-decoration: none; /* Remove underline */
+  transition: background-color 0.3s ease; /* Smooth background transition */
+}
+
+.view-details-button:hover {
+  background-color: #16a085; /* Darker green on hover */
+}
