@@ -26,21 +26,34 @@ const CampaignDetails = () => {
   }, [id]);
 
   // Handle investment submission
-  const handleInvest = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
-        amount: parseFloat(investmentAmount), // Convert input to number
-        userId: id,
-      });
-      alert('Investment successful!');
-      setCampaign(response.data.campaign); // Update campaign with new raisedAmount
-      setInvestmentAmount(''); // Reset input field
-    } catch (error) {
-      console.error('Error investing:', error);
-      alert('Investment failed!');
-    }
-  };
+  // Handle investment submission
+const handleInvest = async (e) => {
+  e.preventDefault();
+  try {
+    // First API call to update raised amount
+    const response = await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
+      amount: parseFloat(investmentAmount),
+      userId: id, // Assuming you're passing the userId
+    });
+
+    // Second API call to store the investment details
+    await axios.post(
+      `http://localhost:5000/api/campaigns/${id}/investment`,
+      { amount: parseFloat(investmentAmount) }, 
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, // Token for authentication
+      }
+    );
+
+    alert('Investment successful!');
+    setCampaign(response.data.campaign); // Update campaign with new raisedAmount
+    setInvestmentAmount(''); // Reset input field
+  } catch (error) {
+    console.error('Error investing:', error);
+    alert('Investment failed!');
+  }
+};
+
 
   return (
     <div className="campaign-details-container">

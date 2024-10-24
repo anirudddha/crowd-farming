@@ -7,6 +7,7 @@ const {
   deleteCampaign,
   getCampaignsById,
   invest,
+  storeInvestment,
 } = require('../controllers/campaignController');
 
 const auth = require('../middleware/userAuth');
@@ -28,5 +29,9 @@ router.put('/:id', updateCampaign);
 
 // DELETE a campaign
 router.delete('/:id', deleteCampaign);
+
+// Store investment details
+router.post('/:id/investment', auth, storeInvestment);
+
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const Campaign = require('../models/Campaign');
+const Investment = require('../models/Investment');
 const express = require('express');
 const app = express();
 app.use(express.json());
@@ -118,3 +119,28 @@ exports.deleteCampaign = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+// Store investment details
+exports.storeInvestment = async (req, res) => {
+  const { amount } = req.body;
+  const userId = req.user; // Retrieved from JWT middleware
+  const campaignId = req.params.id;
+
+  try {
+    // Create a new investment record
+    const investment = new Investment({
+      userId,
+      campaignId,
+      amount,
+    });
+
+    // Save investment to the database
+    await investment.save();
+
+    res.json({ msg: 'Investment saved successfully', investment });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Error saving investment details' });
+  }
+};
+
