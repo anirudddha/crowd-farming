@@ -127,10 +127,17 @@ exports.storeInvestment = async (req, res) => {
   const campaignId = req.params.id;
 
   try {
-    // Create a new investment record
+    // Fetch the campaign details to get the farm (campaign) name
+    const campaign = await Campaign.findById(campaignId);
+    if (!campaign) {
+      return res.status(404).json({ msg: 'Campaign not found' });
+    }
+
+    // Create a new investment record with farm name
     const investment = new Investment({
       userId,
       campaignId,
+      farmName: campaign.name, // Store the campaign (farm) name
       amount,
     });
 
@@ -143,4 +150,3 @@ exports.storeInvestment = async (req, res) => {
     res.status(500).json({ msg: 'Error saving investment details' });
   }
 };
-

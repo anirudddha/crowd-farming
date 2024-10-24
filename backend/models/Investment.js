@@ -11,13 +11,17 @@ const investmentSchema = new mongoose.Schema({
     ref: 'Campaign', // Assuming you have a Campaign model
     required: true,
   },
+  farmName: {
+    type: String,
+    required: true, // Store the farm name
+  },
   amount: {
     type: Number,
     required: true,
   },
   date: {
     type: Date,
-    default: Date.now, // Automatically store the date of investment
+    default: Date.now,
   },
 });
 
