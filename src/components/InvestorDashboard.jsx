@@ -1,48 +1,70 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import '../styles/Dashboard.css'; // Reuse same CSS for campaigns and investments
 
 const InvestorDashboard = () => {
+  const [campaigns, setCampaigns] = useState([]);
   const [investments, setInvestments] = useState([]);
-  const [totalInvested, setTotalInvested] = useState(0);
 
   useEffect(() => {
-    // Simulate API call to fetch investment data
-    const fetchedInvestments = [
-      { id: 1, campaign: 'Green Valley Farm', amount: 500, progress: '50%' },
-      { id: 2, campaign: 'Sunny Meadows', amount: 1000, progress: '30%' },
-    ];
+    const fetchCampaignsAndInvestments = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/user-campaigns', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        setCampaigns(response.data.campaigns);
+        setInvestments(response.data.investments);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
 
-    setInvestments(fetchedInvestments);
-    calculateTotalInvestment(fetchedInvestments);
+    fetchCampaignsAndInvestments();
   }, []);
 
-  const calculateTotalInvestment = (data) => {
-    const total = data.reduce((acc, investment) => acc + investment.amount, 0);
-    setTotalInvested(total);
-  };
-
   return (
-    <div>
-      <h2>Investor Dashboard</h2>
-      <p>Total Invested: ${totalInvested}</p>
+    <div className="dashboard-container">
+      <h2 className="dashboard-title">Investor Dashboard</h2>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Campaign</th>
-            <th>Invested Amount</th>
-            <th>Progress</th>
-          </tr>
-        </thead>
-        <tbody>
-          {investments.map((investment) => (
-            <tr key={investment.id}>
-              <td>{investment.campaign}</td>
-              <td>${investment.amount}</td>
-              <td>{investment.progress}</td>
-            </tr>
+      {/* Campaigns Section */}
+      <h3 className="campaign-heading">Your Campaigns:</h3>
+      {campaigns.length > 0 ? (
+        <ul className="campaign-list">
+          {campaigns.map((campaign) => (
+            <li key={campaign._id} className="campaign-card">
+              <h4 className="campaign-name">{campaign.name}</h4>
+              <p className="campaign-description">{campaign.description}</p>
+              <div className="campaign-details">
+                <span>🎯 Target: ${campaign.targetAmount}</span>
+                <span>💰 Raised: ${campaign.raisedAmount}</span>
+                <span>📍 Location: {campaign.location}</span>
+              </div>
+            </li>
           ))}
-        </tbody>
-      </table>
+        </ul>
+      ) : (
+        <p className="no-campaigns">No campaigns found.</p>
+      )}
+
+      {/* Investments Section */}
+      <h3 className="investment-heading">Your Investments:</h3>
+      {investments.length > 0 ? (
+        <ul className="investment-list">
+          {investments.map((investment) => (
+            <li key={investment._id} className="investment-card">
+              <h4 className="investment-farm">Farm: {investment.campaignId.name}</h4>
+              <div className="investment-details">
+                <span className="investment-amount">Amount: ${investment.amount}</span>
+                <span className="investment-date">Date: {new Date(investment.date).toLocaleDateString()}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-investments">No investments found.</p>
+      )}
     </div>
   );
 };
