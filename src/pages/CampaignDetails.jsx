@@ -26,43 +26,41 @@ const CampaignDetails = () => {
   }, [id]);
 
   // Handle investment submission
-  // Handle investment submission
-const handleInvest = async (e) => {
-  e.preventDefault();
-  try {
-    // First API call to update raised amount
-    const response = await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
-      amount: parseFloat(investmentAmount),
-      userId: id, // Assuming you're passing the userId
-    });
+  const handleInvest = async (e) => {
+    e.preventDefault();
+    try {
+      // First API call to update raised amount
+      const response = await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
+        amount: parseFloat(investmentAmount),
+        userId: id, // Assuming you're passing the userId
+      });
 
-    // Second API call to store the investment details
-    await axios.post(
-      `http://localhost:5000/api/campaigns/${id}/investment`,
-      { amount: parseFloat(investmentAmount) }, 
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, // Token for authentication
-      }
-    );
+      // Second API call to store the investment details
+      await axios.post(
+        `http://localhost:5000/api/campaigns/${id}/investment`,
+        { amount: parseFloat(investmentAmount) }, 
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, // Token for authentication
+        }
+      );
 
-    alert('Investment successful!');
-    setCampaign(response.data.campaign); // Update campaign with new raisedAmount
-    setInvestmentAmount(''); // Reset input field
-  } catch (error) {
-    console.error('Error investing:', error);
-    alert('Investment failed!');
-  }
-};
-
+      alert('Investment successful!');
+      setCampaign(response.data.campaign); // Update campaign with new raisedAmount
+      setInvestmentAmount(''); // Reset input field
+    } catch (error) {
+      console.error('Error investing:', error);
+      alert('Investment failed!');
+    }
+  };
 
   return (
     <div className="campaign-details-container">
       {loading ? (
-        <p>Loading...</p>
+        <p className="loading-text">Loading...</p>
       ) : campaign ? (
         <div className="campaign-details-card">
-          <h2>{campaign.name}</h2>
-          <p>{campaign.description}</p>
+          <h2 className="campaign-title">{campaign.name}</h2>
+          <p className="campaign-description">{campaign.description}</p>
           <div className="campaign-info">
             <p><strong>Target Amount:</strong> ${campaign.targetAmount}</p>
             <p><strong>Raised Amount:</strong> ${campaign.raisedAmount}</p>
@@ -82,7 +80,7 @@ const handleInvest = async (e) => {
           </form>
         </div>
       ) : (
-        <p>Campaign not found.</p>
+        <p className="error-text">Campaign not found.</p>
       )}
     </div>
   );
