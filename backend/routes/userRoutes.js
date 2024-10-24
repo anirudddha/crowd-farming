@@ -1,37 +1,113 @@
-    const express = require('express');
-    // const { createUser } = require('../controllers/userController');
-    const User = require('../models/User');
-    const router = express.Router();
-    const Campaign = require('../models/Campaign'); // Assuming you have a Campaign model
-    const auth = require('../middleware/userAuth'); // Middleware to verify token
-    const Investment = require('../models/Investment'); // Import Investment model
+const express = require('express');
+// const { createUser } = require('../controllers/userController');
+const User = require('../models/User');
+const router = express.Router();
+const Campaign = require('../models/Campaign'); // Assuming you have a Campaign model
+const auth = require('../middleware/userAuth'); // Middleware to verify token
+const Investment = require('../models/Investment'); // Import Investment model
 
 
-    // router.post('/', createUser);
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-    // Route to get campaigns by logged-in user
-    router.get('/user-campaigns', auth, async (req, res) => {
-        try {
-            const campaigns = await Campaign.find({ userId: req.user }); // Fetch campaigns by user ID
+// router.post('/', createUser);
 
-            const investments = await Investment.find({ userId: req.user }).populate('campaignId', 'name'); // Populate campaign name
+// Route to get campaigns by logged-in user
+router.get('/user-campaigns', auth, async (req, res) => {
+    try {
+        const campaigns = await Campaign.find({ userId: req.user }); // Fetch campaigns by user ID
 
-            res.json({campaigns,investments});
-        } catch (error) {
-            res.status(500).json({ msg: 'Server error' });
+        const investments = await Investment.find({ userId: req.user }).populate('campaignId', 'name'); // Populate campaign name
+
+        res.json({ campaigns, investments });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+router.get('/user-profile', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user); // Select only relevant fields
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
         }
-    });
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
 
-    router.get('/user-profile', auth, async (req, res) => {
-        try {
-            const user = await User.findById(req.user).select('name email username'); // Select only relevant fields
-            if (!user) {
-                return res.status(404).json({ msg: 'User not found' });
+
+// for profile picture 
+
+// Set up storage for Multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads');
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath);
+        }
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${req.user}_${Date.now()}${path.extname(file.originalname)}`); // unique filename
+    },
+});
+
+// Multer middleware
+const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only images are allowed!'));
+        }
+    },
+});
+
+// Route to upload profile picture
+router.post('/upload-profile-picture', auth, upload.single('profilePicture'), async (req, res) => {
+    try {
+        const user = await User.findById(req.user);
+
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        // Delete the old profile picture if it exists
+        if (user.profilePicture) {
+            const oldPath = path.join(__dirname, '../uploads', user.profilePicture);
+            if (fs.existsSync(oldPath)) {
+                fs.unlinkSync(oldPath);
             }
-            res.json(user);
-        } catch (error) {
-            res.status(500).json({ msg: 'Server error' });
         }
-    });
 
-    module.exports = router;
+        // Save new profile picture path to user model
+        user.profilePicture = req.file.filename;
+        await user.save();
+
+        res.json({ msg: 'Profile picture uploaded successfully!', profilePicture: user.profilePicture });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// Route to get the profile picture URL
+router.get('/profile-picture/:filename', (req, res) => {
+    const filepath = path.join(__dirname, '../uploads', req.params.filename);
+    if (fs.existsSync(filepath)) {
+        res.sendFile(filepath);
+    } else {
+        res.status(404).json({ msg: 'File not found' });
+    }
+});
+
+
+module.exports = router;
