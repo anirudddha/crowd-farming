@@ -4,16 +4,28 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// Get all campaigns
 exports.getCampaigns = async (req, res) => {
+  const { page = 1, limit = 12, location, cropType, farmingMethod, projectNeeds, expectedReturns } = req.query;
+
+  const query = {};
+  if (location) query.location = location;
+  if (cropType) query.cropType = cropType; // Make sure your Campaign model has this field
+  if (farmingMethod) query.farmingMethod = farmingMethod; // Make sure your Campaign model has this field
+  if (projectNeeds) query.projectNeeds = projectNeeds; // Make sure your Campaign model has this field
+  if (expectedReturns) query.expectedReturns = expectedReturns; // Make sure your Campaign model has this field
+
   try {
-    const campaigns = await Campaign.find();
+    const campaigns = await Campaign.find(query)
+      .limit(Number(limit))
+      .skip((Number(page) - 1) * Number(limit));
+
     res.json(campaigns);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 };
+
 
 exports.getCampaignsById = async (req, res) => {
   try {
@@ -24,6 +36,7 @@ exports.getCampaignsById = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 exports.invest = async (req, res) => {
   const { amount, userId } = req.body; // Extract investment amount and user ID from request
