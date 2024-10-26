@@ -1,0 +1,151 @@
+/* Container styling */
+.how-it-works-container {
+    padding: 3rem;
+    background-color: #f9f9f9;
+    color: #333;
+    text-align: center;
+  }
+  
+  /* Heading styling */
+  .how-it-works-container h2 {
+    color: #4CAF50;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Intro text styling */
+  .intro-text {
+    color: #666;
+    margin-bottom: 3rem;
+    font-size: 1.1rem;
+  }
+  
+  /* Step container styling */
+  .steps-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .step {
+    flex: 1;
+    margin: 0 1rem;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .step:hover {
+    transform: scale(1.05);
+  }
+  
+  .step-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #4CAF50;
+  }
+  
+  .step h3 {
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .step p {
+    color: #777;
+  }
+  
+  /* Investor benefits grid */
+  .investor-benefits {
+    margin-top: 4rem;
+  }
+  
+  .benefits-grid {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .benefit-item {
+    flex: 1;
+    margin: 0.5rem;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    text-align: center;
+  }
+  
+  .benefit-icon {
+    font-size: 2.5rem;
+    color: #4CAF50;
+    margin-bottom: 1rem;
+  }
+  
+  /* FAQ Section */
+  .faq-section {
+    margin-top: 4rem;
+  }
+  
+  .faq-item {
+    background-color: #fff;
+    padding: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .faq-item:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .faq-question {
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .faq-answer {
+    margin-top: 0.5rem;
+    color: #555;
+    font-size: 0.9rem;
+  }
+  
+  /* Call to Action */
+  .cta-section {
+    margin-top: 4rem;
+    background-color: #4CAF50;
+    padding: 2rem;
+    border-radius: 10px;
+    color: white;
+  }
+  
+  .cta-button {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 1rem 2rem;
+    background-color: white;
+    color: #4CAF50;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #e8e8e8;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .steps-container, .benefits-grid {
+      flex-direction: column;
+    }
+  
+    .step, .benefit-item {
+      margin-bottom: 2rem;
+    }
+  }
+  

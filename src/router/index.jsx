@@ -6,6 +6,7 @@ import CampaignDetails from '../pages/CampaignDetails';
 import CreateCampaign from '../pages/CreateCampaign';
 import Profile from '../pages/Profile';
 import InvestorDashboard from '../components/InvestorDashboard';
+import HowItWorks from '../pages/HowItWorks';
 
 import Login from '../components/Login'; // Import Login
 import Signup from '../components/Signup'; // Import Signup
@@ -19,6 +20,7 @@ const AppRoutes = () => {
       <Route path="/campaign/:id" element={<CampaignDetails />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/how-it-works" element={<HowItWorks />} />
       
       {/* Protected Routes */}
       <Route

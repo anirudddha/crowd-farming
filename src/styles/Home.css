@@ -1,93 +1,169 @@
-/* Resetting body margin and setting a background color */
+/* General Reset */
 body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background-color: #f9f9f9; /* Light background for contrast */
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f7f1; /* Soft green background */
+}
+
+/* Wrapper for the entire homepage */
+.homepage-wrapper {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Hero Section */
+.hero-section {
+  background-color: #e8ffe8;
+  padding: 3rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+}
+
+.hero-title {
+  color: #388e3c;
+  font-size: 2.5rem;
+}
+
+.hero-subtitle {
+  color: #555;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.hero-button:hover {
+  background-color: #45a049;
+}
+
+/* Impact Metrics */
+.impact-metrics {
+  margin-bottom: 3rem;
+}
+
+.metrics-grid {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.metric-item {
+  background-color: #e8f5e9;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1rem;
+  flex-basis: 30%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.metric-item h3 {
+  color: #388e3c;
+  font-size: 2rem;
+}
+
+/* Top Farms */
+.top-farms {
+  margin-bottom: 3rem;
+}
+
+.farm-cards {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.farm-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1rem;
+  flex-basis: 30%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.farm-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Testimonials */
+.testimonials {
+  margin-bottom: 3rem;
+}
+
+.testimonial-cards {
+  display: flex;
+  justify-content: space-around;
+}
+
+.testimonial-card {
+  background-color: #e0f7fa;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin: 1rem;
+  flex-basis: 45%;
+}
+
+.author {
+  color: #555;
+  font-style: italic;
+}
+
+/* Newsletter Signup */
+.newsletter-signup {
+  margin-bottom: 3rem;
+}
+
+.signup-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.email-input {
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-right: 1rem;
+}
+
+.signup-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.signup-button:hover {
+  background-color: #45a049;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .metrics-grid, .farm-cards, .testimonial-cards {
+    flex-direction: column;
   }
-  
-  /* Main container for the Home page */
-  .home-container {
-    padding: 2rem;
-    max-width: auto; /* Limit width for readability */
-    margin: auto; /* Center align */
-    text-align: center; /* Center text */
-    background-color: #fff; /* White background for content */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+
+  .metric-item, .farm-card, .testimonial-card {
+    flex-basis: 100%;
   }
-  
-  /* Styling the main heading */
-  .home-container h2 {
-    color: #4caf50; /* Green color for emphasis */
-    margin-bottom: 1rem;
-  }
-  
-  /* Styling the paragraph */
-  .home-container p {
-    color: #555; /* Darker gray for text */
-    margin-bottom: 2rem; /* Spacing below paragraph */
-  }
-  
-  /* Features section */
-  .features {
-    display: flex; /* Flex layout for feature items */
-    justify-content: space-around; /* Space out items evenly */
-    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
-    margin-bottom: 2rem; /* Space below features */
-  }
-  
-  /* Individual feature styling */
-  .feature {
-    background-color: #e8f5e9; /* Light green background */
-    border: 1px solid #c8e6c9; /* Light green border */
-    border-radius: 5px; /* Rounded corners */
-    padding: 1rem;
-    flex: 1; /* Grow to fill space */
-    margin: 0.5rem; /* Margin between features */
-    min-width: 200px; /* Minimum width for responsive design */
-  }
-  
-  /* Feature heading styling */
-  .feature h3 {
-    color: #388e3c; /* Darker green for headings */
-  }
-  
-  /* Call to Action section */
-  .call-to-action {
-    margin-top: 2rem; /* Space above CTA */
-  }
-  
-  /* CTA button styling */
-  .cta-button {
-    background-color: #4caf50; /* Green background */
-    color: white; /* White text */
-    border: none; /* Remove border */
-    padding: 12px 20px; /* Padding for button */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-    font-size: 1rem; /* Font size */
-    transition: background-color 0.3s; /* Smooth transition */
-  }
-  
-  /* Hover effect for CTA button */
-  .cta-button:hover {
-    background-color: #45a049; /* Darker green on hover */
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 600px) {
-    .features {
-      flex-direction: column; /* Stack features on smaller screens */
-      align-items: center; /* Center align items */
-    }
-  
-    .feature {
-      width: 100%; /* Full width on small screens */
-      margin: 0.5rem 0; /* Margin above and below */
-    }
-  
-    .cta-button {
-      width: 100%; /* Full width for the button */
-    }
-  }
-  
+}
