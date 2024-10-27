@@ -74,6 +74,10 @@ const CampaignSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    raisedAmount:{
+      type: Number,
+      required: true,
+    }
   },
   { timestamps: true } // Adds createdAt and updatedAt timestamps
 );

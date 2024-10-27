@@ -1,67 +1,89 @@
 body {
-  background-color: #f0f2f5; /* Light background for the entire page */
+  background-color: #f7f9fc; /* Lighter background for a fresh look */
   font-family: 'Arial', sans-serif; /* Clean sans-serif font */
+  margin: 0; /* Remove default margin */
 }
 
 .campaign-details-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 40px; /* Increased padding for better spacing */
   min-height: 100vh; /* Full height for the container */
 }
 
 .campaign-details-card {
-  background-color: #ffffff; /* White background for the campaign card */
-  padding: 20px;
-  border-radius: 12px; /* Rounded corners */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-  width: 80%; /* Responsive width */
-  max-width: 600px; /* Max width for large screens */
-  text-align: center; /* Center align text */
+  background-color: #157c0966; /* White background for the campaign card */
+  padding: 30px; /* Increased padding */
+  border-radius: 15px; /* Rounded corners */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Softer shadow for depth */
+  width: 90%; /* Responsive width */
+  max-width: 1000px; /* Max width for large screens */
+  text-align: left; /* Left align text for better readability */
+  transition: transform 0.3s ease; /* Smooth hover effect */
+}
+
+.campaign-details-card:hover {
+  transform: translateY(-5px); /* Subtle lift effect on hover */
 }
 
 .campaign-title {
-  font-size: 1.8rem; /* Larger font size for the title */
+  font-size: 2.5rem; /* Larger font size for the title */
   color: #333; /* Dark color for better readability */
-  margin-bottom: 10px; /* Space below the title */
+  margin-bottom: 15px; /* Space below the title */
+  font-weight: bold; /* Bold title */
 }
 
 .campaign-description {
-  font-size: 1.1rem; /* Standard size for description */
+  font-size: 1.2rem; /* Standard size for description */
   color: #666; /* Lighter color for description text */
-  margin-bottom: 20px; /* Space below the description */
+  margin-bottom: 25px; /* Space below the description */
 }
 
-.campaign-info p {
-  margin: 10px 0;
-  font-size: 16px;
-  color: #555; /* Slightly darker color for campaign info */
+.campaign-info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.info-container {
+  flex: 1; /* Each container takes equal space */
+  margin: 10px; /* Space around each info container */
+  padding: 20px; /* Increased padding inside each container */
+  background-color: #f9f9f9; /* Light background for containers */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow */
+}
+
+.info-container h3 {
+  margin-bottom: 10px; /* Space below the heading */
+  font-size: 1.3rem; /* Slightly larger size for section titles */
+  color: #444; /* Dark color for better readability */
 }
 
 .investment-form {
-  margin-top: 20px;
+  margin-top: 30px;
   display: flex;
-  gap: 10px;
+  gap: 15px;
   justify-content: center;
 }
 
-.investment-form input {
-  padding: 12px;
+.investment-input {
+  padding: 15px; /* Increased padding for better usability */
   font-size: 16px;
-  width: 60%; /* Increased width for better usability */
+  width: 70%; /* Increased width for better usability */
   border: 1px solid #ccc; /* Light border */
   border-radius: 5px; /* Rounded corners for input */
   transition: border 0.3s ease; /* Transition for border color */
 }
 
-.investment-form input:focus {
+.investment-input:focus {
   border-color: #007bff; /* Change border color on focus */
   outline: none; /* Remove default outline */
 }
 
 .invest-button {
-  padding: 12px 20px;
+  padding: 15px 25px; /* Increased padding for better usability */
   font-size: 16px;
   background-color: #007bff; /* Primary button color */
   color: white;
@@ -75,8 +97,54 @@ body {
   background-color: #0056b3; /* Darker shade on hover */
 }
 
+.campaign-images {
+  margin: 30px 0; /* Space around the carousel */
+}
+
+.campaign-image {
+  width: 100%; /* Ensure the image takes the full width of the slide */
+  border-radius: 8px; /* Rounded corners for images */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for images */
+}
+
 .loading-text,
 .error-text {
-  font-size: 1.2rem; /* Standard size for loading and error messages */
+  font-size: 1.5rem; /* Standard size for loading and error messages */
   color: #999; /* Gray color for better readability */
+}
+
+/* Carousel button styles */
+.slick-prev,
+.slick-next {
+  width: 50px; /* Increased width of the button */
+  height: 50px; /* Increased height of the button */
+  background-color: rgba(255, 255, 255, 0.8); /* Light background for buttons */
+  border-radius: 50%; /* Circular buttons */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9; /* Less transparency */
+  transition: background-color 0.3s ease, opacity 0.3s ease; /* Smooth transitions */
+  z-index: 1; /* Ensure buttons are on top of images */
+}
+
+.slick-prev:hover,
+.slick-next:hover {
+  background-color: rgba(255, 255, 255, 1); /* Full white on hover */
+  opacity: 1; /* Full opacity on hover */
+}
+
+.slick-prev::before,
+.slick-next::before {
+  color: black; /* Black arrow color */
+  font-size: 25px; /* Increased size of the arrows */
+}
+
+/* Positioning the buttons */
+.slick-prev {
+  left: 20px; /* Position from left */
+}
+
+.slick-next {
+  right: 20px; /* Position from right */
 }

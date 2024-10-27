@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import Slider from 'react-slick';
 import '../styles/CampaignDetails.css';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 const CampaignDetails = () => {
-  const { id } = useParams(); // Get campaign ID from URL
+  const { id } = useParams();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [investmentAmount, setInvestmentAmount] = useState(''); // Track investment input
+  const [investmentAmount, setInvestmentAmount] = useState('');
 
-  // Fetch campaign details
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       try {
@@ -25,32 +27,36 @@ const CampaignDetails = () => {
     fetchCampaignDetails();
   }, [id]);
 
-  // Handle investment submission
   const handleInvest = async (e) => {
     e.preventDefault();
     try {
-      // First API call to update raised amount
-      const response = await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
+      await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
         amount: parseFloat(investmentAmount),
-        userId: id, // Assuming you're passing the userId
+        userId: id,
       });
 
-      // Second API call to store the investment details
       await axios.post(
         `http://localhost:5000/api/campaigns/${id}/investment`,
-        { amount: parseFloat(investmentAmount) }, 
+        { amount: parseFloat(investmentAmount) },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, // Token for authentication
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
 
       alert('Investment successful!');
-      setCampaign(response.data.campaign); // Update campaign with new raisedAmount
-      setInvestmentAmount(''); // Reset input field
+      setInvestmentAmount('');
     } catch (error) {
       console.error('Error investing:', error);
       alert('Investment failed!');
     }
+  };
+
+  const carouselSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
   };
 
   return (
@@ -59,15 +65,50 @@ const CampaignDetails = () => {
         <p className="loading-text">Loading...</p>
       ) : campaign ? (
         <div className="campaign-details-card">
-          <h2 className="campaign-title">{campaign.name}</h2>
+          <h2 className="campaign-title">{campaign.campaignTitle}</h2>
           <p className="campaign-description">{campaign.description}</p>
           <div className="campaign-info">
-            <p><strong>Target Amount:</strong> ${campaign.targetAmount}</p>
-            <p><strong>Raised Amount:</strong> ${campaign.raisedAmount}</p>
-            <p><strong>Location:</strong> {campaign.location}</p>
+            <div className="info-container">
+              <h3>Farmer Details</h3>
+              <p><strong>Name:</strong> {campaign.farmerName}</p>
+              <p><strong>Phone:</strong> {campaign.phoneNumber}</p>
+              <p><strong>Email:</strong> {campaign.email}</p>
+            </div>
+            <div className="info-container">
+              <h3>Farm Details</h3>
+              <p><strong>Name:</strong> {campaign.farmName}</p>
+              <p><strong>Location:</strong> {campaign.farmLocation}</p>
+              <p><strong>Size:</strong> {campaign.farmSize}</p>
+              <p><strong>Crop Types:</strong> {campaign.cropTypes}</p>
+              <p><strong>Farming Methods:</strong> {campaign.farmingMethods}</p>
+            </div>
+            <div className="info-container">
+              <h3>Campaign Details</h3>
+              <p><strong>Funding Goal:</strong> ${campaign.fundingGoal}</p>
+              <p><strong>Min Investment:</strong> ${campaign.minInvestment}</p>
+              <p><strong>Expected Returns:</strong> {campaign.expectedReturns}</p>
+              <p><strong>Start Date:</strong> {new Date(campaign.startDate).toLocaleDateString()}</p>
+              <p><strong>End Date:</strong> {new Date(campaign.endDate).toLocaleDateString()}</p>
+              <p><strong>Fund Usage:</strong> {campaign.fundUsage}</p>
+              <p><strong>Impact Metrics:</strong> {campaign.impactMetrics}</p>
+              <p><strong>Raised Amount:</strong> ${campaign.raisedAmount}</p>
+            </div>
           </div>
 
-          {/* Investment Form */}
+          <div className="campaign-images">
+            <Slider {...carouselSettings}>
+              {campaign.visuals && campaign.visuals.map((visual, index) => (
+                <div key={index}>
+                  <img
+                    src={visual}
+                    alt={`Campaign Visual ${index}`}
+                    className="campaign-image"
+                  />
+                </div>
+              ))}
+            </Slider>
+          </div>
+
           <form onSubmit={handleInvest} className="investment-form">
             <input
               type="number"
@@ -75,11 +116,12 @@ const CampaignDetails = () => {
               value={investmentAmount}
               onChange={(e) => setInvestmentAmount(e.target.value)}
               required
+              className="investment-input"
             />
             <button type="submit" className="invest-button">Invest Now</button>
           </form>
         </div>
-      ) : (
+      ) : ( 
         <p className="error-text">Campaign not found.</p>
       )}
     </div>

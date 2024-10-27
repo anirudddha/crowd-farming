@@ -13,7 +13,7 @@ const investmentSchema = new mongoose.Schema({
   },
   farmName: {
     type: String,
-    required: true, // Store the farm name
+    // required: true, // Store the farm name
   },
   amount: {
     type: Number,

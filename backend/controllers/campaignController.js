@@ -91,7 +91,7 @@ exports.invest = async (req, res) => {
     res.json({ message: 'Investment successful!', campaign });
   } catch (error) {
     console.error('Investment error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' },error);
   }
 };
 
@@ -129,13 +129,13 @@ exports.createCampaign = [
       endDate,
       fundUsage,
       impactMetrics,
+      visuals
     } = req.body;
 
-    // Extract the user ID from the authenticated user
     const userId = req.user; // Assuming req.user is populated with authenticated user info
 
     try {
-      const visuals = req.files.map(file => file.path); // Map file paths to visuals array
+
       const newCampaign = new Campaign({
         farmerName,
         phoneNumber,
@@ -155,8 +155,10 @@ exports.createCampaign = [
         impactMetrics,
         visuals, // Add visuals to the campaign
         userId, // Add userId to the campaign
+        raisedAmount:0,
       });
 
+      // Save the new campaign to the database
       const campaign = await newCampaign.save();
       res.status(201).json(campaign); // Respond with the created campaign
     } catch (err) {
@@ -165,6 +167,7 @@ exports.createCampaign = [
     }
   },
 ];
+
 
 // Update an existing campaign
 exports.updateCampaign = async (req, res) => {
@@ -219,7 +222,8 @@ exports.storeInvestment = async (req, res) => {
     if (!campaign) {
       return res.status(404).json({ msg: 'Campaign not found' });
     }
-
+    // console.log(campaign);
+    // console.log(campaign.name);
     // Create a new investment record with farm name
     const investment = new Investment({
       userId,
@@ -229,6 +233,7 @@ exports.storeInvestment = async (req, res) => {
     });
 
     // Save investment to the database
+    
     await investment.save();
 
     res.json({ msg: 'Investment saved successfully', investment });
