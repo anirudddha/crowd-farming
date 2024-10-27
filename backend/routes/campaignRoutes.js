@@ -8,6 +8,7 @@ const {
   getCampaignsById,
   invest,
   storeInvestment,
+  getFilterOptions,
 } = require('../controllers/campaignController');
 
 const auth = require('../middleware/userAuth');
@@ -33,5 +34,8 @@ router.delete('/:id', deleteCampaign);
 // Store investment details
 router.post('/:id/investment', auth, storeInvestment);
 
+
+// GET dynamic filter options
+router.get('/filters/options', getFilterOptions);
 
 module.exports = router;

@@ -4,6 +4,32 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
+
+exports.getFilterOptions = async (req, res) => {
+  const { field, term } = req.query;
+  
+  // Log the inputs to verify
+  console.log(`Fetching options for field: ${field}, with term: ${term}`);
+  
+  if (!field || !term) {
+    return res.status(400).json({ message: 'Field and search term are required' });
+  }
+
+  try {
+    // Make the regex case-insensitive and global for all matches
+    const regex = new RegExp(term, 'i');
+    const options = await Campaign.distinct(field, { [field]: { $regex: regex } });
+
+    console.log(`Fetched options for ${field}:`, options); // Log fetched options
+
+    res.json(options);
+  } catch (error) {
+    console.error('Error fetching filter options:', error);
+    res.status(500).send('Server Error');
+  }
+};
+
+
 exports.getCampaigns = async (req, res) => {
   const { page = 1, limit = 12, location, cropType, farmingMethod, projectNeeds, expectedReturns } = req.query;
 

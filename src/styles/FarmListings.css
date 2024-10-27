@@ -6,6 +6,12 @@
   align-items: center;
   background-color: #f4f7f6;
 }
+
+datalist {
+  display: block !important; /* Force visibility */
+  z-index: 1000; /* Ensure it is on top of other elements */
+}
+
 .custom-hr {
   border: none;
   border-top: 1px solid black; /* Color matches the title color */
@@ -13,10 +19,9 @@
   margin: 10px auto 20px; /* Adjust the spacing as needed */
 }
 
-
 /* Title Styling */
 .main-title {
-  font-size: 20pxrem;
+  font-size: 2rem; /* Corrected from 20pxrem to 2rem */
   text-align: center;
   color: #2c3e50;
   margin-bottom: 0px;
@@ -65,9 +70,9 @@
   font-weight: 600;
 }
 
-/* Dropdown Styling */
-.filters-section select {
-  width: 100%;
+/* Input Styling for Filters */
+.filters-section input {
+  width: 90%;
   padding: 12px 15px;
   margin-bottom: 20px;
   font-size: 1rem;
@@ -77,13 +82,36 @@
   transition: border 0.3s ease;
 }
 
-.filters-section select:focus {
+.filters-section input:focus {
   border-color: #2ecc71;
   outline: none;
 }
 
-.filters-section select:hover {
+.filters-section input:hover {
   border-color: #2ecc71;
+}
+
+/* Suggestions for Filter Input */
+.suggestions {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  max-height: 200px; /* Limit height */
+  overflow-y: auto; /* Scrollable if there are many options */
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Ensure it is on top of other elements */
+  width: 250px
+}
+
+.suggestions li {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.suggestions li:hover {
+  background-color: #e0f7fa; /* Light blue background on hover */
 }
 
 /* Farms Listing Section */
