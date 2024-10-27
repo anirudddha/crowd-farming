@@ -35,9 +35,12 @@ const CreateCampaign = () => {
 
   // Handle file upload
   const handleFileChange = (e) => {
-    setFormData({ ...formData, visuals: e.target.files });
+    const files = Array.from(e.target.files); // Convert FileList to array
+    setFormData({ ...formData, visuals: files }); // Store the files array in formData
   };
 
+
+  // Handle form submission
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page refresh on form submission
@@ -45,13 +48,19 @@ const CreateCampaign = () => {
     // Prepare form data for submission
     const data = new FormData();
     for (const key in formData) {
-      data.append(key, formData[key]);
+      if (key === 'visuals') {
+        for (const file of formData.visuals) {
+          data.append('visuals', file); // Append each file to visuals
+        }
+      } else {
+        data.append(key, formData[key]);
+      }
     }
-    // console.log(formData)
+
     try {
-      await axios.post('http://localhost:5000/api/campaigns', formData, {
+      await axios.post('http://localhost:5000/api/campaigns', data, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data", // Use multipart/form-data for file uploads
           "Authorization": `Bearer ${localStorage.getItem('token')}` // Attach token in the header
         },
       });
@@ -238,7 +247,7 @@ const CreateCampaign = () => {
           name="visuals"
           multiple
           onChange={handleFileChange}
-          // required
+        // required
         />
 
         {/* Submit Button */}

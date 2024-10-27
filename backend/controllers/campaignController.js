@@ -3,14 +3,16 @@ const Investment = require('../models/Investment');
 const express = require('express');
 const app = express();
 app.use(express.json());
+const multer = require('multer');
+const path = require('path');
 
 
 exports.getFilterOptions = async (req, res) => {
   const { field, term } = req.query;
-  
+
   // Log the inputs to verify
   console.log(`Fetching options for field: ${field}, with term: ${term}`);
-  
+
   if (!field || !term) {
     return res.status(400).json({ message: 'Field and search term are required' });
   }
@@ -93,33 +95,24 @@ exports.invest = async (req, res) => {
   }
 };
 
-// Create a new campaign
-exports.createCampaign = async (req, res) => {
-  const {
-    farmerName,
-    phoneNumber,
-    email,
-    farmName,
-    farmLocation,
-    farmSize,
-    campaignTitle,
-    fundingGoal,
-    minInvestment,
-    expectedReturns,
-    cropTypes,
-    farmingMethods,
-    startDate,
-    endDate,
-    fundUsage,
-    impactMetrics,
-  } = req.body;
+// Set up storage for multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Directory to store uploaded files
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`); // File naming convention
+  },
+});
 
-  // Extract the user ID from the authenticated user
-  const userId = req.user; // Assuming req.user is populated with authenticated user info
-  
-  try {
-    console.log("body",req.body);
-    const newCampaign = new Campaign({
+// Initialize multer
+const upload = multer({ storage });
+
+// Create a new campaign
+exports.createCampaign = [
+  upload.array('visuals'), // Use multer to handle multiple file uploads
+  async (req, res) => {
+    const {
       farmerName,
       phoneNumber,
       email,
@@ -136,17 +129,42 @@ exports.createCampaign = async (req, res) => {
       endDate,
       fundUsage,
       impactMetrics,
-      userId, // Add userId to the campaign
-    });
+    } = req.body;
 
-    const campaign = await newCampaign.save();
-    res.status(201).json(campaign); // Respond with the created campaign
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error'); // Respond with a server error
-  }
-};
+    // Extract the user ID from the authenticated user
+    const userId = req.user; // Assuming req.user is populated with authenticated user info
 
+    try {
+      const visuals = req.files.map(file => file.path); // Map file paths to visuals array
+      const newCampaign = new Campaign({
+        farmerName,
+        phoneNumber,
+        email,
+        farmName,
+        farmLocation,
+        farmSize,
+        campaignTitle,
+        fundingGoal,
+        minInvestment,
+        expectedReturns,
+        cropTypes,
+        farmingMethods,
+        startDate,
+        endDate,
+        fundUsage,
+        impactMetrics,
+        visuals, // Add visuals to the campaign
+        userId, // Add userId to the campaign
+      });
+
+      const campaign = await newCampaign.save();
+      res.status(201).json(campaign); // Respond with the created campaign
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error'); // Respond with a server error
+    }
+  },
+];
 
 // Update an existing campaign
 exports.updateCampaign = async (req, res) => {
@@ -177,7 +195,7 @@ exports.deleteCampaign = async (req, res) => {
 
   try {
     const campaign = await Campaign.findByIdAndDelete(id);
-    
+
     if (!campaign) {
       return res.status(404).json({ msg: 'Campaign not found' });
     }
