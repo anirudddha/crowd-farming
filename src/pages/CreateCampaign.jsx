@@ -5,93 +5,242 @@ import '../styles/CreateCampaign.css'; // Import the CSS file
 const CreateCampaign = () => {
   // State to manage form data
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    targetAmount: '',
-    raisedAmount: '',
-    location: '',
+    farmerName: '',
+    phoneNumber: '',
+    email: '',
+    farmName: '',
+    farmLocation: '',
+    farmSize: '',
+    campaignTitle: '',
+    fundingGoal: '',
+    minInvestment: '',
+    expectedReturns: '',
+    cropTypes: '',
+    farmingMethods: '',
+    startDate: '',
+    endDate: '',
+    fundUsage: '',
+    impactMetrics: '',
+    visuals: null, // For file uploads
   });
 
   // Handle form input changes
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  // Handle file upload
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, visuals: e.target.files });
+  };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page refresh on form submission
-  
-    axios.post(
-      'http://localhost:5000/api/campaigns', 
-      formData, // First argument: Data to be sent
-      {
+
+    // Prepare form data for submission
+    const data = new FormData();
+    for (const key in formData) {
+      data.append(key, formData[key]);
+    }
+    // console.log(formData)
+    try {
+      await axios.post('http://localhost:5000/api/campaigns', formData, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('token')}` // Attach token in the header
         },
-      }
-    )
-      .then(() => {
-        alert('Campaign created!'); // Alert user on success
-        // Reset the form after successful submission
-        setFormData({
-          name: '',
-          description: '',
-          targetAmount: '',
-          raisedAmount: '',
-          location: '',
-        });
-      })
-      .catch((error) => console.error('Error creating campaign:', error)); // Log any errors
+      });
+      alert('Campaign created!'); // Alert user on success
+      // Reset the form after successful submission
+      setFormData({
+        farmerName: '',
+        phoneNumber: '',
+        email: '',
+        farmName: '',
+        farmLocation: '',
+        farmSize: '',
+        campaignTitle: '',
+        fundingGoal: '',
+        minInvestment: '',
+        expectedReturns: '',
+        cropTypes: '',
+        farmingMethods: '',
+        startDate: '',
+        endDate: '',
+        fundUsage: '',
+        impactMetrics: '',
+        visuals: null,
+      });
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+    }
   };
-  
 
   return (
     <div className="form-container">
-      <h1>Create Campaign</h1>
+      <h1>Create Farm Campaign</h1>
       <form onSubmit={handleSubmit} className="campaign-form">
-        {/* Campaign Name */}
+        {/* Farmer Information */}
+        <h2>Farmer Information</h2>
         <input
           type="text"
-          name="name"
-          placeholder="Campaign Name"
-          value={formData.name}
+          name="farmerName"
+          placeholder="Farmer's Name"
+          value={formData.farmerName}
           onChange={handleChange}
           required
         />
-        {/* Campaign Description */}
+        <input
+          type="text"
+          name="phoneNumber"
+          placeholder="Phone Number"
+          value={formData.phoneNumber}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email Address"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Farm Details */}
+        <h2>Farm Details</h2>
+        <input
+          type="text"
+          name="farmName"
+          placeholder="Farm Name"
+          value={formData.farmName}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          name="farmLocation"
+          placeholder="Farm Location"
+          value={formData.farmLocation}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          name="farmSize"
+          placeholder="Size of the Farm (acreage or square footage)"
+          value={formData.farmSize}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Campaign Information */}
+        <h2>Campaign Information</h2>
+        <input
+          type="text"
+          name="campaignTitle"
+          placeholder="Campaign Title"
+          value={formData.campaignTitle}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="number"
+          name="fundingGoal"
+          placeholder="Funding Goal"
+          value={formData.fundingGoal}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="number"
+          name="minInvestment"
+          placeholder="Minimum Investment Amount"
+          value={formData.minInvestment}
+          onChange={handleChange}
+          required
+        />
         <textarea
-          name="description"
-          placeholder="Campaign Description"
-          value={formData.description}
+          name="expectedReturns"
+          placeholder="Expected Returns"
+          value={formData.expectedReturns}
           onChange={handleChange}
           required
         />
-        {/* Target Amount */}
-        <input
-          type="number"
-          name="targetAmount"
-          placeholder="Target Amount"
-          value={formData.targetAmount}
+
+        {/* Farming Practices */}
+        <h2>Farming Practices</h2>
+        <textarea
+          name="cropTypes"
+          placeholder="Crop Types"
+          value={formData.cropTypes}
           onChange={handleChange}
           required
         />
-        {/* Raised Amount */}
-        <input
-          type="number"
-          name="raisedAmount"
-          placeholder="Raised Amount"
-          value={formData.raisedAmount}
+        <select
+          name="farmingMethods"
+          value={formData.farmingMethods}
           onChange={handleChange}
-        />
-        {/* Location */}
+          required
+        >
+          <option value="" disabled>Select Farming Method</option>
+          <option value="Conventional">Conventional</option>
+          <option value="Organic">Organic</option>
+          <option value="Sustainable">Sustainable</option>
+        </select>
+
+        {/* Project Timeline */}
+        <h2>Project Timeline</h2>
         <input
-          type="text"
-          name="location"
-          placeholder="Location"
-          value={formData.location}
+          type="date"
+          name="startDate"
+          value={formData.startDate}
           onChange={handleChange}
           required
         />
+        <input
+          type="date"
+          name="endDate"
+          value={formData.endDate}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Usage of Funds */}
+        <h2>Usage of Funds</h2>
+        <textarea
+          name="fundUsage"
+          placeholder="Detailed Breakdown of Fund Usage"
+          value={formData.fundUsage}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Impact Metrics */}
+        <h2>Impact Metrics</h2>
+        <textarea
+          name="impactMetrics"
+          placeholder="Impact Metrics"
+          value={formData.impactMetrics}
+          onChange={handleChange}
+          required
+        />
+
+        {/* Visuals */}
+        <h2>Upload Visuals</h2>
+        <input
+          type="file"
+          name="visuals"
+          multiple
+          onChange={handleFileChange}
+          // required
+        />
+
         {/* Submit Button */}
         <button type="submit" className="submit-button">
           Create Campaign

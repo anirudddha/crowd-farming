@@ -95,25 +95,55 @@ exports.invest = async (req, res) => {
 
 // Create a new campaign
 exports.createCampaign = async (req, res) => {
-  const { name, description, targetAmount, raisedAmount, location } = req.body;
- // Extract the user ID from the authenticated user
-  const userId = req.user; // Use optional chaining to avoid TypeError
-  // console.log(req.user);
+  const {
+    farmerName,
+    phoneNumber,
+    email,
+    farmName,
+    farmLocation,
+    farmSize,
+    campaignTitle,
+    fundingGoal,
+    minInvestment,
+    expectedReturns,
+    cropTypes,
+    farmingMethods,
+    startDate,
+    endDate,
+    fundUsage,
+    impactMetrics,
+  } = req.body;
+
+  // Extract the user ID from the authenticated user
+  const userId = req.user; // Assuming req.user is populated with authenticated user info
+  
   try {
+    console.log("body",req.body);
     const newCampaign = new Campaign({
-      name,
-      description,
-      targetAmount,
-      raisedAmount,
-      location,
+      farmerName,
+      phoneNumber,
+      email,
+      farmName,
+      farmLocation,
+      farmSize,
+      campaignTitle,
+      fundingGoal,
+      minInvestment,
+      expectedReturns,
+      cropTypes,
+      farmingMethods,
+      startDate,
+      endDate,
+      fundUsage,
+      impactMetrics,
       userId, // Add userId to the campaign
     });
 
     const campaign = await newCampaign.save();
-    res.status(201).json(campaign);
+    res.status(201).json(campaign); // Respond with the created campaign
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send('Server Error'); // Respond with a server error
   }
 };
 
