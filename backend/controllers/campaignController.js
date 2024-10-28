@@ -33,12 +33,12 @@ exports.getFilterOptions = async (req, res) => {
 
 
 exports.getCampaigns = async (req, res) => {
-  const { page = 1, limit = 12, location, cropType, farmingMethod, projectNeeds, expectedReturns } = req.query;
+  const { page = 1, limit = 12, farmLocation, cropTypes, farmingMethods, projectNeeds, expectedReturns } = req.query;
 
   const query = {};
-  if (location) query.location = location;
-  if (cropType) query.cropType = cropType; // Make sure your Campaign model has this field
-  if (farmingMethod) query.farmingMethod = farmingMethod; // Make sure your Campaign model has this field
+  if (farmLocation) query.farmLocation = farmLocation;
+  if (cropTypes) query.cropTypes = cropTypes; // Make sure your Campaign model has this field
+  if (farmingMethods) query.farmingMethods = farmingMethods; // Make sure your Campaign model has this field
   if (projectNeeds) query.projectNeeds = projectNeeds; // Make sure your Campaign model has this field
   if (expectedReturns) query.expectedReturns = expectedReturns; // Make sure your Campaign model has this field
 
