@@ -7,17 +7,39 @@
   background-color: #f4f7f6;
 }
 
+
+.apply-filters-button {
+  background-color: #4CAF50; /* Green background */
+  color: white; /* White text */
+  border: none; /* Remove borders */
+  padding: 10px 20px; 
+  text-align: center; /* Center the text */
+  font-size: 16px; /* Increase font size */
+  font-weight: bold; /* Bold text */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer/hand icon */
+  margin-top: 20px; /* Add some space on top */
+  transition: background-color 0.3s ease; /* Smooth transition for hover */
+  width: auto;
+}
+
+.apply-filters-button:hover {
+  background-color: #233024; /* Darker green on hover */
+}
+
+
+
 datalist {
   display: block !important; /* Force visibility */
   z-index: 1000; /* Ensure it is on top of other elements */
 }
 
-.custom-hr {
-  border: none;
-  border-top: 1px solid black; /* Color matches the title color */
-  width: 98%;
-  margin: 10px auto 20px; /* Adjust the spacing as needed */
+hr.custom-hr {
+  border: none; /* Remove default border */
+  border-top: 1px solid rgb(118, 118, 118); /* Black color and 2px thickness */
+  margin: 10px 0; /* Add some vertical spacing */
 }
+
 
 /* Title Styling */
 .main-title {
@@ -47,18 +69,22 @@ datalist {
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
-}
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}x
 
 .filters-section:hover {
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .filters-section h3 {
-  font-size: 1.6rem;
-  color: #2c3e50;
+  font-size: 20px;
+  color: #000000;
   margin-bottom: 25px;
   font-weight: bold;
   text-align: center;
+  margin: 0;
 }
 
 /* Dropdown Label */

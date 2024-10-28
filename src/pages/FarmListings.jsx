@@ -9,18 +9,28 @@ const FarmListings = () => {
   const [farms, setFarms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({
-    location: '',
-    cropType: '',
-    farmingMethod: '',
+  
+  // Separately track filter inputs and applied filters
+  const [filterInputs, setFilterInputs] = useState({
+    farmLocation: '',
+    cropTypes: '',
+    farmingMethods: '',
+    projectNeeds: '',
+    expectedReturns: '',
+  });
+
+  const [appliedFilters, setAppliedFilters] = useState({
+    farmLocation: '',
+    cropTypes: '',
+    farmingMethods: '',
     projectNeeds: '',
     expectedReturns: '',
   });
 
   const [filterOptions, setFilterOptions] = useState({
-    location: [],
-    cropType: [],
-    farmingMethod: [],
+    farmLocation: [],
+    cropTypes: [],
+    farmingMethods: [],
     projectNeeds: [],
     expectedReturns: [],
   });
@@ -32,10 +42,11 @@ const FarmListings = () => {
         params: {
           page: pageNum,
           limit: 10,
-          ...filters,
+          ...appliedFilters,
         },
       });
       setFarms(Array.isArray(response.data) ? response.data : []);
+      console.log(response.data);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
     } finally {
@@ -45,18 +56,16 @@ const FarmListings = () => {
 
   useEffect(() => {
     fetchFarms(page);
-  }, [page, filters]);
+  }, [page, appliedFilters]);
 
-  const handleFilterChange = (e) => {
+  const handleFilterInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Filter changed: ${name} = ${value}`);
-    setFilters((prev) => ({ ...prev, [name]: value }));
-    setPage(1); // Reset page to 1 when filters change
+    setFilterInputs((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilterInputs((prev) => ({ ...prev, [name]: value }));
 
     if (value) {
       try {
@@ -76,8 +85,13 @@ const FarmListings = () => {
   };
 
   const handleSelectOption = (name, value) => {
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilterInputs((prev) => ({ ...prev, [name]: value }));
     setFilterOptions((prev) => ({ ...prev, [name]: [] })); // Clear options after selection
+  };
+
+  const applyFilters = () => {
+    setAppliedFilters(filterInputs);
+    setPage(1); // Reset page to 1 when applying new filters
   };
 
   const handlePreviousPage = () => {
@@ -90,7 +104,7 @@ const FarmListings = () => {
       params: {
         page: nextPage,
         limit: 10,
-        ...filters,
+        ...appliedFilters,
       },
     });
 
@@ -105,19 +119,19 @@ const FarmListings = () => {
     <div className="farm-listings-page">
       <div className="farm-listings-container">
         <div className="filters-section">
-          <h3>Filters</h3>
-
+          <h3>FILTERS</h3>
+          <hr className="custom-hr" />
           <label className="filter-label" htmlFor="location">Location</label>
           <input
-            name="location"
-            value={filters.location}
+            name="farmLocation"
+            value={filterInputs.farmLocation}
             onChange={handleInputChange}
             placeholder="Search Location"
           />
-          {filterOptions.location.length > 0 && (
+          {filterOptions.farmLocation.length > 0 && (
             <ul className="suggestions">
-              {filterOptions.location.map((option) => (
-                <li key={option} onClick={() => handleSelectOption('location', option)}>
+              {filterOptions.farmLocation.map((option) => (
+                <li key={option} onClick={() => handleSelectOption('farmLocation', option)}>
                   {option}
                 </li>
               ))}
@@ -126,32 +140,32 @@ const FarmListings = () => {
 
           <label className="filter-label" htmlFor="cropType">Crop Type</label>
           <input
-            name="cropType"
-            value={filters.cropType}
+            name="cropTypes"
+            value={filterInputs.cropTypes}
             onChange={handleInputChange}
             placeholder="Search Crop Type"
           />
-          {filterOptions.cropType.length > 0 && (
+          {filterOptions.cropTypes.length > 0 && (
             <ul className="suggestions">
-              {filterOptions.cropType.map((option) => (
-                <li key={option} onClick={() => handleSelectOption('cropType', option)}>
+              {filterOptions.cropTypes.map((option) => (
+                <li key={option} onClick={() => handleSelectOption('cropTypes', option)}>
                   {option}
                 </li>
               ))}
             </ul>
           )}
 
-          <label className="filter-label" htmlFor="farmingMethod">Farming Method</label>
+          <label className="filter-label" htmlFor="farmingMethods">Farming Method</label>
           <input
-            name="farmingMethod"
-            value={filters.farmingMethod}
+            name="farmingMethods"
+            value={filterInputs.farmingMethods}
             onChange={handleInputChange}
             placeholder="Search Farming Method"
           />
-          {filterOptions.farmingMethod.length > 0 && (
+          {filterOptions.farmingMethods.length > 0 && (
             <ul className="suggestions">
-              {filterOptions.farmingMethod.map((option) => (
-                <li key={option} onClick={() => handleSelectOption('farmingMethod', option)}>
+              {filterOptions.farmingMethods.map((option) => (
+                <li key={option} onClick={() => handleSelectOption('farmingMethods', option)}>
                   {option}
                 </li>
               ))}
@@ -161,7 +175,7 @@ const FarmListings = () => {
           <label className="filter-label" htmlFor="projectNeeds">Project Needs</label>
           <input
             name="projectNeeds"
-            value={filters.projectNeeds}
+            value={filterInputs.projectNeeds}
             onChange={handleInputChange}
             placeholder="Search Project Needs"
           />
@@ -178,7 +192,7 @@ const FarmListings = () => {
           <label className="filter-label" htmlFor="expectedReturns">Expected Returns</label>
           <input
             name="expectedReturns"
-            value={filters.expectedReturns}
+            value={filterInputs.expectedReturns}
             onChange={handleInputChange}
             placeholder="Search Expected Returns"
           />
@@ -191,6 +205,10 @@ const FarmListings = () => {
               ))}
             </ul>
           )}
+
+          <button onClick={applyFilters} className="apply-filters-button">
+            Apply Filters
+          </button>
         </div>
 
         <div className="farms-listing">
