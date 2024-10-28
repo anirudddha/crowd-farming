@@ -16,6 +16,8 @@ const InvestorDashboard = () => {
         });
         setCampaigns(response.data.campaigns);
         setInvestments(response.data.investments);
+        console.log(response.data.campaigns)
+        console.log(response.data.investments)
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -34,12 +36,12 @@ const InvestorDashboard = () => {
         <ul className="campaign-list">
           {campaigns.map((campaign) => (
             <li key={campaign._id} className="campaign-card">
-              <h4 className="campaign-name">{campaign.name}</h4>
-              <p className="campaign-description">{campaign.description}</p>
+              <h4 className="campaign-name">{campaign.campaignTitle}</h4>
+              <p className="campaign-description">{campaign.impactMetrics}</p>
               <div className="campaign-details">
-                <span>🎯 Target: ${campaign.targetAmount}</span>
+                <span>🎯 Target: ${campaign.fundingGoal}</span>
                 <span>💰 Raised: ${campaign.raisedAmount}</span>
-                <span>📍 Location: {campaign.location}</span>
+                <span>📍 Location: {campaign.farmLocation}</span>
               </div>
             </li>
           ))}
@@ -54,7 +56,7 @@ const InvestorDashboard = () => {
         <ul className="investment-list">
           {investments.map((investment) => (
             <li key={investment._id} className="investment-card">
-              <h4 className="investment-farm">Farm: {investment.campaignId.name}</h4>
+              <h4 className="investment-farm">Farm: {investment.framName}</h4>
               <div className="investment-details">
                 <span className="investment-amount">Amount: ${investment.amount}</span>
                 <span className="investment-date">Date: {new Date(investment.date).toLocaleDateString()}</span>
