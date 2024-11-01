@@ -2,9 +2,10 @@
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
-  background-color: #f0f7f1; /* Soft green background */
 }
-
+#root{
+  background-color: #ffffff; /* Soft green background */
+}
 /* Wrapper for the entire homepage */
 .homepage-wrapper {
   padding: 2rem;
@@ -13,7 +14,7 @@ body {
   text-align: center;
   background-color: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
 }
 
 /* Hero Section */
