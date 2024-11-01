@@ -13,7 +13,7 @@ exports.getFilterOptions = async (req, res) => {
   // Log the inputs to verify
   console.log(`Fetching options for field: ${field}, with term: ${term}`);
 
-  if (!field || !term) {
+  if (!field) {
     return res.status(400).json({ message: 'Field and search term are required' });
   }
 

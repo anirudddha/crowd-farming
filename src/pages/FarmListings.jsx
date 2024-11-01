@@ -66,23 +66,33 @@ const FarmListings = () => {
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
     setFilterInputs((prev) => ({ ...prev, [name]: value }));
-
+  
     if (value) {
       try {
         const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
           params: { field: name, term: value },
         });
-
-        console.log(`Options fetched for ${name}:`, response.data); // Log response data
-
         setFilterOptions((prev) => ({ ...prev, [name]: response.data }));
       } catch (error) {
         console.error(`Error fetching ${name} options:`, error);
       }
     } else {
-      setFilterOptions((prev) => ({ ...prev, [name]: [] }));
+      await fetchAllOptions(name);
     }
   };
+  
+  // New function to fetch all options for a specific filter
+  const fetchAllOptions = async (field) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
+        params: { field },
+      });
+      setFilterOptions((prev) => ({ ...prev, [field]: response.data }));
+    } catch (error) {
+      console.error(`Error fetching all options for ${field}:`, error);
+    }
+  };
+  
 
   const handleSelectOption = (name, value) => {
     setFilterInputs((prev) => ({ ...prev, [name]: value }));
@@ -127,6 +137,7 @@ const FarmListings = () => {
             value={filterInputs.farmLocation}
             onChange={handleInputChange}
             placeholder="Search Location"
+            onFocus={() => fetchAllOptions('farmLocation')}
           />
           {filterOptions.farmLocation.length > 0 && (
             <ul className="suggestions">
@@ -138,12 +149,13 @@ const FarmListings = () => {
             </ul>
           )}
 
-          <label className="filter-label" htmlFor="cropType">Crop Type</label>
+          <label className="filter-label" htmlFor="cropTypes">Crop Type</label>
           <input
             name="cropTypes"
             value={filterInputs.cropTypes}
             onChange={handleInputChange}
             placeholder="Search Crop Type"
+            onFocus={() => fetchAllOptions('cropTypes')}
           />
           {filterOptions.cropTypes.length > 0 && (
             <ul className="suggestions">
@@ -161,6 +173,7 @@ const FarmListings = () => {
             value={filterInputs.farmingMethods}
             onChange={handleInputChange}
             placeholder="Search Farming Method"
+            onFocus={() => fetchAllOptions('farmingMethods')}
           />
           {filterOptions.farmingMethods.length > 0 && (
             <ul className="suggestions">
@@ -178,6 +191,7 @@ const FarmListings = () => {
             value={filterInputs.projectNeeds}
             onChange={handleInputChange}
             placeholder="Search Project Needs"
+            onFocus={() => fetchAllOptions('projectNeeds')}
           />
           {filterOptions.projectNeeds.length > 0 && (
             <ul className="suggestions">
@@ -195,6 +209,7 @@ const FarmListings = () => {
             value={filterInputs.expectedReturns}
             onChange={handleInputChange}
             placeholder="Search Expected Returns"
+            onFocus={() => fetchAllOptions('expectedReturns')}
           />
           {filterOptions.expectedReturns.length > 0 && (
             <ul className="suggestions">
