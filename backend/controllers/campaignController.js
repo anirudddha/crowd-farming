@@ -194,8 +194,7 @@ exports.updateCampaign = async (req, res) => {
 
 // Delete a campaign
 exports.deleteCampaign = async (req, res) => {
-  const { id } = req.params;
-
+  const id = req.body.id;
   try {
     const campaign = await Campaign.findByIdAndDelete(id);
 

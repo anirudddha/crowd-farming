@@ -5,6 +5,7 @@ import '../styles/Dashboard.css'; // Reuse same CSS for campaigns and investment
 const InvestorDashboard = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [investments, setInvestments] = useState([]);
+  const [campaignId, setCampaignId] = useState();
 
   useEffect(() => {
     const fetchCampaignsAndInvestments = async () => {
@@ -26,6 +27,18 @@ const InvestorDashboard = () => {
     fetchCampaignsAndInvestments();
   }, []);
 
+  const handleDeleteCampaign = async () => {
+    try {
+      const response = await axios.delete('http://localhost:5000/api/campaigns/deleteCampaign', {
+        data: { id: campaignId }
+      });
+      console.log("Campaign Deleted");
+      console.log(response);
+    } catch (error) {
+      console.error('Error Deleting data:', error);
+    }
+  }
+
   return (
     <div className="dashboard-container">
       <h2 className="dashboard-title">Investor Dashboard</h2>
@@ -43,6 +56,15 @@ const InvestorDashboard = () => {
                 <span>💰 Raised: ${campaign.raisedAmount}</span>
                 <span>📍 Location: {campaign.farmLocation}</span>
               </div>
+              <button
+                className="button-delete"
+                onClick={async () => {
+                  setCampaignId(campaign._id);
+                  handleDeleteCampaign();
+                }}
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>

@@ -29,7 +29,7 @@ router.post('/', auth, createCampaign); // Ensure auth middleware is used here
 router.put('/:id', updateCampaign);
 
 // DELETE a campaign
-router.delete('/:id', deleteCampaign);
+// router.delete('/:id', deleteCampaign);
 
 // Store investment details
 router.post('/:id/investment', auth, storeInvestment);
@@ -37,5 +37,8 @@ router.post('/:id/investment', auth, storeInvestment);
 
 // GET dynamic filter options
 router.get('/filters/options', getFilterOptions);
+
+//delete campaign
+router.delete('/deleteCampaign',deleteCampaign);
 
 module.exports = router;
