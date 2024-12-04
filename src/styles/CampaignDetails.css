@@ -1,150 +1,163 @@
 body {
-  background-color: #f7f9fc; /* Lighter background for a fresh look */
-  font-family: 'Arial', sans-serif; /* Clean sans-serif font */
-  margin: 0; /* Remove default margin */
+  background-color: #f9f9f9; /* Neutral background */
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 .campaign-details-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px; /* Increased padding for better spacing */
-  min-height: 100vh; /* Full height for the container */
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px;
+  min-height: 100vh;
+  background-color: #f4f5f7;
 }
 
 .campaign-details-card {
-  background-color: #157c0966; /* White background for the campaign card */
-  padding: 30px; /* Increased padding */
-  border-radius: 15px; /* Rounded corners */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Softer shadow for depth */
-  width: 90%; /* Responsive width */
-  max-width: 1000px; /* Max width for large screens */
-  text-align: left; /* Left align text for better readability */
-  transition: transform 0.3s ease; /* Smooth hover effect */
-}
-
-.campaign-details-card:hover {
-  transform: translateY(-5px); /* Subtle lift effect on hover */
-}
-
-.campaign-title {
-  font-size: 2.5rem; /* Larger font size for the title */
-  color: #333; /* Dark color for better readability */
-  margin-bottom: 15px; /* Space below the title */
-  font-weight: bold; /* Bold title */
-}
-
-.campaign-description {
-  font-size: 1.2rem; /* Standard size for description */
-  color: #666; /* Lighter color for description text */
-  margin-bottom: 25px; /* Space below the description */
-}
-
-.campaign-info {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flex-direction: column;
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1200px;
 }
 
-.info-container {
-  flex: 1; /* Each container takes equal space */
-  margin: 10px; /* Space around each info container */
-  padding: 20px; /* Increased padding inside each container */
-  background-color: #f9f9f9; /* Light background for containers */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow */
-}
-
-.info-container h3 {
-  margin-bottom: 10px; /* Space below the heading */
-  font-size: 1.3rem; /* Slightly larger size for section titles */
-  color: #444; /* Dark color for better readability */
-}
-
-.investment-form {
-  margin-top: 30px;
+.card-content {
   display: flex;
-  gap: 15px;
-  justify-content: center;
-}
-
-.investment-input {
-  padding: 15px; /* Increased padding for better usability */
-  font-size: 16px;
-  width: 70%; /* Increased width for better usability */
-  border: 1px solid #ccc; /* Light border */
-  border-radius: 5px; /* Rounded corners for input */
-  transition: border 0.3s ease; /* Transition for border color */
-}
-
-.investment-input:focus {
-  border-color: #007bff; /* Change border color on focus */
-  outline: none; /* Remove default outline */
-}
-
-.invest-button {
-  padding: 15px 25px; /* Increased padding for better usability */
-  font-size: 16px;
-  background-color: #007bff; /* Primary button color */
-  color: white;
-  border: none; /* Remove border */
-  border-radius: 5px; /* Rounded corners */
-  cursor: pointer; /* Pointer on hover */
-  transition: background-color 0.3s ease; /* Smooth transition */
-}
-
-.invest-button:hover {
-  background-color: #0056b3; /* Darker shade on hover */
+  gap: 30px;
 }
 
 .campaign-images {
-  margin: 30px 0; /* Space around the carousel */
-}
-
-.campaign-image {
-  width: 100%; /* Ensure the image takes the full width of the slide */
-  border-radius: 8px; /* Rounded corners for images */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for images */
-}
-
-.loading-text,
-.error-text {
-  font-size: 1.5rem; /* Standard size for loading and error messages */
-  color: #999; /* Gray color for better readability */
-}
-
-/* Carousel button styles */
-.slick-prev,
-.slick-next {
-  width: 50px; /* Increased width of the button */
-  height: 50px; /* Increased height of the button */
-  background-color: rgba(255, 255, 255, 0.8); /* Light background for buttons */
-  border-radius: 50%; /* Circular buttons */
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  /* background-color: #f8f9fa; */
+  padding: 20px;
+  border-radius: 10px;
+  /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); */
+  justify-content: left;
+  height: fit-content;
+}
+
+.selected-image {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  /* margin-top: 100px; */
+}
+
+.thumbnail-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
   justify-content: center;
-  opacity: 0.9; /* Less transparency */
-  transition: background-color 0.3s ease, opacity 0.3s ease; /* Smooth transitions */
-  z-index: 1; /* Ensure buttons are on top of images */
 }
 
-.slick-prev:hover,
-.slick-next:hover {
-  background-color: rgba(255, 255, 255, 1); /* Full white on hover */
-  opacity: 1; /* Full opacity on hover */
+.thumbnail {
+  width: 60px;
+  height: 60px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.slick-prev::before,
-.slick-next::before {
-  color: black; /* Black arrow color */
-  font-size: 25px; /* Increased size of the arrows */
+.thumbnail:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Positioning the buttons */
-.slick-prev {
-  left: 20px; /* Position from left */
+.thumbnail.active {
+  border: 2px solid #007bff;
 }
 
-.slick-next {
-  right: 20px; /* Position from right */
+.campaign-info {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.campaign-title {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.campaign-description {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 25px;
+}
+
+.info-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.info-section h3 {
+  font-size: 1.5rem;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+.info-section p {
+  font-size: 1rem;
+  color: #666;
+  margin: 5px 0;
+}
+
+.investment-form {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.investment-input {
+  flex: 1;
+  padding: 15px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  transition: border 0.3s ease;
+}
+
+.investment-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.invest-button {
+  padding: 15px 25px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.invest-button:hover {
+  background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .card-content {
+    flex-direction: column;
+  }
+
+  .campaign-images,
+  .campaign-info {
+    width: 100%;
+  }
 }
