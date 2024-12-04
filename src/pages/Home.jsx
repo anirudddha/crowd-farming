@@ -60,7 +60,7 @@ const Home = () => {
         <h2>What Our Community Says</h2>
         <div className="testimonial-cards">
           <div className="testimonial-card">
-            <p>"Crowdfarming has revolutionized my business. I now have the funding and support I need!"</p>
+            <p>"5 Acre Farming has revolutionized my business. I now have the funding and support I need!"</p>
             <p className="author">- John Doe, Farmer</p>
           </div>
           <div className="testimonial-card">
