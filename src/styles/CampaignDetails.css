@@ -31,7 +31,7 @@ body {
 }
 
 .campaign-images {
-  flex: 1;
+  flex: 1.4;
   display: flex;
   flex-direction: column;
   align-items: center;
