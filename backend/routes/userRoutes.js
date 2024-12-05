@@ -73,41 +73,49 @@ const upload = multer({
 });
 
 // Route to upload profile picture
-router.post('/upload-profile-picture', auth, upload.single('profilePicture'), async (req, res) => {
+router.post('/upload-profile-picture', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user);
-
-        if (!user) {
-            return res.status(404).json({ msg: 'User not found' });
-        }
-
-        // Delete the old profile picture if it exists
-        if (user.profilePicture) {
-            const oldPath = path.join(__dirname, '../uploads', user.profilePicture);
-            if (fs.existsSync(oldPath)) {
-                fs.unlinkSync(oldPath);
-            }
-        }
-
-        // Save new profile picture path to user model
-        user.profilePicture = req.file.filename;
-        await user.save();
-
-        res.json({ msg: 'Profile picture uploaded successfully!', profilePicture: user.profilePicture });
+      const user = await User.findById(req.user);
+  
+      if (!user) {
+        return res.status(404).json({ msg: 'User not found' });
+      }
+  
+      const { profilePicture } = req.body;
+  
+      if (!profilePicture) {
+        return res.status(400).json({ msg: 'No profile picture provided' });
+      }
+  
+      // Optionally: Validate base64 string format
+      const isBase64 = /^data:image\/[a-z]+;base64,/.test(profilePicture);
+      if (!isBase64) {
+        return res.status(400).json({ msg: 'Invalid image format. Ensure it is a base64 string.' });
+      }
+  
+      // Save the new profile picture (base64 string) to the user's profile
+      user.profilePicture = profilePicture;
+      await user.save();
+  
+      res.json({
+        msg: 'Profile picture uploaded successfully!',
+        profilePicture: user.profilePicture, // Return the base64 string for immediate use
+      });
     } catch (error) {
-        res.status(500).json({ msg: 'Server error' });
+      console.error('Error uploading profile picture:', error);
+      res.status(500).json({ msg: 'Server error' });
     }
-});
+  });
 
 // Route to get the profile picture URL
-router.get('/profile-picture/:filename', (req, res) => {
-    const filepath = path.join(__dirname, '../uploads', req.params.filename);
-    if (fs.existsSync(filepath)) {
-        res.sendFile(filepath);
-    } else {
-        res.status(404).json({ msg: 'File not found' });
-    }
-});
+// router.get('/profile-picture/:filename', (req, res) => {
+//     const filepath = path.join(__dirname, '../uploads', req.params.filename);
+//     if (fs.existsSync(filepath)) {
+//         res.sendFile(filepath);
+//     } else {
+//         res.status(404).json({ msg: 'File not found' });
+//     }
+// });
 
 
 module.exports = router;
