@@ -106,7 +106,13 @@ const storage = multer.diskStorage({
 });
 
 // Initialize multer
-const upload = multer({ storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // Maximum file size (50MB)
+    fieldSize: 50 * 1024 * 1024, // Maximum size of non-file fields (50MB)
+  },
+});
 
 // Create a new campaign
 exports.createCampaign = [
