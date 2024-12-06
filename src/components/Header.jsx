@@ -37,6 +37,7 @@ const Header = () => {
         <div className={`navmemus ${isMenuOpen ? 'open' : ''}`}>
           <nav>
             <Link to="/">Home</Link>
+            <Link to="/how-it-works">How it Works</Link>
             <Link to="/farms">Farm Listings</Link>
             <Link to="/create">Create Campaign</Link>
             <Link to="/dashboard">Dashboard</Link>
@@ -70,6 +71,7 @@ const Header = () => {
         <hr />
         <nav>
           <Link to="/" onClick={toggleMenu}>Home</Link>
+          <Link to="/how-it-works">How it Works</Link>
           <Link to="/farms" onClick={toggleMenu} >Farm Listings</Link>
           <Link to="/create" onClick={toggleMenu} >Create Campaign</Link>
           <Link to="/dashboard" onClick={toggleMenu} >Dashboard</Link>

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 // Middleware to authenticate user
 const auth = (req, res, next) => {
   const authHeader = req.header('Authorization'); // Access the Authorization header
-  console.log('Authorization Header:', authHeader);
+  // console.log('Authorization Header:', authHeader);
 
   // Check if the Authorization header is present
   if (!authHeader) {
@@ -13,7 +13,7 @@ const auth = (req, res, next) => {
   // Extract the token by removing 'Bearer ' prefix
 //   const token = authHeader;
   const token = authHeader.split(' ')[1];
-  console.log('Extracted Token:', token);
+  // console.log('Extracted Token:', token);
 
   try {
     // Verify the token
