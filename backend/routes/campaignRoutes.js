@@ -26,7 +26,7 @@ router.put('/:id/raisedAmount',invest);
 router.post('/', auth, createCampaign); // Ensure auth middleware is used here
 
 // PUT (update) a campaign
-router.put('/:id', updateCampaign);
+router.put('/editCampaign', updateCampaign);
 
 // DELETE a campaign
 // router.delete('/:id', deleteCampaign);

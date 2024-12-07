@@ -301,3 +301,9 @@
     font-size: 1rem;
   }
 }
+
+.saveButton{
+  background-color: rgb(0, 200, 0);
+  border-radius: 10px;
+  height: 40px;
+}

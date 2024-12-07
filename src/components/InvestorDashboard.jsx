@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../styles/Dashboard.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const InvestorDashboard = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -56,11 +58,12 @@ const InvestorDashboard = () => {
 
   const saveEdits = async () => {
     try {
-      await axios.put(`http://localhost:5000/api/campaigns/${editedCampaign._id}`, editedCampaign);
+      await axios.put(`http://localhost:5000/api/campaigns/editCampaign`, editedCampaign);
       setCampaigns(campaigns.map((campaign) =>
         campaign._id === editedCampaign._id ? editedCampaign : campaign
       ));
       closeModal();
+      toast.info("Your information is updated");
     } catch (error) {
       console.error('Error saving edits:', error);
     }
@@ -443,6 +446,8 @@ const InvestorDashboard = () => {
                       disabled
                     />
                   </div>
+
+                  <button onClick={saveEdits} className='saveButton'>Update</button>
                 </div>
               )}
             </div>
@@ -467,6 +472,7 @@ const InvestorDashboard = () => {
       ) : (
         <p className="no-investments">No investments found.</p>
       )}
+      <ToastContainer />
     </div>
   );
 };

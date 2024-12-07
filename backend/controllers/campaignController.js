@@ -177,16 +177,18 @@ exports.createCampaign = [
 
 // Update an existing campaign
 exports.updateCampaign = async (req, res) => {
-  const { id } = req.params;
-  const { name, description, targetAmount, raisedAmount, location } = req.body;
+  // const { id } = req.params;
+  const { farmerName, phoneNumber, email, farmName, farmLocation, fundingGoal, raisedAmount, farmingMethods } = req.body; // Adjust fields based on your schema
 
   try {
     const campaign = await Campaign.findByIdAndUpdate(
-      id,
-      { name, description, targetAmount, raisedAmount, location },
+      req.body._id,
+      req.body,
       { new: true } // Return the updated document
     );
-
+    // res.json(req.body);
+    // console.log(res);
+    
     if (!campaign) {
       return res.status(404).json({ msg: 'Campaign not found' });
     }
@@ -194,7 +196,8 @@ exports.updateCampaign = async (req, res) => {
     res.json(campaign);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    // res.status(500).send('Server Error');
+    res.json(err);
   }
 };
 
