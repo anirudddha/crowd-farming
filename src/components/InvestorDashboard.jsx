@@ -112,7 +112,8 @@ const InvestorDashboard = () => {
             <button className="close-modal" onClick={closeModal}>
               ✖
             </button>
-            <h3>{modalType === 'view' ? 'View Campaign Details' : 'Edit Campaign Details'}</h3>
+            <h3 className='modal-title'>{modalType === 'view' ? 'View Campaign Details' : 'Edit Campaign Details'}</h3>
+            <hr />  
             <div className="modal-body">
               {modalType === 'view' ? (
                 <div className="view-content">

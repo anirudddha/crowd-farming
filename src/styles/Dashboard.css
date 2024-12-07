@@ -124,7 +124,13 @@
   position: relative;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
-
+.modal-title{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
+  margin-top: 0;
+}
 .close-modal {
   position: absolute;
   top: 10px;
@@ -145,10 +151,16 @@
   margin-bottom: 1rem;
   font-size: 0.95rem;
   line-height: 1.5;
+  display: flex;
+  justify-content: space-between;
+  color: #a7288e;
+  /* padding: 20px; */
+  padding: 0 20px 0 20px;
 }
 
 .view-content strong {
-  color: #2c3e50;
+  color: #166668;
+  font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
 
 /* Edit Content */
@@ -161,13 +173,14 @@
 .edit-field {
   display: flex;
   flex-direction: column;
+  padding-left: 20px;
 }
 
 .edit-field label {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
-  color: #34495e;
+  color: #227384;
 }
 
 .edit-field input {
@@ -306,4 +319,9 @@
   background-color: rgb(0, 200, 0);
   border-radius: 10px;
   height: 40px;
+}
+textarea{
+  border-radius: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
 }
