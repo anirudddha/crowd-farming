@@ -79,7 +79,7 @@ const Profile = () => {
     try {
       const response = await axios.put(
         'http://localhost:5000/api/editName',
-        { name: newName, _id: profileData._id},
+        { name: newName, _id: profileData._id },
       );
       setProfileData({ ...profileData, name: newName });
       setIsEditingName(false);
@@ -91,14 +91,8 @@ const Profile = () => {
   const handleAddressSave = async () => {
     try {
       const response = await axios.put(
-        'http://localhost:5000/api/update-address',
-        { address: newAddress },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        }
+        'http://localhost:5000/api/editAddress',
+        { address: newAddress ,_id:profileData._id},
       );
       setProfileData({ ...profileData, address: newAddress });
       setIsEditingAddress(false);

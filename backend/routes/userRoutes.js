@@ -6,7 +6,8 @@ const Campaign = require('../models/Campaign'); // Assuming you have a Campaign 
 const auth = require('../middleware/userAuth'); // Middleware to verify token
 const Investment = require('../models/Investment'); // Import Investment model
 const {
-    updateName
+    updateName,
+    updateAddress
 } = require('../controllers/userController');
 
 const multer = require('multer');
@@ -119,5 +120,6 @@ router.post('/upload-profile-picture', auth, async (req, res) => {
 //     }
 // });
 router.put('/editName', updateName);
+router.put('/editAddress', updateAddress);
 
 module.exports = router;
