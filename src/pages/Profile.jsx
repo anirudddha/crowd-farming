@@ -8,7 +8,7 @@ const Profile = () => {
     name: '',
     email: '',
     profilePicture: '',
-    address: '', // Add address to the state
+    address: '',
   });
   const [preview, setPreview] = useState('');
   const [base64Image, setBase64Image] = useState('');
@@ -26,10 +26,9 @@ const Profile = () => {
           },
         });
         setProfileData(response.data);
-        console.log(response.data);
-        setPreview(response.data.profilePicture); // Assume this is a base64 string
+        setPreview(response.data.profilePicture);
         setNewName(response.data.name);
-        setNewAddress(response.data.address || ''); // Set the address if available
+        setNewAddress(response.data.address || '');
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
@@ -42,8 +41,8 @@ const Profile = () => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPreview(reader.result); // Show preview
-      setBase64Image(reader.result); // Save base64 string
+      setPreview(reader.result);
+      setBase64Image(reader.result);
     };
     reader.readAsDataURL(file);
   };
@@ -61,26 +60,15 @@ const Profile = () => {
         }
       );
       setProfileData({ ...profileData, profilePicture: response.data.profilePicture });
-      setBase64Image(''); // Reset after upload
+      setBase64Image('');
     } catch (error) {
       console.error('Error uploading profile picture:', error);
     }
   };
 
-  const handleNameEdit = () => {
-    setIsEditingName(true);
-  };
-
-  const handleAddressEdit = () => {
-    setIsEditingAddress(true);
-  };
-
   const handleNameSave = async () => {
     try {
-      const response = await axios.put(
-        'http://localhost:5000/api/editName',
-        { name: newName, _id: profileData._id },
-      );
+      await axios.put('http://localhost:5000/api/editName', { name: newName, _id: profileData._id });
       setProfileData({ ...profileData, name: newName });
       setIsEditingName(false);
     } catch (error) {
@@ -90,10 +78,7 @@ const Profile = () => {
 
   const handleAddressSave = async () => {
     try {
-      const response = await axios.put(
-        'http://localhost:5000/api/editAddress',
-        { address: newAddress ,_id:profileData._id},
-      );
+      await axios.put('http://localhost:5000/api/editAddress', { address: newAddress, _id: profileData._id });
       setProfileData({ ...profileData, address: newAddress });
       setIsEditingAddress(false);
     } catch (error) {
@@ -105,9 +90,9 @@ const Profile = () => {
     <div className="profile-container">
       <div className="profile-image">
         <img src={preview || '/default-profile.png'} alt="Profile" />
-        <label htmlFor="file-input" className="upload-icon">
+        <div className="upload-icon">
           <FaPen />
-        </label>
+        </div>
         <input
           type="file"
           id="file-input"
@@ -116,46 +101,46 @@ const Profile = () => {
           style={{ display: 'none' }}
         />
       </div>
+
       <h2 className="profile-name">
         {isEditingName ? (
-          <div>
+          <div className="editable">
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
+              placeholder="Enter your name"
             />
-            <button className="update-button" onClick={handleNameSave}>Save</button>
+            <button className="save-button" onClick={handleNameSave}>Save</button>
           </div>
         ) : (
           <span>
             {profileData.name}
-            <FaPen className="edit-icon" onClick={handleNameEdit} />
+            <FaPen className="edit-icon" onClick={() => setIsEditingName(true)} />
           </span>
         )}
       </h2>
-      <p className="profile-email">{profileData.email}</p>
-
-      {/* Address Section */}
+      
+      <p className="profile-email"><span>Username : </span>{profileData.email}</p>
       <div className="profile-update-section">
+        <h3>Address : </h3>
         {isEditingAddress ? (
-          <div>
+          <div className="editable">
             <input
               type="text"
               value={newAddress}
               onChange={(e) => setNewAddress(e.target.value)}
+              placeholder="Enter your address"
             />
-            <button className="update-button" onClick={handleAddressSave}>Save Address</button>
-          </div>
-        ) : profileData.address ? (
-          <div>
-            <p>{profileData.address}</p>
-            <FaPen className="edit-icon" onClick={handleAddressEdit} />
+            <button className="save-button" onClick={handleAddressSave}>Save</button>
           </div>
         ) : (
-          <button className="update-button" onClick={handleAddressEdit}>Add Address</button>
+          <p>
+            {profileData.address || 'No address added'}
+            <FaPen className="edit-icon" onClick={() => setIsEditingAddress(true)} />
+          </p>
         )}
       </div>
-
       {base64Image && (
         <button className="upload-button" onClick={handleUpload}>
           Upload Profile Picture
