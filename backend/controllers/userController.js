@@ -23,3 +23,22 @@ exports.createUser = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+exports.updateName = async (req, res) =>{
+  const { name, _id } = req.body;
+  // res.json(req.body);
+  try {
+    // console.log(name,_id);
+    const updatedUser = await User.findByIdAndUpdate(
+      {_id:_id}, // User ID to find the user
+      {name}, // Only update the 'name' field
+      { new: true } // Return the updated user object
+    );
+    
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).send('Error updating profile');
+    // res.json(error);
+  }
+};
+

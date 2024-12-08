@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/headers.css';
+
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Add state for login status
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Add state for hamburger menu
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if the user is logged in (you can use localStorage or context)
@@ -24,6 +26,7 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
+    navigate('/farms')
   };
 
   const toggleMenu = () => {

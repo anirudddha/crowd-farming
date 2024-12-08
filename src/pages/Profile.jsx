@@ -8,9 +8,14 @@ const Profile = () => {
     name: '',
     email: '',
     profilePicture: '',
+    address: '', // Add address to the state
   });
   const [preview, setPreview] = useState('');
   const [base64Image, setBase64Image] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newAddress, setNewAddress] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -21,8 +26,10 @@ const Profile = () => {
           },
         });
         setProfileData(response.data);
-        console.log(response.data); 
+        console.log(response.data);
         setPreview(response.data.profilePicture); // Assume this is a base64 string
+        setNewName(response.data.name);
+        setNewAddress(response.data.address || ''); // Set the address if available
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
@@ -60,6 +67,46 @@ const Profile = () => {
     }
   };
 
+  const handleNameEdit = () => {
+    setIsEditingName(true);
+  };
+
+  const handleAddressEdit = () => {
+    setIsEditingAddress(true);
+  };
+
+  const handleNameSave = async () => {
+    try {
+      const response = await axios.put(
+        'http://localhost:5000/api/editName',
+        { name: newName, _id: profileData._id},
+      );
+      setProfileData({ ...profileData, name: newName });
+      setIsEditingName(false);
+    } catch (error) {
+      console.error('Error saving name:', error);
+    }
+  };
+
+  const handleAddressSave = async () => {
+    try {
+      const response = await axios.put(
+        'http://localhost:5000/api/update-address',
+        { address: newAddress },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setProfileData({ ...profileData, address: newAddress });
+      setIsEditingAddress(false);
+    } catch (error) {
+      console.error('Error saving address:', error);
+    }
+  };
+
   return (
     <div className="profile-container">
       <div className="profile-image">
@@ -75,8 +122,46 @@ const Profile = () => {
           style={{ display: 'none' }}
         />
       </div>
-      <h2 className="profile-name">{profileData.name}</h2>
+      <h2 className="profile-name">
+        {isEditingName ? (
+          <div>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            <button className="update-button" onClick={handleNameSave}>Save</button>
+          </div>
+        ) : (
+          <span>
+            {profileData.name}
+            <FaPen className="edit-icon" onClick={handleNameEdit} />
+          </span>
+        )}
+      </h2>
       <p className="profile-email">{profileData.email}</p>
+
+      {/* Address Section */}
+      <div className="profile-update-section">
+        {isEditingAddress ? (
+          <div>
+            <input
+              type="text"
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+            />
+            <button className="update-button" onClick={handleAddressSave}>Save Address</button>
+          </div>
+        ) : profileData.address ? (
+          <div>
+            <p>{profileData.address}</p>
+            <FaPen className="edit-icon" onClick={handleAddressEdit} />
+          </div>
+        ) : (
+          <button className="update-button" onClick={handleAddressEdit}>Add Address</button>
+        )}
+      </div>
+
       {base64Image && (
         <button className="upload-button" onClick={handleUpload}>
           Upload Profile Picture
