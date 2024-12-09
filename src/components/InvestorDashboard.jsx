@@ -3,6 +3,7 @@ import axios from 'axios';
 import '../styles/Dashboard.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Link } from 'react-router-dom';
 
 const InvestorDashboard = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -113,7 +114,7 @@ const InvestorDashboard = () => {
               ✖
             </button>
             <h3 className='modal-title'>{modalType === 'view' ? 'View Campaign Details' : 'Edit Campaign Details'}</h3>
-            <hr />  
+            <hr />
             <div className="modal-body">
               {modalType === 'view' ? (
                 <div className="view-content">
@@ -461,13 +462,16 @@ const InvestorDashboard = () => {
         <ul className="investment-list">
           {investments.map((investment) => (
             <li key={investment._id} className="investment-card">
-              <h4 className="investment-farm">Farm: <span style={{color:"green"}}>{investment.farmName}</span></h4>
+              <h4 className="investment-farm">Farm: <span style={{ color: "green" }}>{investment.farmName}</span></h4>
               <div className="investment-details">
                 <span className="investment-amount">Amount: ${investment.amount}</span>
                 <span className="investment-date">Date: {new Date(investment.date).toLocaleDateString()}</span>
               </div>
+              <button className="refund">Refund</button>
+              <Link to={`/campaign/${investment.campaignId._id}`} className="viewfarm">
+                View Farm
+              </Link>
             </li>
-
           ))}
         </ul>
       ) : (
