@@ -15,6 +15,7 @@ const CampaignDetails = () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/campaigns/${id}`);
         setCampaign(response.data);
+        // console.log(response.data);
         if (response.data.visuals && response.data.visuals.length > 0) {
           setSelectedImage(response.data.visuals[0]); // Default to the first image
         }
@@ -34,6 +35,7 @@ const CampaignDetails = () => {
       await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
         amount: parseFloat(investmentAmount),
         userId: id,
+        name:campaign.campaignTitle,
       });
 
       await axios.post(

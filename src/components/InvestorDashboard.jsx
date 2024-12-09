@@ -461,7 +461,7 @@ const InvestorDashboard = () => {
         <ul className="investment-list">
           {investments.map((investment) => (
             <li key={investment._id} className="investment-card">
-              <h4 className="investment-farm">Farm: {investment.framName}</h4>
+              <h4 className="investment-farm">Farm: <span style={{color:"green"}}>{investment.farmName}</span></h4>
               <div className="investment-details">
                 <span className="investment-amount">Amount: ${investment.amount}</span>
                 <span className="investment-date">Date: {new Date(investment.date).toLocaleDateString()}</span>

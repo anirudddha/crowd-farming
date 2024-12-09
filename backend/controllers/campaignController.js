@@ -230,13 +230,11 @@ exports.storeInvestment = async (req, res) => {
     if (!campaign) {
       return res.status(404).json({ msg: 'Campaign not found' });
     }
-    // console.log(campaign);
-    // console.log(campaign.name);
     // Create a new investment record with farm name
     const investment = new Investment({
       userId,
       campaignId,
-      farmName: campaign.name, // Store the campaign (farm) name
+      farmName: campaign.campaignTitle, // Store the campaign (farm) name
       amount,
     });
 
