@@ -9,6 +9,7 @@ const {
   invest,
   storeInvestment,
   getFilterOptions,
+  refundRequest
 } = require('../controllers/campaignController');
 
 const auth = require('../middleware/userAuth');
@@ -33,6 +34,9 @@ router.put('/editCampaign', updateCampaign);
 
 // Store investment details
 router.post('/:id/investment', auth, storeInvestment);
+
+// Refund
+router.post('/refundRequest',refundRequest);
 
 
 // GET dynamic filter options

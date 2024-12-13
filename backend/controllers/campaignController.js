@@ -1,5 +1,8 @@
+
 const Campaign = require('../models/Campaign');
 const Investment = require('../models/Investment');
+const Refund = require('../models/Refund');
+
 const express = require('express');
 const app = express();
 app.use(express.json());
@@ -246,5 +249,34 @@ exports.storeInvestment = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: 'Error saving investment details' });
+  }
+};
+
+exports.refundRequest = async (req, res) => {
+  const { Reason, investId, campaignId, userId } = req.body;
+
+  try {
+    // Fetch the campaign details to get the farm (campaign) name
+    const invest = await Investment.findById(investId);
+    if (!invest) {
+      return res.status(404).json({ msg: 'Investment not found' });
+    }
+
+    // Create a new Refund request
+    const newRefund = new Refund({
+      Reason,
+      investId : invest._id,
+      campaignId :invest.campaignId,
+      userId:invest.userId,
+    });
+
+    // Save refund request to the database
+    await newRefund.save();
+
+    // Return the created Refund as the response
+    res.json({ msg: 'Refund request successfully submitted', refund: newRefund });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Error saving refund request' });
   }
 };

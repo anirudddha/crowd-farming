@@ -5,13 +5,59 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 
+
 const InvestorDashboard = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [modalType, setModalType] = useState(''); // 'view' or 'edit'
   const [editedCampaign, setEditedCampaign] = useState(null);
 
+  const [isRefundModalVisible, setRefundModalVisible] = useState(false);
+  const [refundMessage, setRefundMessage] = useState("");
+  const [currentInvestmentId, setCurrentInvestmentId] = useState(null);
+
   const [investments, setInvestments] = useState([]);
+
+
+  // Show the refund modal
+  const openRefundModal = (investmentId) => {
+    setCurrentInvestmentId(investmentId);
+    setRefundModalVisible(true);
+  };
+
+  // Close the refund modal
+  const closeRefundModal = () => {
+    setRefundModalVisible(false);
+    setRefundMessage("");
+    setCurrentInvestmentId(null);
+  };
+
+  // Submit refund request
+  const submitRefundRequest = async () => {
+    if (!refundMessage) {
+      console.error("Refund reason is required.");
+      return;
+    }
+  
+    try {
+      // Send the refund request to the backend
+      const response = await axios.post(
+        `http://localhost:5000/api/campaigns/refundRequest`,
+        {
+          Reason: refundMessage,
+          investId: currentInvestmentId, 
+        } 
+      );
+  
+      // console.log("Refund request submitted:", response.data);
+      alert("your response is submitted once you get refund we will remove investment")
+    } catch (error) {
+      console.error("Error submitting refund request:", error);
+    }
+  
+    closeRefundModal();
+  };
+  
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -467,7 +513,7 @@ const InvestorDashboard = () => {
                 <span className="investment-amount">Amount: ${investment.amount}</span>
                 <span className="investment-date">Date: {new Date(investment.date).toLocaleDateString()}</span>
               </div>
-              <button className="refund">Refund</button>
+              <button className="refund" onClick={() => openRefundModal(investment._id)}>Refund</button>
               <Link to={`/campaign/${investment.campaignId._id}`} className="viewfarm">
                 View Farm
               </Link>
@@ -476,6 +522,30 @@ const InvestorDashboard = () => {
         </ul>
       ) : (
         <p className="no-investments">No investments found.</p>
+      )}
+      {isRefundModalVisible && (
+        <div className="refund-modal">
+          <div className="refund-modal-content">
+            <h4>Request Refund</h4>
+            <textarea
+              value={refundMessage}
+              onChange={(e) => setRefundMessage(e.target.value)}
+              placeholder="Please provide a reason for your refund request..."
+              className="refund-message-textarea"
+            />
+            <div className="refund-modal-buttons">
+              <button className="refund-close-button" onClick={closeRefundModal}>
+                Close
+              </button>
+              <button
+                className="refund-submit-button"
+                onClick={submitRefundRequest}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       <ToastContainer />
     </div>
