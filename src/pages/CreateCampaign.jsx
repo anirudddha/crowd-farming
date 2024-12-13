@@ -4,7 +4,7 @@ import '../styles/CreateCampaign.css'; // Import the CSS file
 
 const CreateCampaign = () => {
   const [base64Strings, setBase64Strings] = useState([]);
-
+  const [pendingPermisson,setPendingPermission] = useState(false);
   const [profileData, setProfileData] = useState({
     name: '',
     email: '',
@@ -12,8 +12,22 @@ const CreateCampaign = () => {
     address: '',
   });
 
-  const handleRequest= ()=>{
+  const handleRequest= async()=>{
     
+    try {
+      const response = await axios.post('http://localhost:5000/api/sending-request', {
+          userId:profileData._id,
+          email:profileData.email
+      });
+      // console.log(response);
+      alert("Request has been Send We Will Contact You Soon");
+    } catch (error) {
+      if (error.response.status === 400) {
+        alert('You already sent a request!');
+      } 
+      // console.error('Error int Sending Request:', error);
+    }
+
   }
   useEffect(() => {
     const fetchProfile = async () => {
@@ -24,14 +38,36 @@ const CreateCampaign = () => {
           },
         });
         setProfileData(response.data);
-        console.log(response.data);
+        // console.log(response.data);
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
     };
-
     fetchProfile();
   }, []);
+
+  useEffect(() => {
+    const forPermission = async () => {
+      if (!profileData) return; // Avoid running until profileData is set
+
+      console.log('Checking permission...');
+      try {
+        const response = await axios.post('http://localhost:5000/api/sending-request', {
+          userId: profileData._id,
+        });
+        // console.log(response);
+        console.log('Request sent successfully');
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          // alert('You already sent a request!');
+          setPendingPermission(true);
+        }
+        // console.error('Error sending request:', error);
+      }
+    };
+
+    forPermission();
+  }, [profileData]); // Runs whenever profileData changes
 
   // State to manage form data
   const [formData, setFormData] = useState({
@@ -83,26 +119,12 @@ const CreateCampaign = () => {
   };
 
   // Handle form submission
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page refresh on form submission
 
     // Prepare form data for submission
     const data = new FormData();
-    // for (const key in formData) {
-    //   if (key === 'visuals') {
-    //     for (const file of formData.visuals) {
-    //       data.append('visuals', file); // Append each file to visuals
-    //     }
-    //   } else {
-    //     data.append(key, formData[key]);
-    //   }
-    // }
-    
     formData.visuals = base64Strings;
-    console.log(formData);
-    console.log(data);
-    console.log(base64Strings);
     try {
       await axios.post('http://localhost:5000/api/campaigns', formData, {
         headers: {
@@ -311,7 +333,7 @@ const CreateCampaign = () => {
       <div className="send-request-title">
         First you need to take Activate your account for the Create Campaign Raise Request so we can Activate your account
       </div>
-      <button className='request-button' onClick={handleRequest}>Send Request</button>
+      <button className='request-button' onClick={handleRequest}>{pendingPermisson===false?`Send Request`:"Request Pending"}</button>
       </>
     }
     </div>

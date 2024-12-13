@@ -7,7 +7,8 @@ const auth = require('../middleware/userAuth'); // Middleware to verify token
 const Investment = require('../models/Investment'); // Import Investment model
 const {
     updateName,
-    updateAddress
+    updateAddress,
+    campaignRequestSave
 } = require('../controllers/userController');
 
 const multer = require('multer');
@@ -110,16 +111,8 @@ router.post('/upload-profile-picture', auth, async (req, res) => {
     }
 });
 
-// Route to get the profile picture URL
-// router.get('/profile-picture/:filename', (req, res) => {
-//     const filepath = path.join(__dirname, '../uploads', req.params.filename);
-//     if (fs.existsSync(filepath)) {
-//         res.sendFile(filepath);
-//     } else {
-//         res.status(404).json({ msg: 'File not found' });
-//     }
-// });
 router.put('/editName', updateName);
 router.put('/editAddress', updateAddress);
+router.post('/sending-request',campaignRequestSave);
 
 module.exports = router;
