@@ -1,9 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import axios from 'axios';
 import '../styles/CreateCampaign.css'; // Import the CSS file
 
 const CreateCampaign = () => {
   const [base64Strings, setBase64Strings] = useState([]);
+
+  const [profileData, setProfileData] = useState({
+    name: '',
+    email: '',
+    profilePicture: '',
+    address: '',
+  });
+
+  const handleRequest= ()=>{
+    
+  }
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/user-profile', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        setProfileData(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   // State to manage form data
   const [formData, setFormData] = useState({
@@ -112,6 +140,8 @@ const CreateCampaign = () => {
 
   return (
     <div className="form-container">
+      {profileData.active ? (
+        <>
       <h1>Create Farm Campaign</h1>
       <form onSubmit={handleSubmit} className="campaign-form">
         {/* Farmer Information */}
@@ -275,6 +305,15 @@ const CreateCampaign = () => {
           Create Campaign
         </button>
       </form>
+      </>
+      ):
+      <>
+      <div className="send-request-title">
+        First you need to take Activate your account for the Create Campaign Raise Request so we can Activate your account
+      </div>
+      <button className='request-button' onClick={handleRequest}>Send Request</button>
+      </>
+    }
     </div>
   );
 };
