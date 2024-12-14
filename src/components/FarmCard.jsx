@@ -25,9 +25,17 @@ const FarmCard = ({ farm }) => {
           <span className="farm-location">📍 {farm.farmLocation}</span>
           <span className="farm-target">🎯 Target: ${farm.fundingGoal}</span>
         </div>
-        <Link to={`/campaign/${farm._id}`} className="view-details-button">
-          View Details
-        </Link>
+        {
+          parseInt(farm.raisedAmount,10)+parseInt(farm.minInvestment,10) < parseInt(farm.fundingGoal,10) ?
+          (<Link to={`/campaign/${farm._id}`} className="view-details-button">
+            View Details
+          </Link>)
+          :
+          <Link to={`/campaign/${farm._id}`} className="view-details-button-complete">
+            Campaign is Full
+          </Link>
+        }
+        
       </div>
     </div>
   );

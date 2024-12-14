@@ -31,11 +31,27 @@ const CampaignDetails = () => {
 
   const handleInvest = async (e) => {
     e.preventDefault();
+
+
+    if (campaign.minInvestment > investmentAmount) {
+      alert(`Minimum ${campaign.minInvestment} Required`);
+      return;
+    }
+
+    let a  = parseInt(campaign.raisedAmount, 10);
+    let b = parseInt(campaign.fundingGoal,10);
+    let c = parseInt(investmentAmount,10);
+    if (c + a > b) {
+      alert(`This Amount is Exceeding the Campaign Goal of Investment ${b}`);
+      return;
+    }
+
+
     try {
       await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
         amount: parseFloat(investmentAmount),
         userId: id,
-        name:campaign.campaignTitle,
+        name: campaign.campaignTitle,
       });
 
       await axios.post(
@@ -116,17 +132,21 @@ const CampaignDetails = () => {
                 <p><strong>Raised Amount:</strong> ${campaign.raisedAmount}</p>
               </div>
 
-              <form onSubmit={handleInvest} className="investment-form">
-                <input
-                  type="number"
-                  placeholder="Enter amount to invest"
-                  value={investmentAmount}
-                  onChange={(e) => setInvestmentAmount(e.target.value)}
-                  required
-                  className="investment-input"
-                />
-                <button type="submit" className="invest-button">Invest Now</button>
-              </form>
+              { parseInt(campaign.raisedAmount,10)+parseInt(campaign.minInvestment,10) <parseInt(campaign.fundingGoal,10) ?
+                (<form onSubmit={handleInvest} className="investment-form">
+                  <input
+                    type="number"
+                    placeholder="Enter amount to invest"
+                    value={investmentAmount}
+                    onChange={(e) => setInvestmentAmount(e.target.value)}
+                    required
+                    className="investment-input"
+                  />
+                  <button type="submit" className="invest-button">Invest Now</button>
+                </form>)
+                :
+                <button className="invest-button-full">Campgign is Full You Can't Invest in This Farm</button>
+              }
             </div>
           </div>
         </div>
