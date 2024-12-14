@@ -4,12 +4,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import FarmCard from '../components/FarmCard';
 import '../styles/FarmListings.css';
+import Loader from '../components/Loader'
 
 const FarmListings = () => {
   const [farms, setFarms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  
+
   // Separately track filter inputs and applied filters
   const [filterInputs, setFilterInputs] = useState({
     farmLocation: '',
@@ -66,7 +67,7 @@ const FarmListings = () => {
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
     setFilterInputs((prev) => ({ ...prev, [name]: value }));
-  
+
     if (value) {
       try {
         const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
@@ -80,7 +81,7 @@ const FarmListings = () => {
       await fetchAllOptions(name);
     }
   };
-  
+
   // New function to fetch all options for a specific filter
   const fetchAllOptions = async (field) => {
     try {
@@ -92,7 +93,7 @@ const FarmListings = () => {
       console.error(`Error fetching all options for ${field}:`, error);
     }
   };
-  
+
 
   const handleSelectOption = (name, value) => {
     setFilterInputs((prev) => ({ ...prev, [name]: value }));
@@ -228,7 +229,9 @@ const FarmListings = () => {
 
         <div className="farms-listing">
           {loading ? (
-            <p>Loading...</p>
+            <div className="loader-container">
+              <Loader />
+            </div>
           ) : farms.length > 0 ? (
             <div className="farms-grid">
               {farms.map((farm) => (
