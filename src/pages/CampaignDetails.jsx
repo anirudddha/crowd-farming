@@ -10,6 +10,103 @@ const CampaignDetails = () => {
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
 
+
+  // Razorpay ------------------------------------------------------------------------------------------------------------------------------
+  const [responseId, setResponseId] = React.useState("");
+  const [responseState, setResponseState] = React.useState([]);
+
+  const loadScript = (src) => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+
+      script.src = src;
+
+      script.onload = () => {
+        resolve(true)
+      }
+      script.onerror = () => {
+        resolve(false)
+      }
+
+      document.body.appendChild(script);
+    })
+  }
+
+  const createRazorpayOrder = (amount) => {
+    let data = JSON.stringify({
+      amount: amount * 100,
+      currency: "INR"
+    })
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:5000/api/campaigns/razorInvestment",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: data
+    }
+
+    axios.request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data))
+        handleRazorpayScreen(response.data.amount)
+      })
+      .catch((error) => {
+        console.log("error at", error)
+      })
+  }
+
+  const handleRazorpayScreen = async (amount) => {
+    const res = await loadScript("https:/checkout.razorpay.com/v1/checkout.js")
+
+    if (!res) {
+      alert("Some error at razorpay screen loading")
+      return;
+    }
+
+    const options = {
+      key: 'rzp_test_ZAIFieaCGZHqsn',
+      amount: amount,
+      currency: 'INR',
+      name: "papaya coders",
+      description: "payment to papaya coders",
+      image: "https://papayacoders.com/demo.png",
+      handler: function (response) {
+        setResponseId(response.razorpay_payment_id)
+      },
+      prefill: {
+        name: "papaya coders",
+        email: "papayacoders@gmail.com"
+      },
+      theme: {
+        color: "#F4C430"
+      }
+    }
+
+    const paymentObject = new window.Razorpay(options)
+    paymentObject.open()
+    handleInvest();
+  }
+
+  const paymentFetch = (e) => {
+    e.preventDefault();
+
+    const paymentId = e.target.paymentId.value;
+
+    axios.get(`http://localhost:5000/api/campaigns/getReciept/${paymentId}`)
+      .then((response) => {
+        console.log(response.data);
+        setResponseState(response.data)
+      })
+      .catch((error) => {
+        console.log("error occures", error)
+      })
+  }
+
+  // -------------------------------------------------------------------------------------------------------------------------------------------
+
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       try {
@@ -38,9 +135,9 @@ const CampaignDetails = () => {
       return;
     }
 
-    let a  = parseInt(campaign.raisedAmount, 10);
-    let b = parseInt(campaign.fundingGoal,10);
-    let c = parseInt(investmentAmount,10);
+    let a = parseInt(campaign.raisedAmount, 10);
+    let b = parseInt(campaign.fundingGoal, 10);
+    let c = parseInt(investmentAmount, 10);
     if (c + a > b) {
       alert(`This Amount is Exceeding the Campaign Goal of Investment ${b}`);
       return;
@@ -132,7 +229,7 @@ const CampaignDetails = () => {
                 <p><strong>Raised Amount:</strong> ${campaign.raisedAmount}</p>
               </div>
 
-              { parseInt(campaign.raisedAmount,10)+parseInt(campaign.minInvestment,10) <parseInt(campaign.fundingGoal,10) ?
+              {parseInt(campaign.raisedAmount, 10) + parseInt(campaign.minInvestment, 10) < parseInt(campaign.fundingGoal, 10) ?
                 (<form onSubmit={handleInvest} className="investment-form">
                   <input
                     type="number"
@@ -142,7 +239,7 @@ const CampaignDetails = () => {
                     required
                     className="investment-input"
                   />
-                  <button type="submit" className="invest-button">Invest Now</button>
+                  <button type="submit" onClick={() => createRazorpayOrder(100)} className="invest-button">Invest Now</button>
                 </form>)
                 :
                 <button className="invest-button-full">Campgign is Full You Can't Invest in This Farm</button>

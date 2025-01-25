@@ -8,6 +8,7 @@ const app = express();
 app.use(express.json());
 const multer = require('multer');
 const path = require('path');
+const Razorpay = require("razorpay");
 
 
 exports.getFilterOptions = async (req, res) => {
@@ -94,7 +95,7 @@ exports.invest = async (req, res) => {
     res.json({ message: 'Investment successful!', campaign });
   } catch (error) {
     console.error('Investment error:', error);
-    res.status(500).json({ message: 'Server error' },error);
+    res.status(500).json({ message: 'Server error' }, error);
   }
 };
 
@@ -164,7 +165,7 @@ exports.createCampaign = [
         impactMetrics,
         visuals, // Add visuals to the campaign
         userId, // Add userId to the campaign
-        raisedAmount:0,
+        raisedAmount: 0,
       });
 
       // Save the new campaign to the database
@@ -191,7 +192,7 @@ exports.updateCampaign = async (req, res) => {
     );
     // res.json(req.body);
     // console.log(res);
-    
+
     if (!campaign) {
       return res.status(404).json({ msg: 'Campaign not found' });
     }
@@ -242,7 +243,7 @@ exports.storeInvestment = async (req, res) => {
     });
 
     // Save investment to the database
-    
+
     await investment.save();
 
     res.json({ msg: 'Investment saved successfully', investment });
@@ -265,9 +266,9 @@ exports.refundRequest = async (req, res) => {
     // Create a new Refund request
     const newRefund = new Refund({
       Reason,
-      investId : invest._id,
-      campaignId :invest.campaignId,
-      userId:invest.userId,
+      investId: invest._id,
+      campaignId: invest.campaignId,
+      userId: invest.userId,
     });
 
     // Save refund request to the database
@@ -278,5 +279,64 @@ exports.refundRequest = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: 'Error saving refund request' });
+  }
+};
+
+
+
+// integration of the razorpay  --------------------------------------------
+
+exports.RazorInvestment = async (req, res) => {
+  const razorpay = new Razorpay({
+    key_id: "rzp_test_ZAIFieaCGZHqsn",
+    key_secret: "zT7OY0uVIhvhJfgfzDgvTL3J"
+  })
+
+  const options = {
+    amount: req.body.amount,
+    currency: req.body.currency,
+    receipt: "receipt#1",
+    payment_capture: 1
+  }
+
+  try {
+    const response = await razorpay.orders.create(options)
+
+    res.json({
+      order_id: response.id,
+      currency: response.currency,
+      amount: response.amount
+    })
+  } catch (error) {
+    res.status(500).send("Internal server error")
+    console.log(error);
+  }
+};
+
+
+
+exports.getReciept = async (req, res) => {
+  const { paymentId } = req.params;
+
+  const razorpay = new Razorpay({
+    key_id: "rzp_test_Ad5XbuEEkCfOrw",
+    key_secret: "6JdtQv2u7oUw7EWziYeyoewJ"
+  })
+
+  try {
+    const payment = await razorpay.payments.fetch(paymentId)
+
+    if (!payment) {
+      return res.status(500).json("Error at razorpay loading")
+    }
+
+    res.json({
+      status: payment.status,
+      method: payment.method,
+      amount: payment.amount,
+      currency: payment.currency
+    })
+  } catch (error) {
+    res.status(500).json("failed to fetch")
   }
 };
