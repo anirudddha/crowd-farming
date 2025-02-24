@@ -46,7 +46,7 @@ const CreateCampaign = () => {
           },
         });
         setProfileData(response.data);
-        // console.log(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
@@ -57,32 +57,36 @@ const CreateCampaign = () => {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    setLoading(true); // Show loader
-    const forPermission = async () => {
-      if (!profileData) return; // Avoid running until profileData is set
+  // useEffect(() => {
+  //   setLoading(true); // Show loader
+  //   const forPermission = async () => {
+  //     if (!profileData) return; // Avoid running until profileData is set
 
-      console.log('Checking permission...');
-      try {
-        const response = await axios.post('http://localhost:5000/api/sending-request', {
-          userId: profileData._id,
-        });
-        // console.log(response);
-        console.log('Request sent successfully');
-      } catch (error) {
-        if (error.response && error.response.status === 400) {
-          // alert('You already sent a request!');
-          setPendingPermission(true);
-        }
-        // console.error('Error sending request:', error);
-      }
-      finally {
-        setLoading(false); // Hide loader
-      }
-    };
+  //     console.log('Checking permission...');
+  //     try {
+  //       console.log("inside try");
+  //       console.log(typeof profileData._id);
+  //       const response = await axios.post('http://localhost:5000/api/sending-request', {
+  //         userId: profileData._id,
+  //       });
+  //       console.log(response);
+  //       console.log('Request sent successfully');
+  //     } catch (error) {
+  //       console.log("inside catch");
+  //       console.log(error);
+  //       if (error.response && error.response.status === 400) {
+  //         // alert('You already sent a request!');
+  //         setPendingPermission(true);
+  //       }
+  //       // console.error('Error sending request:', error);
+  //     }
+  //     finally {
+  //       setLoading(false); // Hide loader
+  //     }
+  //   };
 
-    forPermission();
-  }, [profileData]); // Runs whenever profileData changes
+  //   forPermission();
+  // }, [profileData]); // Runs whenever profileData changes
 
   // State to manage form data
   const [formData, setFormData] = useState({
@@ -186,7 +190,7 @@ const CreateCampaign = () => {
           {/* Replace this with your custom loader */}
           <Loader/>
         </div>
-      ) : profileData.active ? (
+      ) : profileData.active=="true" ? (
         <>
           <h1>Create Farm Campaign</h1>
           <form onSubmit={handleSubmit} className="campaign-form">
