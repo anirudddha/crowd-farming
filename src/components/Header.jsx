@@ -45,6 +45,7 @@ const Header = () => {
             <Link to="/create">Create Campaign</Link>
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/profile">Profile</Link>
+            <Link to="/shop">Shop</Link>
           </nav>
         </div>
         <div className="auth-links">
