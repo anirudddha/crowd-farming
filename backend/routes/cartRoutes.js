@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const Cart = require("../models/Cart");
+const Items = require("../models/Items");
 
 const cartRouter = new Router();
 
@@ -24,7 +25,7 @@ cartRouter.post("", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const item = await Item.findById(itemId);
+    const item = await Items.findById(itemId);
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
