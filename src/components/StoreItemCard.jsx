@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
-import '../styles/StoreItemCard.css'; // Your existing CSS
+import React, { useState, useRef, useEffect } from 'react';
+import '../styles/StoreItemCard.css'; // Ensure CSS is updated
 
 const StoreItemCard = ({ item }) => {
   const [selectedWeight, setSelectedWeight] = useState(item.weights[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown if clicked outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="farm-product-card">
@@ -30,16 +42,16 @@ const StoreItemCard = ({ item }) => {
         </div>
 
         {/* Custom Weight Dropdown */}
-        <div className="custom-dropdown-container">
+        <div className="custom-dropdown-container" ref={dropdownRef}>
           <button className="dropdown-button" onClick={() => setDropdownOpen(!dropdownOpen)}>
             {selectedWeight}kg ▼
           </button>
           {dropdownOpen && (
             <ul className="dropdown-list">
               {item.weights.map(weight => (
-                <li 
-                  key={weight} 
-                  className="dropdown-item" 
+                <li
+                  key={weight}
+                  className="dropdown-item"
                   onClick={() => {
                     setSelectedWeight(weight);
                     setDropdownOpen(false);
