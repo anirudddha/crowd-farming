@@ -84,4 +84,20 @@ cartRouter.post("", async (req, res) => {
   }
 });
 
+cartRouter.put("", async(req, res) =>{
+  try{
+    const {itemId, userId} = req.body;
+
+    await Cart.updateOne(
+      {userId},
+      {$pull:{items:{itemId}}}
+    );
+
+    res.status(200).json({message:"Item deleted from cart successfully"});
+  }catch(e){
+    console.log(e);
+
+  }
+})
+
 module.exports = { cartRouter };
