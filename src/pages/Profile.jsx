@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { FaPen } from 'react-icons/fa';
 import Loader from '../components/Loader';
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
+    _id: '',
     name: '',
     email: '',
     profilePicture: '',
@@ -40,17 +40,18 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = useCallback((e) => {
     const file = e.target.files[0];
+    if (!file) return;
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreview(reader.result);
       setBase64Image(reader.result);
     };
     reader.readAsDataURL(file);
-  };
+  }, []);
 
-  const handleUpload = async () => {
+  const handleUpload = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
@@ -63,152 +64,193 @@ const Profile = () => {
           },
         }
       );
-      setProfileData({ ...profileData, profilePicture: response.data.profilePicture });
+      setProfileData(prev => ({ ...prev, profilePicture: response.data.profilePicture }));
       setBase64Image('');
     } catch (error) {
       console.error('Error uploading profile picture:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [base64Image]);
 
-  const handleNameSave = async () => {
+  const handleNameSave = useCallback(async () => {
     setIsLoading(true);
     try {
       await axios.put('http://localhost:5000/api/editName', { name: newName, _id: profileData._id });
-      setProfileData({ ...profileData, name: newName });
+      setProfileData(prev => ({ ...prev, name: newName }));
       setIsEditingName(false);
     } catch (error) {
       console.error('Error saving name:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [newName, profileData._id]);
 
-  const handleAddressSave = async () => {
+  const handleAddressSave = useCallback(async () => {
     setIsLoading(true);
     try {
       await axios.put('http://localhost:5000/api/editAddress', { address: newAddress, _id: profileData._id });
-      setProfileData({ ...profileData, address: newAddress });
+      setProfileData(prev => ({ ...prev, address: newAddress }));
       setIsEditingAddress(false);
     } catch (error) {
       console.error('Error saving address:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [newAddress, profileData._id]);
+
+  const handleCancelNameEdit = useCallback(() => {
+    setNewName(profileData.name);
+    setIsEditingName(false);
+  }, [profileData.name]);
+
+  const handleCancelAddressEdit = useCallback(() => {
+    setNewAddress(profileData.address || '');
+    setIsEditingAddress(false);
+  }, [profileData.address]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-cyan-50 py-8 px-4 sm:px-6 lg:px-8 relative">
       {isLoading && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-          <Loader />
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <Loader className="w-16 h-16 text-emerald-600" />
         </div>
       )}
 
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="max-w-4xl mx-auto transform transition-all duration-300">
         {/* Profile Header */}
-        <div className="px-6 py-8 border-b border-gray-200">
-          <div className="flex flex-col items-center space-y-4">
-            <label className="relative group cursor-pointer">
-              <img
-                className="w-32 h-32 rounded-full object-cover shadow-lg group-hover:opacity-75 transition-opacity"
-                src={preview || '/default-profile.png'}
-                alt="Profile"
-              />
+        <div className="relative bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl shadow-2xl p-8 mb-12 overflow-hidden">
+          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full" />
+          <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/10 rounded-full" />
+
+          <div className="flex flex-col items-center space-y-6 z-10 relative">
+            <label className="relative group cursor-pointer transform hover:scale-105 transition-transform">
+              <div className="p-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-lg">
+                <div className="p-1 bg-white rounded-full">
+                  <img
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white"
+                    src={preview || '/default-profile.png'}
+                    alt="Profile"
+                  />
+                </div>
+              </div>
               <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <FaPen className="text-white text-xl" />
+                <i className="fa-solid fa-pen"></i>
               </div>
               <input
                 type="file"
-                id="file-input"
                 onChange={handleFileChange}
                 accept="image/*"
                 className="hidden"
               />
             </label>
-            
+
             {base64Image && (
               <button
                 onClick={handleUpload}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                className="px-6 py-3 bg-white text-emerald-600 rounded-xl shadow-md hover:shadow-lg transition-all font-semibold flex items-center gap-2"
               >
+                <i className="fa-solid fa-check"></i>
                 Upload New Photo
               </button>
             )}
           </div>
         </div>
 
-        {/* Profile Details */}
-        <div className="px-6 py-8 space-y-6">
-          {/* Name Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-600">Full Name</label>
-            {isEditingName ? (
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                  placeholder="Enter your name"
-                />
-                <button
-                  onClick={handleNameSave}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between group">
-                <span className="text-xl font-semibold text-gray-900">{profileData.name}</span>
+        {/* Profile Details Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 transition-all hover:shadow-2xl">
+          <div className="space-y-8">
+            {/* Name Section */}
+            <div className="group relative">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                <span className="text-sm font-semibold text-emerald-600">FULL NAME</span>
                 <button
                   onClick={() => setIsEditingName(true)}
-                  className="p-2 text-gray-400 hover:text-emerald-600 rounded-full hover:bg-gray-100 transition-colors"
+                  className="p-2 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <FaPen className="w-4 h-4" />
+                  <i className="fa-solid fa-pen"></i>
                 </button>
               </div>
-            )}
-          </div>
 
-          {/* Email Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-600">Email Address</label>
-            <p className="text-gray-700">{profileData.email}</p>
-          </div>
+              {isEditingName ? (
+                <div className="pt-4 flex gap-4">
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="flex-1 px-4 py-3 border-b-2 border-emerald-500 focus:outline-none text-xl font-semibold bg-gray-50 rounded-lg"
+                    placeholder="Enter your name"
+                  />
+                  <button
+                    onClick={handleNameSave}
+                    className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelNameEdit}
+                    className="px-6 py-3 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <h2 className="pt-4 text-2xl font-bold text-gray-800">{profileData.name}</h2>
+              )}
+            </div>
 
-          {/* Address Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-600">Shipping Address</label>
-            {isEditingAddress ? (
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                  placeholder="Enter your address"
-                />
+            {/* Email Section */}
+            <div className="group">
+              <div className="pb-2 border-b border-gray-100">
+                <span className="text-sm font-semibold text-emerald-600">EMAIL ADDRESS</span>
+              </div>
+              <p className="pt-4 text-gray-600 flex items-center gap-2">
+                <i className="fa-solid fa-circle-user"></i>
+                {profileData.email}
+              </p>
+            </div>
+
+            {/* Address Section */}
+            <div className="group relative">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                <span className="text-sm font-semibold text-emerald-600">SHIPPING ADDRESS</span>
                 <button
-                  onClick={handleAddressSave}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingAddress(true);
+                  }}
+                  className="p-2 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  Save
+                  <i className="fas fa-pen"></i>
                 </button>
               </div>
-            ) : (
-              <div className="flex items-center justify-between group">
-                <p className="text-gray-700">{profileData.address || 'No address provided'}</p>
-                <button
-                  onClick={() => setIsEditingAddress(true)}
-                  className="p-2 text-gray-400 hover:text-emerald-600 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  <FaPen className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+
+              {isEditingAddress ? (
+                <div className="pt-4 flex gap-4">
+                  <input
+                    type="text"
+                    value={newAddress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                    className="flex-1 px-4 py-3 border-b-2 border-emerald-500 focus:outline-none text-gray-700 bg-gray-50 rounded-lg"
+                    placeholder="Enter your address"
+                  />
+                  <button
+                    onClick={handleAddressSave}
+                    className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelAddressEdit}
+                    className="px-6 py-3 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <p className="pt-4 text-gray-600">{profileData.address || 'No address provided'}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
