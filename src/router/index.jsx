@@ -12,6 +12,7 @@ import StorePage from '../pages/StorePage';
 import Login from '../components/Login'; // Import Login
 import Signup from '../components/Signup'; // Import Signup
 import ProtectedRoute from '../components/Protected'; // To protect routes
+import CartPage from '../pages/CartPage';
 
 const AppRoutes = () => {
   return (
@@ -23,6 +24,7 @@ const AppRoutes = () => {
       <Route path="/signup" element={<Signup />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path='/shop' element={<StorePage />} />
+      <Route path='/shop/cart' element={<CartPage />} />
       
       {/* Protected Routes */}
       <Route
