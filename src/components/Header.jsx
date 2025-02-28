@@ -25,8 +25,8 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo Section */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="flex items-center space-x-3 group"
               aria-label="5 Acre Organics Home"
             >
@@ -63,7 +63,7 @@ const Header = () => {
                     <i className="fas fa-sign-in-alt mr-2"></i>Sign In
                   </AuthButton>
                   <AuthButton to="/signup" variant="primary">
-                    <i className="fas fa-rocket mr-2"></i>Get Started
+                    <i className="fas fa-rocket mr-2"></i>Get Started Signup
                   </AuthButton>
                 </>
               )}
@@ -88,7 +88,7 @@ const Header = () => {
             <MobileNavLink to="/how-it-works" text="Process" current={pathname} onClose={toggleMenu} icon="seedling" />
             <MobileNavLink to="/create" text="Campaigns" current={pathname} onClose={toggleMenu} icon="hand-holding-usd" />
             <MobileNavLink to="/shop" text="Shop" current={pathname} onClose={toggleMenu} icon="shopping-basket" />
-            
+
             <div className="h-px bg-black my-4" />
 
             {isLoggedIn ? (
@@ -97,9 +97,9 @@ const Header = () => {
                 <MobileNavLink to="/profile" text="Profile" current={pathname} onClose={toggleMenu} icon="user-cog" />
                 <button
                   onClick={handleLogout}
-                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg flex items-center"
+                  className="w-full px-4 py-3 text-left mt-2 text-gray-700 hover:bg-gray-50 rounded-lg flex items-center"
                 >
-                  <i className="fas fa-sign-out-alt mr-2 text-emerald-600"></i>
+                  <i className="fas fa-sign-out-alt mr-2 text-red-500"></i>
                   Log Out
                 </button>
               </>
@@ -125,27 +125,24 @@ const Header = () => {
 const NavLink = ({ to, text, current, icon }) => (
   <Link
     to={to}
-    className={`relative px-4 py-2.5 text-sm font-medium ${
-      current === to ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-700'
-    } transition-colors group`}
+    className={`relative px-4 py-2.5 text-sm font-medium ${current === to ? 'text-emerald-700' : 'text-gray-600 hover:text-emerald-700'
+      } transition-colors group`}
     aria-current={current === to ? "page" : undefined}
   >
     <i className={`fas fa-${icon} mr-2`}></i>
     {text}
-    <span className={`absolute bottom-0 left-1/2 h-0.5 bg-emerald-600 transition-all duration-300 ${
-      current === to ? 'w-4/5 -translate-x-1/2' : 'w-0 group-hover:w-4/5 group-hover:-translate-x-1/2'
-    }`} />
+    <span className={`absolute bottom-0 left-1/2 h-0.5 bg-emerald-600 transition-all duration-300 ${current === to ? 'w-4/5 -translate-x-1/2' : 'w-0 group-hover:w-4/5 group-hover:-translate-x-1/2'
+      }`} />
   </Link>
 );
 
 const AuthButton = ({ to, variant = 'primary', children, className = '' }) => (
   <Link
     to={to}
-    className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center ${className} ${
-      variant === 'primary'
+    className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center ${className} ${variant === 'primary'
         ? 'bg-gradient-to-br from-emerald-700 to-teal-600 text-white shadow-md hover:shadow-lg'
         : 'text-gray-600 hover:bg-gray-50 hover:text-emerald-700'
-    }`}
+      }`}
   >
     {children}
   </Link>
@@ -187,6 +184,7 @@ const ProfileDropdown = ({ onLogout }) => {
           <div className="p-2 space-y-1">
             <Link
               to="/dashboard"
+              onClick={()=>setIsOpen(false)}
               className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
             >
               <i className="fas fa-chart-line mr-2 text-emerald-600"></i>
@@ -194,16 +192,17 @@ const ProfileDropdown = ({ onLogout }) => {
             </Link>
             <Link
               to="/profile"
+              onClick={()=>setIsOpen(false)}
               className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
             >
               <i className="fas fa-user-cog mr-2 text-emerald-600"></i>
               Profile
             </Link>
             <button
-              onClick={onLogout}
+              onClick={()=>{onLogout();setIsOpen(false);}}
               className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center"
             >
-              <i className="fas fa-sign-out-alt mr-2 text-emerald-600"></i>
+              <i className="fas fa-sign-out-alt mr-2 text-red-500"></i>
               Log Out
             </button>
           </div>
@@ -224,9 +223,8 @@ const MobileNavLink = ({ to, text, current, onClose, icon }) => (
   <Link
     to={to}
     onClick={onClose}
-    className={`flex items-center justify-between px-4 py-4 rounded-lg text-lg ${
-      current === to ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:bg-gray-50'
-    }`}
+    className={`flex items-center justify-between px-4 py-4 rounded-lg text-lg ${current === to ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700 hover:bg-gray-50'
+      }`}
   >
     <div className="flex items-center">
       <i className={`fas fa-${icon} mr-3 text-emerald-600`}></i>
