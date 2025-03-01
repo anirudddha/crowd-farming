@@ -4,7 +4,7 @@ import { FaLeaf } from 'react-icons/fa';
 
 const ProductPage = () => {
   // Dummy state and product data for demonstration.
-  const [selectedMedia, setSelectedMedia] = useState({ type: "image", url: "https://via.placeholder.com/500" });
+  const [selectedMedia, setSelectedMedia] = useState({ type: "image", url: "https://img.freepik.com/free-psd/market-basket-isolated-transparent-background_191095-20132.jpg" });
   const [selectedWeight, setSelectedWeight] = useState({ size: 1, unit: "kg" });
   const [newReviewRating, setNewReviewRating] = useState(0);
   const [newReviewComment, setNewReviewComment] = useState("");
@@ -18,7 +18,7 @@ const ProductPage = () => {
     media: [
       { type: "image", url: "https://png.pngtree.com/thumb_back/fh260/background/20230721/pngtree-assorted-grocery-items-arranged-in-a-white-3d-rendering-of-a-image_3722980.jpg" },
       { type: "image", url: "https://okcredit-blog-images-prod.storage.googleapis.com/2020/12/organic3.jpg" },
-      { type: "video", url: "https://okcredit-blog-images-prod.storage.googleapis.com/2020/12/organic3.jpg" }
+      { type: "video", url: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
     ],
     weights: [
       { size: 1, unit: "kg" },
