@@ -84,7 +84,7 @@ cartRouter.post("", async (req, res) => {
   }
 });
 
-cartRouter.put("", async(req, res) =>{
+cartRouter.delete("", async(req, res) =>{
   try{
     const {itemId, userId} = req.body;
 
@@ -92,11 +92,9 @@ cartRouter.put("", async(req, res) =>{
       {userId},
       {$pull:{items:{itemId}}}
     );
-
     res.status(200).json({message:"Item deleted from cart successfully"});
   }catch(e){
     console.log(e);
-
   }
 })
 
