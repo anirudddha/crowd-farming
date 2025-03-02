@@ -2,10 +2,12 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import FarmCard from '../components/FarmCard';
+import FarmCard from '../components/FarmCard'; // Ensure FarmCard is wrapped with React.memo
 import '../styles/FarmListings.css';
 import Loader from '../components/Loader';
-import { FiSearch, FiFilter, FiChevronDown, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { 
+  FiSearch, FiFilter, FiChevronDown, FiChevronLeft, FiChevronRight 
+} from 'react-icons/fi';
 
 const FarmListings = () => {
   const [farms, setFarms] = useState([]);
@@ -60,7 +62,7 @@ const FarmListings = () => {
     };
   }, []);
 
-  const fetchFarms = async (pageNum = 1) => {
+  const fetchFarms = useCallback(async (pageNum = 1) => {
     setLoading(true);
     try {
       const response = await axios.get(`http://localhost:5000/api/campaigns`, {
@@ -77,32 +79,13 @@ const FarmListings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [appliedFilters]);
 
   useEffect(() => {
     fetchFarms(page);
-  }, [page, appliedFilters]);
+  }, [page, appliedFilters, fetchFarms]);
 
-  const handleInputChange = async (e) => {
-    const { name, value } = e.target;
-    setFilterInputs((prev) => ({ ...prev, [name]: value }));
-
-    if (value) {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
-          params: { field: name, term: value },
-        });
-        setFilterOptions((prev) => ({ ...prev, [name]: response.data }));
-      } catch (error) {
-        console.error(`Error fetching ${name} options:`, error);
-      }
-    } else {
-      await fetchAllOptions(name);
-    }
-  };
-
-  // Fetch all options for a specific filter
-  const fetchAllOptions = async (field) => {
+  const fetchAllOptions = useCallback(async (field) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
         params: { field },
@@ -111,39 +94,63 @@ const FarmListings = () => {
     } catch (error) {
       console.error(`Error fetching all options for ${field}:`, error);
     }
-  };
+  }, []);
 
-  const handleSelectOption = (name, value) => {
+  const handleInputChange = useCallback(
+    async (e) => {
+      const { name, value } = e.target;
+      setFilterInputs((prev) => ({ ...prev, [name]: value }));
+
+      if (value) {
+        try {
+          const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
+            params: { field: name, term: value },
+          });
+          setFilterOptions((prev) => ({ ...prev, [name]: response.data }));
+        } catch (error) {
+          console.error(`Error fetching ${name} options:`, error);
+        }
+      } else {
+        await fetchAllOptions(name);
+      }
+    },
+    [fetchAllOptions]
+  );
+
+  const handleSelectOption = useCallback((name, value) => {
     setFilterInputs((prev) => ({ ...prev, [name]: value }));
     // Clear options after selection for that filter
     setFilterOptions((prev) => ({ ...prev, [name]: [] }));
-  };
+  }, []);
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     setAppliedFilters(filterInputs);
     setPage(1); // Reset page to 1 when applying new filters
-  };
+  }, [filterInputs]);
 
-  const handlePreviousPage = () => {
-    if (page > 1) setPage(page - 1);
-  };
+  const handlePreviousPage = useCallback(() => {
+    if (page > 1) setPage((prev) => prev - 1);
+  }, [page]);
 
-  const handleNextPage = async () => {
+  const handleNextPage = useCallback(async () => {
     const nextPage = page + 1;
-    const response = await axios.get(`http://localhost:5000/api/campaigns`, {
-      params: {
-        page: nextPage,
-        limit: 10,
-        ...appliedFilters,
-      },
-    });
-
-    if (response.data.length === 0) {
-      toast.info("No more farms available.");
-    } else {
-      setPage(nextPage);
+    try {
+      const response = await axios.get(`http://localhost:5000/api/campaigns`, {
+        params: {
+          page: nextPage,
+          limit: 10,
+          ...appliedFilters,
+        },
+      });
+      if (response.data.length === 0) {
+        toast.info("No more farms available.");
+      } else {
+        setPage(nextPage);
+      }
+    } catch (error) {
+      console.error("Error fetching next page:", error);
     }
-  };
+  }, [page, appliedFilters]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -154,7 +161,6 @@ const FarmListings = () => {
             <FiFilter className="w-5 h-5 text-emerald-600" />
             <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
           </div>
-
           {Object.keys(filterInputs).map((filterKey) => (
             <div key={filterKey} className="mb-4 relative">
               <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
@@ -186,7 +192,6 @@ const FarmListings = () => {
               )}
             </div>
           ))}
-
           <button
             onClick={applyFilters}
             className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition-all flex items-center justify-center gap-2"
