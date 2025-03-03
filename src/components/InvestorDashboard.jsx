@@ -127,53 +127,85 @@ const InvestorDashboard = () => {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-6">Investor Dashboard</h2>
             <h3 className="text-xl font-semibold text-gray-700 mb-4">Your Campaigns</h3>
+            {campaigns.length > 0 ?
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {campaigns.map(campaign => (
+                    <div key={campaign._id} className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                      <div className="p-6 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
+                            {campaign.campaignTitle}
+                          </h4>
+                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                            Active
+                          </span>
+                        </div>
 
-            {campaigns.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {campaigns.map(campaign => (
-                  <div key={campaign._id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition duration-200">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">{campaign.campaignTitle}</h4>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{campaign.impactMetrics}</p>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Target</span>
-                        <span className="font-medium">${campaign.fundingGoal}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Raised</span>
-                        <span className="text-green-600 font-medium">${campaign.raisedAmount}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Location</span>
-                        <span className="text-gray-600">{campaign.farmLocation}</span>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2 italic">
+                          "{campaign.impactMetrics}"
+                        </p>
+
+                        <div className="space-y-3 mb-6">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm text-gray-500">{new Date(campaign.createdAt).toLocaleDateString()}</span>
+                          </div>
+
+                          <div className="relative pt-4">
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-green-600">Raised: ${campaign.raisedAmount}</span>
+                              <span className="text-gray-500">Goal: ${campaign.fundingGoal}</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-green-600 rounded-full h-2 transition-all duration-500"
+                                style={{ width: `${(campaign.raisedAmount / campaign.fundingGoal * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="text-sm text-gray-600">{campaign.farmLocation}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto flex gap-3">
+                          <button
+                            onClick={() => openModal(campaign, 'view')}
+                            className="flex-1 px-4 py-2 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-50 text-sm font-medium transition-colors"
+                          >
+                            Details
+                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => openModal(campaign, 'edit')}
+                              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCampaign(campaign._id)}
+                              className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => openModal(campaign, 'view')}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => openModal(campaign, 'edit')}
-                        className="flex-1 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCampaign(campaign._id)}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg p-6 text-center text-gray-500">No campaigns found</div>
-            )}
+                  ))}
+                </div>
+                :
+                <div>
+                  You have not made any campaign yet
+                </div>
+            }
           </section>
 
           {/* Modal for View/Edit */}
@@ -212,32 +244,52 @@ const InvestorDashboard = () => {
             {investments.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {investments.map(investment => (
-                  <div key={investment._id} className="bg-white rounded-lg shadow p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <h4 className="font-medium text-gray-800">
-                        Farm: <span className="text-green-600">{investment.farmName}</span>
-                      </h4>
-                      <span className="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">
-                        ${investment.amount}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600 mb-4">
-                      <span>{new Date(investment.date).toLocaleDateString()}</span>
-                      <span className="text-gray-400">ID: {investment._id.slice(-6)}</span>
-                    </div>
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => openRefundModal(investment._id)}
-                        className="flex-1 px-4 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm"
-                      >
-                        Request Refund
-                      </button>
-                      <Link
-                        to={`/campaign/${investment.campaignId._id}`}
-                        className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm flex items-center"
-                      >
-                        View Farm
-                      </Link>
+                  <div key={investment._id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="font-medium text-gray-800 mb-1">
+                            {investment.farmName}
+                          </h4>
+                          <span className="text-xs text-gray-500">
+                            Invested on {new Date(investment.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                          Active
+                        </span>
+                      </div>
+
+                      <div className="flex items-end justify-between mb-6">
+                        <div>
+                          <span className="text-2xl font-bold text-green-600">
+                            ${investment.amount}
+                          </span>
+                          <span className="text-xs text-gray-500 block mt-1">Investment</span>
+                        </div>
+                        <span className="text-xs text-gray-400">ID: {investment._id.slice(-6)}</span>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => openRefundModal(investment._id)}
+                          className="flex-1 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10M3 14h10m-10-4v6m0 0l-3-3m3 3l3-3m4 2a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                          Refund
+                        </button>
+                        <Link
+                          to={`/campaign/${investment.campaignId._id}`}
+                          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          View
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
