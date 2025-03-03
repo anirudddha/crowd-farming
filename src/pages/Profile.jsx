@@ -18,27 +18,42 @@ const Profile = () => {
   const [newName, setNewName] = useState('');
   const [newAddress, setNewAddress] = useState('');
 
+  const token = localStorage.getItem('token');
+  const cacheKey = `profileData_${token}`;
+
+  // Fetch profile data with caching
+  const fetchProfile = useCallback(async () => {
+    setIsLoading(true);
+    // Try to load cached data first
+    const cachedProfile = localStorage.getItem(cacheKey);
+    if (cachedProfile) {
+      const parsedData = JSON.parse(cachedProfile);
+      setProfileData(parsedData);
+      setPreview(parsedData.profilePicture);
+      setNewName(parsedData.name);
+      setNewAddress(parsedData.address || '');
+      setIsLoading(false);
+    }
+    try {
+      const response = await axios.get('http://localhost:5000/api/user-profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfileData(response.data);
+      setPreview(response.data.profilePicture);
+      setNewName(response.data.name);
+      setNewAddress(response.data.address || '');
+      // Update cache with fresh data
+      localStorage.setItem(cacheKey, JSON.stringify(response.data));
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cacheKey, token]);
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get('http://localhost:5000/api/user-profile', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        setProfileData(response.data);
-        setPreview(response.data.profilePicture);
-        setNewName(response.data.name);
-        setNewAddress(response.data.address || '');
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   const handleFileChange = useCallback((e) => {
     const file = e.target.files[0];
@@ -59,19 +74,23 @@ const Profile = () => {
         { profilePicture: base64Image },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }
       );
       setProfileData(prev => ({ ...prev, profilePicture: response.data.profilePicture }));
+      setPreview(response.data.profilePicture);
+      // Update cache with new profile picture
+      const updatedProfile = { ...profileData, profilePicture: response.data.profilePicture };
+      localStorage.setItem(cacheKey, JSON.stringify(updatedProfile));
       setBase64Image('');
     } catch (error) {
       console.error('Error uploading profile picture:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [base64Image]);
+  }, [base64Image, token, profileData, cacheKey]);
 
   const handleNameSave = useCallback(async () => {
     setIsLoading(true);
@@ -79,12 +98,15 @@ const Profile = () => {
       await axios.put('http://localhost:5000/api/editName', { name: newName, _id: profileData._id });
       setProfileData(prev => ({ ...prev, name: newName }));
       setIsEditingName(false);
+      // Update cache with new name
+      const updatedProfile = { ...profileData, name: newName };
+      localStorage.setItem(cacheKey, JSON.stringify(updatedProfile));
     } catch (error) {
       console.error('Error saving name:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [newName, profileData._id]);
+  }, [newName, profileData._id, profileData, cacheKey]);
 
   const handleAddressSave = useCallback(async () => {
     setIsLoading(true);
@@ -92,12 +114,15 @@ const Profile = () => {
       await axios.put('http://localhost:5000/api/editAddress', { address: newAddress, _id: profileData._id });
       setProfileData(prev => ({ ...prev, address: newAddress }));
       setIsEditingAddress(false);
+      // Update cache with new address
+      const updatedProfile = { ...profileData, address: newAddress };
+      localStorage.setItem(cacheKey, JSON.stringify(updatedProfile));
     } catch (error) {
       console.error('Error saving address:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [newAddress, profileData._id]);
+  }, [newAddress, profileData._id, profileData, cacheKey]);
 
   const handleCancelNameEdit = useCallback(() => {
     setNewName(profileData.name);
