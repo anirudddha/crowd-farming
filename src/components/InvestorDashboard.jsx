@@ -5,99 +5,81 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import Loader from '../components/Loader';
+import DashboardView from './DashboardView';
+import DashboardEdit from './DashboardEdit';
 
 const InvestorDashboard = () => {
-  const [isLoading, setIsloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [modalType, setModalType] = useState(''); // 'view' or 'edit'
   const [editedCampaign, setEditedCampaign] = useState(null);
-
   const [isRefundModalVisible, setRefundModalVisible] = useState(false);
   const [refundMessage, setRefundMessage] = useState("");
   const [currentInvestmentId, setCurrentInvestmentId] = useState(null);
-
   const [investments, setInvestments] = useState([]);
 
-
-  // Show the refund modal
+  // Refund Modal Handlers
   const openRefundModal = (investmentId) => {
     setCurrentInvestmentId(investmentId);
     setRefundModalVisible(true);
   };
 
-  // Close the refund modal
   const closeRefundModal = () => {
     setRefundModalVisible(false);
     setRefundMessage("");
     setCurrentInvestmentId(null);
   };
 
-  // Submit refund request
   const submitRefundRequest = async () => {
-    setIsloading(true);
     if (!refundMessage) {
       console.error("Refund reason is required.");
       return;
     }
-
+    setIsLoading(true);
     try {
-      // Send the refund request to the backend
-      const response = await axios.post(
-        `http://localhost:5000/api/campaigns/refundRequest`,
-        {
-          Reason: refundMessage,
-          investId: currentInvestmentId,
-        }
-      );
-
-      // console.log("Refund request submitted:", response.data);
-      alert("your response is submitted once you get refund we will remove investment")
+      await axios.post(`http://localhost:5000/api/campaigns/refundRequest`, {
+        Reason: refundMessage,
+        investId: currentInvestmentId,
+      });
+      alert("Your refund request is submitted. Once approved, your investment will be removed.");
     } catch (error) {
       console.error("Error submitting refund request:", error);
+    } finally {
+      setIsLoading(false);
+      closeRefundModal();
     }
-    finally {
-      setIsloading(false);
-    }
-
-    closeRefundModal();
   };
 
-
+  // Fetch campaigns and investments
   useEffect(() => {
-    setIsloading(true);
+    setIsLoading(true);
     const fetchCampaigns = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/user-campaigns', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         setCampaigns(response.data.campaigns);
         setInvestments(response.data.investments);
-        console.log(investments);
       } catch (error) {
         console.error('Error fetching data:', error);
-      }
-      finally {
-        setIsloading(false);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchCampaigns();
   }, []);
 
+  // Campaign Handlers
   const handleDeleteCampaign = async (id) => {
-    setIsloading(true);
+    setIsLoading(true);
     try {
-      await axios.delete('http://localhost:5000/api/campaigns/deleteCampaign', {
-        data: { id },
-      });
-      setCampaigns(campaigns.filter((campaign) => campaign._id !== id));
+      await axios.delete('http://localhost:5000/api/campaigns/deleteCampaign', { data: { id } });
+      setCampaigns(campaigns.filter(campaign => campaign._id !== id));
     } catch (error) {
       console.error('Error Deleting data:', error);
-    }
-    finally {
-      setIsloading(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,461 +99,230 @@ const InvestorDashboard = () => {
   };
 
   const saveEdits = async () => {
-    setIsloading(true);
+    setIsLoading(true);
     try {
       await axios.put(`http://localhost:5000/api/campaigns/editCampaign`, editedCampaign);
-      setCampaigns(campaigns.map((campaign) =>
+      setCampaigns(campaigns.map(campaign =>
         campaign._id === editedCampaign._id ? editedCampaign : campaign
       ));
       closeModal();
-      toast.info("Your information is updated");
+      toast.info("Your information has been updated");
     } catch (error) {
       console.error('Error saving edits:', error);
-    }
-    finally {
-      setIsloading(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="dashboard-container">
-      {isLoading ?
-        <div className="loaderdiv">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <ToastContainer position="top-right" autoClose={3000} />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-screen">
           <Loader />
         </div>
-        :
-        <>
-          <h2 className="dashboard-title">Investor Dashboard</h2>
-          <h3 className="campaign-heading">Your Campaigns:</h3>
-          {campaigns.length > 0 ? (
-            <ul className="campaign-list">
-              {campaigns.map((campaign) => (
-                <li key={campaign._id} className="campaign-card">
-                  <h4 className="campaign-name">{campaign.campaignTitle}</h4>
-                  <p className="campaign-description">{campaign.impactMetrics}</p>
-                  <div className="campaign-details">
-                    <span>🎯 Target: ${campaign.fundingGoal}</span>
-                    <span>💰 Raised: ${campaign.raisedAmount}</span>
-                    <span>📍 Location: {campaign.farmLocation}</span>
-                  </div>
-                  <div className="card-buttons">
-                    <button className="button-primary" onClick={() => openModal(campaign, 'view')}>
-                      View
-                    </button>
-                    <button className="button-primary" onClick={() => openModal(campaign, 'edit')}>
-                      Edit
-                    </button>
-                    <button
-                      className="button-delete"
-                      onClick={() => handleDeleteCampaign(campaign._id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="no-campaigns">No campaigns found.</p>
-          )}
+      ) : (
+        <div className="max-w-7xl mx-auto">
+          {/* Campaigns Section */}
+          <section className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">Investor Dashboard</h2>
+            <h3 className="text-xl font-semibold text-gray-700 mb-4">Your Campaigns</h3>
+            {campaigns.length > 0 ?
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {campaigns.map(campaign => (
+                    <div key={campaign._id} className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                      <div className="p-6 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
+                            {campaign.campaignTitle}
+                          </h4>
+                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                            Active
+                          </span>
+                        </div>
 
-          {selectedCampaign && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <button className="close-modal" onClick={closeModal}>
-                  ✖
-                </button>
-                <h3 className='modal-title'>{modalType === 'view' ? 'View Campaign Details' : 'Edit Campaign Details'}</h3>
-                <hr />
-                <div className="modal-body">
-                  {modalType === 'view' ? (
-                    <div className="view-content">
-                      <p><strong>Farmer Name:</strong>{selectedCampaign.farmerName}</p>
-                      <p><strong>Phone Number:</strong> {selectedCampaign.phoneNumber}</p>
-                      <p><strong>Email:</strong> {selectedCampaign.email}</p>
-                      <p><strong>Farm Name:</strong> {selectedCampaign.farmName}</p>
-                      <p><strong>Location:</strong> {selectedCampaign.farmLocation}</p>
-                      {/* Visuals */}
-                      <div className="edit-field">
-                        <label htmlFor="visuals">Visuals</label>
-                        <div className="visuals-container">
-                          {editedCampaign.visuals && editedCampaign.visuals.length > 0 ? (
-                            editedCampaign.visuals.map((visual, index) => {
-                              // Check if the visual is a base64 string (assuming base64 strings are image data)
-                              const isBase64 = visual.startsWith('data:image');
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2 italic">
+                          "{campaign.impactMetrics}"
+                        </p>
 
-                              return isBase64 ? (
-                                <div key={index} className="visual-image">
-                                  <img src={visual} alt={`visual-${index}`} className="visual-image" />
-                                </div>
-                              ) : (
-                                <div key={index} className="visual-text">
-                                  <textarea
-                                    id="visuals"
-                                    name="visuals"
-                                    value={editedCampaign.visuals.join(', ')}
-                                    onChange={handleEditChange}
-                                  />
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <p>No visuals available</p>
-                          )}
+                        <div className="space-y-3 mb-6">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm text-gray-500">{new Date(campaign.createdAt).toLocaleDateString()}</span>
+                          </div>
+
+                          <div className="relative pt-4">
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-green-600">Raised: ${campaign.raisedAmount}</span>
+                              <span className="text-gray-500">Goal: ${campaign.fundingGoal}</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-green-600 rounded-full h-2 transition-all duration-500"
+                                style={{ width: `${(campaign.raisedAmount / campaign.fundingGoal * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="text-sm text-gray-600">{campaign.farmLocation}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto flex gap-3">
+                          <button
+                            onClick={() => openModal(campaign, 'view')}
+                            className="flex-1 px-4 py-2 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-50 text-sm font-medium transition-colors"
+                          >
+                            Details
+                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => openModal(campaign, 'edit')}
+                              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCampaign(campaign._id)}
+                              className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors"
+                            >
+                              🗑️
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <p><strong>Farm Size:</strong> {selectedCampaign.farmSize}</p>
-                      <p><strong>Campaign Title:</strong> {selectedCampaign.campaignTitle}</p>
-                      <p><strong>Funding Goal:</strong> ${selectedCampaign.fundingGoal}</p>
-                      <p><strong>Minimum Investment:</strong> ${selectedCampaign.minInvestment}</p>
-                      <p><strong>Expected Returns:</strong> {selectedCampaign.expectedReturns}</p>
-                      <p><strong>Crop Types:</strong> {selectedCampaign.cropTypes}</p>
-                      <p><strong>Farming Methods:</strong> {selectedCampaign.farmingMethods}</p>
-                      <p><strong>Start Date:</strong> {new Date(selectedCampaign.startDate).toLocaleDateString()}</p>
-                      <p><strong>End Date:</strong> {new Date(selectedCampaign.endDate).toLocaleDateString()}</p>
-                      <p><strong>Fund Usage:</strong> {selectedCampaign.fundUsage}</p>
-                      <p><strong>Impact Metrics:</strong> {selectedCampaign.impactMetrics}</p>
-
                     </div>
-                  ) : (
-                    <div className="edit-content">
-                      {/* Farmer Name */}
-                      <div className="edit-field">
-                        <label htmlFor="farmerName">Farmer Name</label>
-                        <input
-                          id="farmerName"
-                          name="farmerName"
-                          type="text"
-                          value={editedCampaign.farmerName}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Phone Number */}
-                      <div className="edit-field">
-                        <label htmlFor="phoneNumber">Phone Number</label>
-                        <input
-                          id="phoneNumber"
-                          name="phoneNumber"
-                          type="text"
-                          value={editedCampaign.phoneNumber}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Email */}
-                      <div className="edit-field">
-                        <label htmlFor="email">Email</label>
-                        <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={editedCampaign.email}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Farm Name */}
-                      <div className="edit-field">
-                        <label htmlFor="farmName">Farm Name</label>
-                        <input
-                          id="farmName"
-                          name="farmName"
-                          type="text"
-                          value={editedCampaign.farmName}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Farm Location */}
-                      <div className="edit-field">
-                        <label htmlFor="farmLocation">Farm Location</label>
-                        <input
-                          id="farmLocation"
-                          name="farmLocation"
-                          type="text"
-                          value={editedCampaign.farmLocation}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Farm Size */}
-                      <div className="edit-field">
-                        <label htmlFor="farmSize">Farm Size</label>
-                        <input
-                          id="farmSize"
-                          name="farmSize"
-                          type="text"
-                          value={editedCampaign.farmSize}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Campaign Title */}
-                      <div className="edit-field">
-                        <label htmlFor="campaignTitle">Campaign Title</label>
-                        <input
-                          id="campaignTitle"
-                          name="campaignTitle"
-                          type="text"
-                          value={editedCampaign.campaignTitle}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Funding Goal */}
-                      <div className="edit-field">
-                        <label htmlFor="fundingGoal">Funding Goal</label>
-                        <input
-                          id="fundingGoal"
-                          name="fundingGoal"
-                          type="number"
-                          value={editedCampaign.fundingGoal}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Minimum Investment */}
-                      <div className="edit-field">
-                        <label htmlFor="minInvestment">Minimum Investment</label>
-                        <input
-                          id="minInvestment"
-                          name="minInvestment"
-                          type="number"
-                          value={editedCampaign.minInvestment}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Expected Returns */}
-                      <div className="edit-field">
-                        <label htmlFor="expectedReturns">Expected Returns</label>
-                        <input
-                          id="expectedReturns"
-                          name="expectedReturns"
-                          type="text"
-                          value={editedCampaign.expectedReturns}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Crop Types */}
-                      <div className="edit-field">
-                        <label htmlFor="cropTypes">Crop Types</label>
-                        <input
-                          id="cropTypes"
-                          name="cropTypes"
-                          type="text"
-                          value={editedCampaign.cropTypes}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Farming Methods */}
-                      <div className="edit-field">
-                        <label htmlFor="farmingMethods">Farming Methods</label>
-                        <input
-                          id="farmingMethods"
-                          name="farmingMethods"
-                          type="text"
-                          value={editedCampaign.farmingMethods}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Start Date */}
-                      <div className="edit-field">
-                        <label htmlFor="startDate">Start Date</label>
-                        <input
-                          id="startDate"
-                          name="startDate"
-                          type="date"
-                          value={editedCampaign.startDate.split('T')[0]} // Format for date picker
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* End Date */}
-                      <div className="edit-field">
-                        <label htmlFor="endDate">End Date</label>
-                        <input
-                          id="endDate"
-                          name="endDate"
-                          type="date"
-                          value={editedCampaign.endDate.split('T')[0]} // Format for date picker
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Fund Usage */}
-                      <div className="edit-field">
-                        <label htmlFor="fundUsage">Fund Usage</label>
-                        <textarea
-                          id="fundUsage"
-                          name="fundUsage"
-                          value={editedCampaign.fundUsage}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Impact Metrics */}
-                      <div className="edit-field">
-                        <label htmlFor="impactMetrics">Impact Metrics</label>
-                        <textarea
-                          id="impactMetrics"
-                          name="impactMetrics"
-                          value={editedCampaign.impactMetrics}
-                          onChange={handleEditChange}
-                        />
-                      </div>
-
-                      {/* Raised Amount */}
-                      <div className="edit-field">
-                        <label htmlFor="raisedAmount">Raised Amount</label>
-                        <input
-                          id="raisedAmount"
-                          name="raisedAmount"
-                          type="number"
-                          value={editedCampaign.raisedAmount}
-                          onChange={handleEditChange}
-                          disabled
-                        />
-                      </div>
-
-                      {/* Visuals */}
-                      <div className="edit-field">
-                        <label htmlFor="visuals">Visuals</label>
-                        <div className="visuals-container">
-                          {editedCampaign.visuals && editedCampaign.visuals.length > 0 ? (
-                            editedCampaign.visuals.map((visual, index) => {
-                              // Check if the visual is a base64 string (assuming base64 strings are image data)
-                              const isBase64 = visual.startsWith('data:image');
-
-                              return isBase64 ? (
-                                <div key={index} className="visual-image">
-                                  <img src={visual} alt={`visual-${index}`} className="visual-image" />
-                                </div>
-                              ) : (
-                                <div key={index} className="visual-text">
-                                  <textarea
-                                    id="visuals"
-                                    name="visuals"
-                                    value={editedCampaign.visuals.join(', ')}
-                                    onChange={handleEditChange}
-                                  />
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <p>No visuals available</p>
-                          )}
-                        </div>
-                      </div>
-
-
-                      {/* User ID (Disabled) */}
-                      <div className="edit-field">
-                        <label htmlFor="userId">User ID</label>
-                        <input
-                          id="userId"
-                          name="userId"
-                          type="text"
-                          value={editedCampaign.userId}
-                          disabled
-                        />
-                      </div>
-
-                      {/* Campaign ID (Disabled) */}
-                      <div className="edit-field">
-                        <label htmlFor="_id">Campaign ID</label>
-                        <input
-                          id="_id"
-                          name="_id"
-                          type="text"
-                          value={editedCampaign._id}
-                          disabled
-                        />
-                      </div>
-
-                      {/* Created At (Disabled) */}
-                      <div className="edit-field">
-                        <label htmlFor="createdAt">Created At</label>
-                        <input
-                          id="createdAt"
-                          name="createdAt"
-                          type="text"
-                          value={new Date(editedCampaign.createdAt).toLocaleString()}
-                          disabled
-                        />
-                      </div>
-
-                      {/* Updated At (Disabled) */}
-                      <div className="edit-field">
-                        <label htmlFor="updatedAt">Updated At</label>
-                        <input
-                          id="updatedAt"
-                          name="updatedAt"
-                          type="text"
-                          value={new Date(editedCampaign.updatedAt).toLocaleString()}
-                          disabled
-                        />
-                      </div>
-
-                      <button onClick={saveEdits} className='saveButton'>Update</button>
-                    </div>
-                  )}
+                  ))}
                 </div>
+                :
+                <div>
+                  You have not made any campaign yet
+                </div>
+            }
+          </section>
+
+          {/* Modal for View/Edit */}
+          {selectedCampaign && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 custom-scrollbar">
+                <div className="flex justify-between items-center mb-6 pb-4 border-b">
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    {modalType === 'view' ? (
+                      <><span className="text-blue-600">{selectedCampaign.campaignTitle}</span> Details</>
+                    ) : (
+                      `Edit ${selectedCampaign.campaignTitle}`
+                    )}
+                  </h3>
+                  <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 transition-colors">
+                    ✖
+                  </button>
+                </div>
+                {modalType === 'view' ? (
+                  <DashboardView campaign={selectedCampaign} closeModal={closeModal} />
+                ) : (
+                  <DashboardEdit
+                    editedCampaign={editedCampaign}
+                    handleEditChange={handleEditChange}
+                    saveEdits={saveEdits}
+                    closeModal={closeModal}
+                  />
+                )}
               </div>
             </div>
           )}
 
-          <h3 className="investment-heading">Your Investments:</h3>
-          {investments.length > 0 ? (
-            <ul className="investment-list">
-              {investments.map((investment) => (
-                <li key={investment._id} className="investment-card">
-                  <h4 className="investment-farm">Farm: <span style={{ color: "green" }}>{investment.farmName}</span></h4>
-                  <div className="investment-details">
-                    <span className="investment-amount">Amount: ${investment.amount}</span>
-                    <span className="investment-date">Date: {new Date(investment.date).toLocaleDateString()}</span>
+          {/* Investments Section */}
+          <section className="mb-12">
+            <h3 className="text-xl font-semibold text-gray-700 mb-4">Your Investments</h3>
+            {investments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {investments.map(investment => (
+                  <div key={investment._id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="font-medium text-gray-800 mb-1">
+                            {investment.farmName}
+                          </h4>
+                          <span className="text-xs text-gray-500">
+                            Invested on {new Date(investment.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                          Active
+                        </span>
+                      </div>
+
+                      <div className="flex items-end justify-between mb-6">
+                        <div>
+                          <span className="text-2xl font-bold text-green-600">
+                            ${investment.amount}
+                          </span>
+                          <span className="text-xs text-gray-500 block mt-1">Investment</span>
+                        </div>
+                        <span className="text-xs text-gray-400">ID: {investment._id.slice(-6)}</span>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => openRefundModal(investment._id)}
+                          className="flex-1 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10M3 14h10m-10-4v6m0 0l-3-3m3 3l3-3m4 2a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                          Refund
+                        </button>
+                        <Link
+                          to={`/campaign/${investment.campaignId._id}`}
+                          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          View
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                  <button className="refund" onClick={() => openRefundModal(investment._id)}>Refund</button>
-                  <Link to={`/campaign/${investment.campaignId._id}`} className="viewfarm">
-                    View Farm
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="no-investments">No investments found.</p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg p-6 text-center text-gray-500">No investments found</div>
+            )}
+          </section>
+
+          {/* Refund Modal */}
           {isRefundModalVisible && (
-            <div className="refund-modal">
-              <div className="refund-modal-content">
-                <h4>Request Refund</h4>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg w-full max-w-md p-6">
+                <h4 className="text-lg font-semibold mb-4">Refund Request</h4>
                 <textarea
                   value={refundMessage}
                   onChange={(e) => setRefundMessage(e.target.value)}
-                  placeholder="Please provide a reason for your refund request..."
-                  className="refund-message-textarea"
+                  placeholder="Please explain the reason for your refund request..."
+                  className="w-full px-3 py-2 border rounded-md mb-4 h-32"
                 />
-                <div className="refund-modal-buttons">
-                  <button className="refund-close-button" onClick={closeRefundModal}>
-                    Close
+                <div className="flex justify-end space-x-3">
+                  <button onClick={closeRefundModal} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                    Cancel
                   </button>
-                  <button
-                    className="refund-submit-button"
-                    onClick={submitRefundRequest}
-                  >
-                    Send
+                  <button onClick={submitRefundRequest} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    Submit Request
                   </button>
                 </div>
               </div>
             </div>
           )}
-          <ToastContainer />
-        </>
-      }
+        </div>
+      )}
     </div>
   );
 };
