@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -62,8 +62,19 @@ const FarmListings = () => {
     };
   }, []);
 
+  // Create a cache key that depends on page and appliedFilters
+  const cacheKey = useMemo(() => {
+    return `farms_${page}_${JSON.stringify(appliedFilters)}`;
+  }, [page, appliedFilters]);
+
   const fetchFarms = useCallback(async (pageNum = 1) => {
     setLoading(true);
+    // Try to get cached data first
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) {
+      setFarms(JSON.parse(cachedData));
+      setLoading(false);
+    }
     try {
       const response = await axios.get(`http://localhost:5000/api/campaigns`, {
         params: {
@@ -72,14 +83,16 @@ const FarmListings = () => {
           ...appliedFilters,
         },
       });
-      setFarms(Array.isArray(response.data) ? response.data : []);
-      console.log(response.data);
+      const data = Array.isArray(response.data) ? response.data : [];
+      setFarms(data);
+      // Update the cache with fresh data
+      localStorage.setItem(cacheKey, JSON.stringify(data));
     } catch (error) {
       console.error('Error fetching campaigns:', error);
     } finally {
       setLoading(false);
     }
-  }, [appliedFilters]);
+  }, [appliedFilters, cacheKey]);
 
   useEffect(() => {
     fetchFarms(page);

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FaShoppingCart, FaHeart, FaSearch, FaTruck, FaShieldAlt, FaLeaf } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import StoreItemCard from '../components/StoreItemCard';
+import Loader from '../components/Loader'; // Import your loader component
 import axios from 'axios';
 
 const StorePage = () => {
@@ -10,21 +11,49 @@ const StorePage = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [cartItemsCount] = useState(2);
   const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Check for cached data in localStorage and then fetch updated data
   useEffect(() => {
+    const cachedItems = localStorage.getItem('items');
+    if (cachedItems) {
+      setItems(JSON.parse(cachedItems));
+      // Even if we have cached items, we still fetch fresh data in the background
+      setIsLoading(false);
+    }
+
     axios.get('http://localhost:5000/api/items')
       .then(response => {
-        // console.log(response);
         // Extract the items array from the API response
         const fetchedItems = response.data.response;
         setItems(fetchedItems);
+        // Update the localStorage cache with new data
+        localStorage.setItem('items', JSON.stringify(fetchedItems));
       })
       .catch(error => {
         console.error('Error fetching items:', error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
   const categories = ['All', 'Grains', 'Sweeteners', 'Flours', 'Spices'];
+
+  // Memoize the category click handler
+  const handleCategoryClick = useCallback((category) => {
+    setSelectedCategory(category);
+  }, []);
+
+  // Memoize filtered items based on search query and selected category
+  const filteredItems = useMemo(() => {
+    return items.filter(product => {
+      // Assuming product has 'category' and 'name' properties
+      if (selectedCategory !== 'All' && product.category !== selectedCategory) return false;
+      if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+  }, [items, selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,7 +102,7 @@ const StorePage = () => {
               key={category}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedCategory(category)}
+              onClick={() => handleCategoryClick(category)}
               className={`px-4 py-2 rounded-full font-medium transition-colors ${
                 selectedCategory === category
                   ? 'bg-green-600 text-white'
@@ -85,30 +114,36 @@ const StorePage = () => {
           ))}
         </div>
 
-        {/* Product Grid */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        >
-          <AnimatePresence>
-            {items.map((product) => (
-              <motion.div
-                key={product._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                layout
-              >
-                <StoreItemCard item={product} className="relative">
-                  <button className="absolute top-4 right-4 z-10 p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:bg-gray-100 transition-colors">
-                    <FaHeart className="w-5 h-5 text-gray-600 hover:text-red-500" />
-                  </button>
-                </StoreItemCard>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        {/* Product Grid or Loader */}
+        {isLoading && items.length === 0 ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader />
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            <AnimatePresence>
+              {filteredItems.map((product) => (
+                <motion.div
+                  key={product._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  layout
+                >
+                  <StoreItemCard item={product} className="relative">
+                    <button className="absolute top-4 right-4 z-10 p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:bg-gray-100 transition-colors">
+                      <FaHeart className="w-5 h-5 text-gray-600 hover:text-red-500" />
+                    </button>
+                  </StoreItemCard>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Quality Assurance */}
         <motion.section 
