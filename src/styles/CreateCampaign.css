@@ -60,9 +60,24 @@ body {
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s;
+    width: 106%;
   }
   
   .submit-button:hover {
     background-color: #45a049;
   }
-  
+  .request-button{
+    padding: 15px;
+    border: 1px solid white;
+    background-color: #2d8318;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+  }
+  .send-request-title{
+    margin-top: -200px;
+    margin-bottom: 50px;
+    font-size: 25px;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    text-align: center;
+  }

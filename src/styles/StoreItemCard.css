@@ -1,0 +1,323 @@
+/* ItemCard.css */
+.farm-product-card {
+    --primary-green: #2d6a4f;
+    --earth-brown: #8b5e34;
+    --warm-yellow: #ffd700;
+    --natural-white: #f8f9fa;
+    
+    background: var(--natural-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+    width: 100%;
+    margin: 1rem auto;
+    overflow: visible;
+    position: relative;
+    border: 1px solid rgba(139, 94, 52, 0.1);
+}
+
+.farm-product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-container {
+    position: relative;
+    height: 220px;
+    background: #fff;
+    padding: 15px;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+}
+
+.organic-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--primary-green);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.quantity-options {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.weight-option {
+    background: rgba(255, 215, 0, 0.9);
+    border: 1px solid var(--earth-brown);
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-width: 60px;
+}
+
+.weight-option:hover {
+    background: var(--warm-yellow);
+}
+
+.product-details {
+    padding: 1rem;
+    margin-top: -30px;
+    background: linear-gradient(to bottom, #ffffff 70%, #f8f9fa 100%);
+}
+
+.product-title {
+    color: var(--earth-brown);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+}
+
+.farm-origin {
+    color: var(--primary-green);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+    text-align: center;
+}
+
+.product-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.current-price {
+    font-size: 1.4rem;
+    color: var(--earth-brown);
+    font-weight: 700;
+}
+
+.original-price {
+    color: #a5a5a5;
+    text-decoration: line-through;
+    font-size: 0.9rem;
+}
+
+.quality-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.fresh-badge, .jaggery-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 70px;
+}
+
+.fresh-badge {
+    background: rgba(45, 106, 79, 0.1);
+    color: var(--primary-green);
+    border: 1px solid var(--primary-green);
+}
+
+.jaggery-badge {
+    background: rgba(139, 94, 52, 0.1);
+    color: var(--earth-brown);
+    border: 1px solid var(--earth-brown);
+}
+
+.farm-cart-button {
+    width: 100%;
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.farm-cart-button:hover {
+    background: #245c43;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .farm-product-card {
+        max-width: 100%;
+        margin: 1rem auto;
+    }
+
+    .product-image-container {
+        height: 180px;
+        padding: 10px;
+    }
+
+    .product-title {
+        font-size: 1rem;
+    }
+
+    .farm-origin {
+        font-size: 0.8rem;
+    }
+
+    .product-pricing {
+        gap: 5px;
+    }
+
+    .current-price {
+        font-size: 1.2rem;
+    }
+
+    .original-price {
+        font-size: 0.8rem;
+    }
+
+    .quality-badges {
+        gap: 5px;
+    }
+
+    .farm-cart-button {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .farm-product-card {
+        max-width: 95%;
+    }
+
+    .product-image-container {
+        height: 160px;
+        padding: 8px;
+    }
+
+    .product-title {
+        font-size: 0.9rem;
+    }
+
+    .farm-origin {
+        font-size: 0.75rem;
+    }
+
+    .product-pricing {
+        gap: 3px;
+    }
+
+    .current-price {
+        font-size: 1rem;
+    }
+
+    .original-price {
+        font-size: 0.75rem;
+    }
+
+    .quality-badges {
+        gap: 3px;
+    }
+
+    .farm-cart-button {
+        font-size: 0.85rem;
+        padding: 8px;
+    }
+}
+
+/* Dropdown Container */
+.custom-dropdown-container {
+    position: relative;
+    width: 100%;
+    max-width: 200px;
+    margin: 12px auto;
+    text-align: center;
+}
+
+/* Dropdown Button */
+.dropdown-button {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: #ffffff;
+    border: 2px solid #2d6a4f;
+    border-radius: 8px;
+    color: #2d6a4f;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.dropdown-button:hover {
+    background: #2d6a4f;
+    color: #ffffff;
+}
+
+/* Dropdown List */
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    background: white;
+    border: 2px solid #2d6a4f;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 4px;
+    z-index: 100;
+    list-style: none;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+    padding: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #2d6a4f;
+    text-align: center;
+    transition: background 0.2s ease-in-out;
+}
+
+.dropdown-item:hover {
+    background: #2d6a4f;
+    color: white;
+}
+
+/* Hide dropdown smoothly */
+.dropdown-list[hidden] {
+    opacity: 0;
+    visibility: hidden;
+}

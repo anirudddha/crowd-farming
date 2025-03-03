@@ -71,3 +71,17 @@
 .view-details-button:hover {
   background-color: #16a085; /* Darker green on hover */
 }
+
+.view-details-button-complete {
+  display: block; /* Block display for full width */
+  text-align: center; /* Center text */
+  background-color: #9b3232; /* Green background */
+  color: white; /* White text */
+  padding: 10px; /* Padding inside button */
+  border-radius: 10px; /* Rounded corners */
+  font-size: 1rem; /* Font size for button */
+  font-weight: bold; /* Bold button text */
+  margin-top: 15px; /* Space above the button */
+  text-decoration: none; /* Remove underline */
+  transition: background-color 0.3s ease; /* Smooth background transition */
+}

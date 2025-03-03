@@ -1,0 +1,162 @@
+header {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: #4CAF50;
+  color: white;
+  align-items: center;
+}
+
+.menus {
+  display: flex;
+  width: 100%;
+  justify-content: center; /* Center the nav items */
+  align-items: center;
+}
+
+.navmemus {
+  display: flex;
+  gap: 20px;
+  justify-content: center; /* Ensure navigation items are centered */
+}
+
+.auth-links {
+  display: flex;
+  gap: 20px;
+  position: absolute;
+  right: 20px; /* Position Sign In and Sign Up on the right */
+}
+
+nav {
+  display: flex;
+  /* gap: 20px; */
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+.auth-links a,
+.auth-links button {
+  color: white;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-links a:hover,
+.auth-links button:hover {
+  text-decoration: underline;
+}
+
+/* Hamburger Menu Styles */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.hamburger .bar {
+  width: 25px;
+  height: 3px;
+  background-color: white;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 250px;
+  background-color: #4CAF50;
+  color: white;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  padding: 20px;
+  z-index: 999;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-links-1{
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  
+}
+.auth-links-1 button, .auth-links-1 a{
+  color: rgba(0, 83, 7, 0.771);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  /* font-weight: bold; */
+}
+
+.sidebar .auth-links a,
+.sidebar .auth-links button {
+  color: white;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .navmemus {
+    display: none; /* Hide the navigation on mobile by default */
+  }
+
+  .hamburger {
+    display: flex; /* Show the hamburger menu */
+  }
+
+  .menus.open .navmemus {
+    display: flex; /* Display navigation when menu is open */
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .menus .auth-links {
+    display: none;
+  }
+  .menus.open nav {
+    transition: all 0.3s ease-in-out; /* Smooth transition */
+  }
+}
+
+/* Desktop-specific styles */
+@media (min-width: 769px) {
+  .hamburger {
+    display: none; /* Hide hamburger menu on desktop */
+  }
+
+  .sidebar {
+    display: none; /* Hide sidebar on desktop */
+  }
+
+  .menus.open .sidebar {
+    display: none; /* Ensure sidebar is not visible on desktop */
+  }
+}

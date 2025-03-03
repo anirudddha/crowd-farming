@@ -7,7 +7,7 @@
   background-color: #f4f7f6;
 }
 
-
+/* Apply Filters Button */
 .apply-filters-button {
   background-color: #4CAF50; /* Green background */
   color: white; /* White text */
@@ -27,8 +27,6 @@
   background-color: #233024; /* Darker green on hover */
 }
 
-
-
 datalist {
   display: block !important; /* Force visibility */
   z-index: 1000; /* Ensure it is on top of other elements */
@@ -39,7 +37,6 @@ hr.custom-hr {
   border-top: 1px solid rgb(118, 118, 118); /* Black color and 2px thickness */
   margin: 10px 0; /* Add some vertical spacing */
 }
-
 
 /* Title Styling */
 .main-title {
@@ -72,7 +69,7 @@ hr.custom-hr {
   display: flex;
   justify-content: center;
   flex-direction: column;
-}x
+}
 
 .filters-section:hover {
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.2);
@@ -183,4 +180,89 @@ hr.custom-hr {
 
 .pagination button:disabled {
   background-color: #bdc3c7;
+}
+
+/* Mobile Devices (max-width: 768px) */
+@media (max-width: 768px) {
+  /* Adjust main container padding */
+  .farm-listings-page {
+    padding: 20px;
+  }
+
+  /* Adjust filters section */
+  .filters-section {
+    flex-basis: 100%;
+    padding: 15px;
+  }
+
+  /* Adjust the font size of the main title */
+  .main-title {
+    font-size: 1.5rem;
+  }
+
+  /* Stack listings and filters on mobile */
+  .farm-listings-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Adjust farms grid */
+  .farms-grid {
+    grid-template-columns: 1fr; /* Only one column on mobile */
+    gap: 15px;
+  }
+
+  /* Adjust pagination buttons */
+  .pagination button {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+
+  .apply-filters-button {
+    width: 100%; /* Full width on mobile */
+    padding: 12px 0;
+    font-size: 14px;
+  }
+
+  .suggestions {
+    width: 100%; /* Make suggestions take full width on small screens */
+  }
+}
+
+/* Tablet Devices (min-width: 769px and max-width: 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .farm-listings-page {
+    padding: 30px;
+  }
+
+  .filters-section {
+    flex-basis: 50%; /* Take up half of the space */
+  }
+
+  .main-title {
+    font-size: 1.75rem; /* Adjust title font size */
+  }
+
+  .farm-listings-container {
+    flex-direction: row;
+    gap: 25px;
+  }
+
+  .farms-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Smaller columns for tablets */
+  }
+
+  .pagination button {
+    font-size: 15px;
+    padding: 9px 18px;
+  }
+
+  .apply-filters-button {
+    width: 100%;
+    font-size: 15px;
+  }
+
+  .suggestions {
+    width: 100%;
+  }
 }
