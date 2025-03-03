@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import CartCard from '../components/CartCard';
 import { ShieldCheck, Truck, Sprout, XCircle, ChevronDown } from 'lucide-react';
 
 const CartPage = () => {
