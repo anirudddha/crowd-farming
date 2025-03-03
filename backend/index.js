@@ -3,8 +3,15 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const campaignRoutes = require('./routes/campaignRoutes');
 const authRoutes = require('./routes/auth');
+
+const userCampaign = require('./routes/userRoutes');
+const { itemRouter } = require('./routes/itemRoutes');
+const { cartRouter } = require('./routes/cartRoutes');
+const { orderRouter } = require('./routes/orderRoutes');
+
 const userCampaign = require('./routes/userRoutes')
 const bodyParser = require('body-parser');
+
 
 const app = express();
 require('dotenv').config();
@@ -31,6 +38,9 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api',userCampaign);
+app.use('/api/items',itemRouter);
+app.use('/api/cart',cartRouter);
+app.use('/api/orders',orderRouter);
 
 
 
