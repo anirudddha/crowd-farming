@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import '../styles/Dashboard.css';
 import { ToastContainer, toast } from 'react-toastify';
@@ -51,16 +51,34 @@ const InvestorDashboard = () => {
     }
   };
 
-  // Fetch campaigns and investments
+  // Fetch campaigns and investments with caching
   useEffect(() => {
-    setIsLoading(true);
     const fetchCampaigns = async () => {
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      const cacheKey = `investorDashboardData_${token}`;
+
+      // Check if cached data exists and use it immediately
+      const cachedData = localStorage.getItem(cacheKey);
+      if (cachedData) {
+        const { campaigns: cachedCampaigns, investments: cachedInvestments } = JSON.parse(cachedData);
+        setCampaigns(cachedCampaigns);
+        setInvestments(cachedInvestments);
+        setIsLoading(false);
+      }
+
       try {
         const response = await axios.get('http://localhost:5000/api/user-campaigns', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setCampaigns(response.data.campaigns);
-        setInvestments(response.data.investments);
+        const { campaigns: fetchedCampaigns, investments: fetchedInvestments } = response.data;
+        setCampaigns(fetchedCampaigns);
+        setInvestments(fetchedInvestments);
+        // Update the cache with fresh data
+        localStorage.setItem(cacheKey, JSON.stringify({
+          campaigns: fetchedCampaigns,
+          investments: fetchedInvestments
+        }));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -71,17 +89,17 @@ const InvestorDashboard = () => {
   }, []);
 
   // Campaign Handlers
-  const handleDeleteCampaign = async (id) => {
+  const handleDeleteCampaign = useCallback(async (id) => {
     setIsLoading(true);
     try {
       await axios.delete('http://localhost:5000/api/campaigns/deleteCampaign', { data: { id } });
       setCampaigns(campaigns.filter(campaign => campaign._id !== id));
     } catch (error) {
-      console.error('Error Deleting data:', error);
+      console.error('Error deleting campaign:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [campaigns]);
 
   const openModal = (campaign, type) => {
     setSelectedCampaign(campaign);
@@ -127,85 +145,83 @@ const InvestorDashboard = () => {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-6">Investor Dashboard</h2>
             <h3 className="text-xl font-semibold text-gray-700 mb-4">Your Campaigns</h3>
-            {campaigns.length > 0 ?
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {campaigns.map(campaign => (
-                    <div key={campaign._id} className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group">
-                      <div className="p-6 h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
-                            {campaign.campaignTitle}
-                          </h4>
-                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                            Active
-                          </span>
+            {campaigns.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {campaigns.map(campaign => (
+                  <div key={campaign._id} className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                    <div className="p-6 h-full flex flex-col">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
+                          {campaign.campaignTitle}
+                        </h4>
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                          Active
+                        </span>
+                      </div>
+
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2 italic">
+                        "{campaign.impactMetrics}"
+                      </p>
+
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-sm text-gray-500">{new Date(campaign.createdAt).toLocaleDateString()}</span>
                         </div>
 
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2 italic">
-                          "{campaign.impactMetrics}"
-                        </p>
-
-                        <div className="space-y-3 mb-6">
-                          <div className="flex items-center gap-2">
-                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-sm text-gray-500">{new Date(campaign.createdAt).toLocaleDateString()}</span>
+                        <div className="relative pt-4">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-green-600">Raised: ${campaign.raisedAmount}</span>
+                            <span className="text-gray-500">Goal: ${campaign.fundingGoal}</span>
                           </div>
-
-                          <div className="relative pt-4">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-green-600">Raised: ${campaign.raisedAmount}</span>
-                              <span className="text-gray-500">Goal: ${campaign.fundingGoal}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-green-600 rounded-full h-2 transition-all duration-500"
-                                style={{ width: `${(campaign.raisedAmount / campaign.fundingGoal * 100)}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span className="text-sm text-gray-600">{campaign.farmLocation}</span>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-green-600 rounded-full h-2 transition-all duration-500"
+                              style={{ width: `${(campaign.raisedAmount / campaign.fundingGoal * 100)}%` }}
+                            />
                           </div>
                         </div>
 
-                        <div className="mt-auto flex gap-3">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="text-sm text-gray-600">{campaign.farmLocation}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-auto flex gap-3">
+                        <button
+                          onClick={() => openModal(campaign, 'view')}
+                          className="flex-1 px-4 py-2 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-50 text-sm font-medium transition-colors"
+                        >
+                          Details
+                        </button>
+                        <div className="flex gap-1">
                           <button
-                            onClick={() => openModal(campaign, 'view')}
-                            className="flex-1 px-4 py-2 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-50 text-sm font-medium transition-colors"
+                            onClick={() => openModal(campaign, 'edit')}
+                            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
                           >
-                            Details
+                            ✏️
                           </button>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => openModal(campaign, 'edit')}
-                              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              onClick={() => handleDeleteCampaign(campaign._id)}
-                              className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors"
-                            >
-                              🗑️
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleDeleteCampaign(campaign._id)}
+                            className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors"
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-                :
-                <div>
-                  You have not made any campaign yet
-                </div>
-            }
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div>You have not made any campaign yet</div>
+            )}
           </section>
 
           {/* Modal for View/Edit */}
@@ -215,7 +231,9 @@ const InvestorDashboard = () => {
                 <div className="flex justify-between items-center mb-6 pb-4 border-b">
                   <h3 className="text-2xl font-bold text-gray-800">
                     {modalType === 'view' ? (
-                      <><span className="text-blue-600">{selectedCampaign.campaignTitle}</span> Details</>
+                      <>
+                        <span className="text-blue-600">{selectedCampaign.campaignTitle}</span> Details
+                      </>
                     ) : (
                       `Edit ${selectedCampaign.campaignTitle}`
                     )}
