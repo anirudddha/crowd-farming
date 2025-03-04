@@ -1,83 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaShoppingCart, FaHeart, FaSearch, FaTruck, FaShieldAlt, FaLeaf } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import StoreItemCard from '../components/StoreItemCard';
+import axios from 'axios';
 
 const StorePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [cartItemsCount] = useState(2);
+  const [items, setItems] = useState([]);
 
-  const farmProducts = [
-    {
-      id: 1,
-      name: 'Organic Whole Wheat Flour',
-      price: 45,
-      originalPrice: 55,
-      farmName: 'Green Valley Farms',
-      image: 'https://media.istockphoto.com/id/174429248/photo/fresh-vegetables.jpg?s=612x612&w=0&k=20&c=fxlgOIET7gKa8M3rwkV974aUfB0gVpWiJQwUoxA4dtQ=',
-      weights: [1, 5, 10],
-      isOrganic: true,
-      rating: 4.8,
-      reviews: 142,
-      deliveryTime: '2-3 days',
-      tags: ['Fresh', 'Popular', 'Gluten-Free']
-    },
-    {
-      id: 2,
-      name: 'Pure Cane Jaggery',
-      price: 120,
-      farmName: 'Sweet Cane Collective',
-      image: 'https://png.pngtree.com/thumb_back/fh260/background/20230721/pngtree-assorted-grocery-items-arranged-in-a-white-3d-rendering-of-a-image_3722980.jpg',
-      weights: [0.5, 1, 2],
-      isOrganic: true,
-      rating: 4.6,
-      reviews: 89,
-      deliveryTime: '1-2 days',
-      tags: ['Sweetener', 'Unprocessed']
-    },
-    {
-      id: 3,
-      name: 'Pure Cane Jaggery',
-      price: 120,
-      farmName: 'Sweet Cane Collective',
-      image: 'https://media.istockphoto.com/id/171302954/photo/groceries.jpg?s=612x612&w=0&k=20&c=D3MmhT5DafwimcYyxCYXqXMxr1W25wZnyUf4PF1RYw8=',
-      weights: [0.5, 1, 2],
-      isOrganic: true,
-      rating: 4.6,
-      reviews: 89,
-      deliveryTime: '1-2 days',
-      tags: ['Sweetener', 'Unprocessed']
-    },
-    {
-      id: 4,
-      name: 'Pure Cane Jaggery',
-      price: 120,
-      farmName: 'Sweet Cane Collective',
-      image: 'https://media.istockphoto.com/id/174429248/photo/fresh-vegetables.jpg?s=612x612&w=0&k=20&c=fxlgOIET7gKa8M3rwkV974aUfB0gVpWiJQwUoxA4dtQ=',
-      weights: [0.5, 1, 2],
-      isOrganic: true,
-      rating: 4.6,
-      reviews: 89,
-      deliveryTime: '1-2 days',
-      tags: ['Sweetener', 'Unprocessed']
-    },
-    {
-      id: 5,
-      name: 'Pure Cane Jaggery',
-      price: 120,
-      farmName: 'Sweet Cane Collective',
-      image: 'https://media.istockphoto.com/id/171302954/photo/groceries.jpg?s=612x612&w=0&k=20&c=D3MmhT5DafwimcYyxCYXqXMxr1W25wZnyUf4PF1RYw8=',
-      weights: [0.5, 1, 2],
-      isOrganic: true,
-      rating: 4.6,
-      reviews: 89,
-      deliveryTime: '1-2 days',
-      tags: ['Sweetener', 'Unprocessed']
-    },
-    // Add more products...
-  ];
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/items')
+      .then(response => {
+        // console.log(response);
+        // Extract the items array from the API response
+        const fetchedItems = response.data.response;
+        setItems(fetchedItems);
+      })
+      .catch(error => {
+        console.error('Error fetching items:', error);
+      });
+  }, []);
 
   const categories = ['All', 'Grains', 'Sweeteners', 'Flours', 'Spices'];
 
@@ -90,7 +35,6 @@ const StorePage = () => {
             <Link to="/" className="text-2xl font-bold text-gray-900 hover:text-green-700 transition-colors">
               AgroMarket
             </Link>
-            
             <div className="flex items-center space-x-6">
               <div className="relative flex-1 max-w-xl">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -104,7 +48,6 @@ const StorePage = () => {
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                 />
               </div>
-              
               <Link 
                 to="/shop/cart"
                 className="p-2 relative text-gray-700 hover:text-green-700 transition-colors"
@@ -149,18 +92,15 @@ const StorePage = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
         >
           <AnimatePresence>
-            {farmProducts.map((product) => (
+            {items.map((product) => (
               <motion.div
-                key={product.id}
+                key={product._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 layout
               >
-                <StoreItemCard 
-                  item={product}
-                  className="relative"
-                >
+                <StoreItemCard item={product} className="relative">
                   <button className="absolute top-4 right-4 z-10 p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:bg-gray-100 transition-colors">
                     <FaHeart className="w-5 h-5 text-gray-600 hover:text-red-500" />
                   </button>

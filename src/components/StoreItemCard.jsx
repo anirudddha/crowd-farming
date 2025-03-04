@@ -5,6 +5,8 @@ import { FaLeaf } from 'react-icons/fa';
 import PropTypes from 'prop-types';
 
 const StoreItemCard = ({ item }) => {
+  // console.log( typeof item.image.data);
+  // console.log( item.images);
   const [selectedWeight, setSelectedWeight] = useState(item.weights[0]);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
@@ -40,7 +42,7 @@ const StoreItemCard = ({ item }) => {
           </div>
         )}
         <img
-          src={item.image}
+          src={item.images[0]}
           alt={item.name}
           className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105 rounded-md-2xl"
         />
@@ -127,7 +129,7 @@ const StoreItemCard = ({ item }) => {
 StoreItemCard.propTypes = {
   item: PropTypes.shape({
     name: PropTypes.string.isRequired,
-    image: PropTypes.string.isRequired,
+    images: PropTypes.arrayOf(PropTypes.string),
     farmName: PropTypes.string.isRequired,
     price: PropTypes.number.isRequired,
     originalPrice: PropTypes.number,
