@@ -1,15 +1,39 @@
 const { Router } = require("express");
 const Cart = require("../models/Cart");
 const Items = require("../models/Items");
+const auth = require("../middleware/userAuth");
 
 const cartRouter = new Router();
 
+
+cartRouter.use(auth);
+
 cartRouter.get("", async (req, res) => {
   try {
-    const response = await Cart.find();
+    const userId = req.user;
+    // console.log(userId);
+    const response = await Cart.find({userId});
+    const cartResponse = response[0].items;
+    // console.log(cartResponse);
+    let cartDispArray = [];
+
+    cartDispArray = await Promise.all(
+      cartResponse.map(async (eachItem)=>{
+        // console.log(eachItem);
+        let eachItemResponse = await Items.findById(eachItem.itemId);
+        eachItemResponse = eachItemResponse.toObject();
+        eachItemResponse.size=eachItem.size;
+        eachItemResponse.quantity=eachItem.quantity;
+        return eachItemResponse;
+      })
+    )
+    
+    
+    // console.log(cartDispArray);
+
     res
       .status(200)
-      .json({ message: "Data retrieved successfully", data: response });
+      .json({ message: "Data retrieved successfully", data: cartDispArray });
   } catch (e) {
     console.log(e);
     res.status(400).json({ message: "Failed to retrieve data" });
@@ -18,33 +42,32 @@ cartRouter.get("", async (req, res) => {
 
 cartRouter.post("", async (req, res) => {
   try {
-    const itemId = req.query.id;
-    const { userId, size, quantity } = req.body;
+    const userId = req.user;
+    // console.log(userId);
+    const {itemId, size, quantity} = req.body;
+    // console.log(req.body);
 
     if (!itemId || !userId || !size || !quantity) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const item = await Items.findById(itemId);
-    if (!item) {
-      return res.status(404).json({ message: "Item not found" });
-    }
+    
 
-    const variant = item.variants.find((v) => v.size === size);
-    if (!variant) {
-      return res
-        .status(400)
-        .json({ message: "Selected size is not available" });
-    }
+    // const variant = item.variants.find((v) => v.size === size);
+    // if (!variant) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Selected size is not available" });
+    // }
 
-    if (!variant.available) {
-      return res
-        .status(400)
-        .json({ message: "Selected variant is out of stock" });
-    }
+    // if (!variant.available) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Selected variant is out of stock" });
+    // }
 
-    const price = variant.price;
-    const totalPrice = price * quantity;
+    // const price = variant.price;
+    // const totalPrice = price * quantity;
 
     let cart = await Cart.findOne({ userId });
 
@@ -68,8 +91,6 @@ cartRouter.post("", async (req, res) => {
         itemId,
         size,
         quantity,
-        price,
-        totalPrice,
       });
     }
 
