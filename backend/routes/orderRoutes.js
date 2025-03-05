@@ -1,109 +1,67 @@
 const { Router } = require("express");
-const Orders = require("../models/Orders");
-const { default: mongoose } = require("mongoose");
+const UserOrders = require("../models/Orders");
 const auth = require("../middleware/userAuth");
 
 const orderRouter = new Router();
 
-orderRouter.get("", async (req, res) => {
+// POST /orders - Create a new order for a user or add an order to an existing user document
+orderRouter.post('', auth, async (req, res) => {
     try {
-        const { userId } = req.body;
-        const response = await Orders.findOne({ userId });
+        // Expect req.body to include an `order` object with order details
+        const { order } = req.body;
+        // The auth middleware attaches the authenticated user to req.user
+        const user = req.user ;
 
-        res.status(200).json({ message: "Data retieved successfully", response });
-
-
-    } catch (e) {
-        console.log(e);
-        res.status(400).json({ message: "Couldn't retrieve orders" });
-    }
-})
-
-
-//This endpoint will be used to post when needed 
-// orderRouter.post("", async(req,res)=>{
-//     try {
-//         const newOrder = new Orders({
-//           userId: new mongoose.Types.ObjectId("6713b7b97e1561297e85c253"), // Convert string to ObjectId
-//           items: [
-//             {
-//               itemId: new mongoose.Types.ObjectId("65f1d6b97e1541297e85a123"), // Convert itemId to ObjectId
-//               size: "250gm",
-//               quantity: 2,
-//               price: 50,
-//               totalPrice: 100,
-//             },
-//             {
-//               itemId: new mongoose.Types.ObjectId("65f1d6b97e1541297e85a456"), // Convert itemId to ObjectId
-//               size: "500gm",
-//               quantity: 1,
-//               price: 90,
-//               totalPrice: 90,
-//             },
-//           ],
-//           paymentMethod: "Credit Card",
-//           paymentStatus: "Paid",
-//           shippingAddress: {
-//             name: "Aniruddha",
-//             phone: "+91-9876543210",
-//             addressLine1: "At Pawarwadi, Post Nandgaon",
-//             city: "Karad",
-//             state: "Maharashtra",
-//             zipCode: "415112",
-//             country: "India",
-//           },
-//           orderStatus: "Processing",
-//         });
-
-//         const savedOrder = await newOrder.save();
-//         console.log("Order inserted successfully:", savedOrder);
-//       } catch (error) {
-//         console.error("Error inserting order:", error);
-
-//       }
-// })
-
-
-// POST /api/orders
-orderRouter.post("", auth, async (req, res) => {
-    try {
-        // Assuming authentication middleware sets req.user to the user's ID
-
-        // console.log(req.body);
-        const userId = req.user;
-        // console.log(req.user);
-        const { items, paymentMethod, paymentStatus, shippingAddress, orderStatus } = req.body;
-
-        // Validate required fields
-        if (!userId || !items || !items.length || !paymentMethod || !shippingAddress) {
-            return res.status(400).json({ message: "Missing required fields" });
+        if (!user || !order) {
+            return res.status(400).json({ message: "User and order details are required." });
         }
 
-        // Map each item to ensure itemId is converted to ObjectId
-        const mappedItems = items.map(item => ({
-            itemId: new mongoose.Types.ObjectId(item.itemId),
-            size: item.size,
-            quantity: item.quantity,
-            price: item.price,
-            totalPrice: item.totalPrice,
-        }));
+        // Check if a document for this user already exists
+        let userOrders = await UserOrders.findOne({ user });
 
-        const newOrder = new Orders({
-            userId: new mongoose.Types.ObjectId(userId),
-            items: mappedItems,
-            paymentMethod,
-            paymentStatus: paymentStatus || "Pending",
-            shippingAddress,
-            orderStatus: orderStatus || "Processing",
-        });
 
-        console.log(newOrder);
-        const savedOrder = await newOrder.save();
-        console.log("Order inserted successfully:", savedOrder);
-        res.status(201).json({ message: "Order inserted successfully", data: savedOrder });
+        if (userOrders) {
+            // Append new order to the existing orders array
+            userOrders.orders.push(order);
+        } else {
+            // Create a new document for the user with the provided order
+            userOrders = new UserOrders({
+                user,
+                orders: order
+            });
+        }
+        // res.json(order);
+        // console.log(userOrders);
+        // res.json(userOrders);
+        // Save the updated or new document. 
+        // The orderEntrySchema will update the `updatedAt` field via its pre-save hook,
+        // and the userOrdersSchema uses timestamps to manage createdAt and updatedAt.
+        await userOrders.save();
+
+        return res.status(201).json({ message: "Order saved successfully", data: userOrders });
     } catch (error) {
-        console.error("Error inserting order:", error);
-        res.status(500).json({ message: "Internal server error", error: error.message });
+        console.error("Error saving order:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+});
+
+
+// GET /orders/:userId - Retrieve all orders for a specific user
+orderRouter.get('',auth, async (req, res) => {
+    try {
+        const  userId  = req.user;
+
+        const userOrders = await UserOrders.findOne({ user: userId });
+
+        if (!userOrders) {
+            // return res.json(userId);
+            return res.status(404).json({ message: `No orders found for this user ${userId}` });
+        }
+
+        return res.status(200).json({ data: userOrders });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        return res.status(500).json({ message: "Server error", error });
     }
 });
 
