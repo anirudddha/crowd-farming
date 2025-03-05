@@ -137,7 +137,7 @@ const StoreItemCard = ({ item }) => {
 
 StoreItemCard.propTypes = {
   item: PropTypes.shape({
-    id: PropTypes.string.isRequired, // Ensure each product has an id
+    _id: PropTypes.string.isRequired, // Ensure each product has an id
     name: PropTypes.string.isRequired,
     images: PropTypes.arrayOf(PropTypes.string),
     farmName: PropTypes.string.isRequired,

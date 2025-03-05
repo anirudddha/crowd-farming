@@ -3,6 +3,7 @@ import { FiStar, FiShoppingCart, FiClock, FiPackage } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import Loader from '../components/Loader';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -45,7 +46,8 @@ const ProductPage = () => {
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl">Loading product details...</p>
+        {/* <p className="text-xl">Loading product details...</p> */}
+        <Loader/>
       </div>
     );
   }
