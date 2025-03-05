@@ -1,20 +1,21 @@
 const { Router } = require("express");
 const Orders = require("../models/Orders");
 const { default: mongoose } = require("mongoose");
+const auth = require("../middleware/userAuth");
 
 const orderRouter = new Router();
 
-orderRouter.get("", async (req, res)=>{
-    try{
-        const {userId} = req.body;
+orderRouter.get("", async (req, res) => {
+    try {
+        const { userId } = req.body;
         const response = await Orders.findOne({ userId });
 
-        res.status(200).json({message:"Data retieved successfully", response});
+        res.status(200).json({ message: "Data retieved successfully", response });
 
 
-    }catch(e){
+    } catch (e) {
         console.log(e);
-        res.status(400).json({message: "Couldn't retrieve orders"});
+        res.status(400).json({ message: "Couldn't retrieve orders" });
     }
 })
 
@@ -53,13 +54,57 @@ orderRouter.get("", async (req, res)=>{
 //           },
 //           orderStatus: "Processing",
 //         });
-    
+
 //         const savedOrder = await newOrder.save();
 //         console.log("Order inserted successfully:", savedOrder);
 //       } catch (error) {
 //         console.error("Error inserting order:", error);
-        
+
 //       }
 // })
 
-module.exports = {orderRouter}
+
+// POST /api/orders
+orderRouter.post("", auth, async (req, res) => {
+    try {
+        // Assuming authentication middleware sets req.user to the user's ID
+
+        // console.log(req.body);
+        const userId = req.user;
+        // console.log(req.user);
+        const { items, paymentMethod, paymentStatus, shippingAddress, orderStatus } = req.body;
+
+        // Validate required fields
+        if (!userId || !items || !items.length || !paymentMethod || !shippingAddress) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Map each item to ensure itemId is converted to ObjectId
+        const mappedItems = items.map(item => ({
+            itemId: new mongoose.Types.ObjectId(item.itemId),
+            size: item.size,
+            quantity: item.quantity,
+            price: item.price,
+            totalPrice: item.totalPrice,
+        }));
+
+        const newOrder = new Orders({
+            userId: new mongoose.Types.ObjectId(userId),
+            items: mappedItems,
+            paymentMethod,
+            paymentStatus: paymentStatus || "Pending",
+            shippingAddress,
+            orderStatus: orderStatus || "Processing",
+        });
+
+        console.log(newOrder);
+        const savedOrder = await newOrder.save();
+        console.log("Order inserted successfully:", savedOrder);
+        res.status(201).json({ message: "Order inserted successfully", data: savedOrder });
+    } catch (error) {
+        console.error("Error inserting order:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
+module.exports = { orderRouter }
