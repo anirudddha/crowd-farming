@@ -94,6 +94,7 @@ const Header = () => {
             {isLoggedIn ? (
               <>
                 <MobileNavLink to="/dashboard" text="Dashboard" current={pathname} onClose={toggleMenu} icon="chart-line" />
+                <MobileNavLink to="/shop/orders" text="Orders" current={pathname} onClose={toggleMenu} icon="shopping-bag" />
                 <MobileNavLink to="/profile" text="Profile" current={pathname} onClose={toggleMenu} icon="user-cog" />
                 <button
                   onClick={handleLogout}
@@ -184,22 +185,30 @@ const ProfileDropdown = ({ onLogout }) => {
           <div className="p-2 space-y-1">
             <Link
               to="/dashboard"
-              onClick={()=>setIsOpen(false)}
+              onClick={() => setIsOpen(false)}
               className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
             >
               <i className="fas fa-chart-line mr-2 text-emerald-600"></i>
               Dashboard
             </Link>
             <Link
+              to="/shop/orders"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+            >
+              <i className="fas fa-shopping-bag mr-2 text-emerald-600"></i>
+              Orders
+            </Link>
+            <Link
               to="/profile"
-              onClick={()=>setIsOpen(false)}
+              onClick={() => setIsOpen(false)}
               className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
             >
               <i className="fas fa-user-cog mr-2 text-emerald-600"></i>
               Profile
             </Link>
             <button
-              onClick={()=>{onLogout();setIsOpen(false);}}
+              onClick={() => { onLogout(); setIsOpen(false); }}
               className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center"
             >
               <i className="fas fa-sign-out-alt mr-2 text-red-500"></i>
