@@ -84,7 +84,7 @@ cartRouter.post("", async (req, res) => {
     if (existingItemIndex !== -1) {
       // If item exists, update the quantity and total price
       cart.items[existingItemIndex].quantity += quantity;
-      cart.items[existingItemIndex].totalPrice += totalPrice;
+      // cart.items[existingItemIndex].totalPrice += totalPrice;
     } else {
       // If item doesn't exist, add it to the cart
       cart.items.push({

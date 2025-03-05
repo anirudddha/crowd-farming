@@ -1,39 +1,63 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { ShieldCheck, Truck, Sprout, XCircle, ChevronDown } from 'lucide-react';
+import axios from 'axios';
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1582515073490-39981397c445',
-      title: 'Organic Seasonal Vegetables',
-      description: 'Grown in our 5-acre organic farm with care and natural methods',
-      price: 24.99,
-      quantity: 1,
-      origin: 'Field #3 - Picked today',
-      harvestDate: 'Harvested: June 15, 2024'
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1577234286642-fc512a5f8f11',
-      title: 'Heritage Fruit Basket',
-      description: 'Hand-picked organic fruits delivered straight from our fields',
-      price: 38.50,
-      quantity: 2,
-      origin: 'Orchard Section B',
-      harvestDate: 'Harvested: June 14, 2024'
-    },
-  ]);
+  const token = localStorage.getItem('token');
+  const [cartItems, setCartItems] = useState([]);
 
-  const handleRemove = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
+  // Memoized fetch function
+  const fetchCartItems = useCallback(async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Transform the API response to match our cartItems format.
+      const transformedItems = response.data.data.map(item => ({
+        id: item._id,
+        image: item.images[0], // Use the first image from the images array
+        title: item.name,
+        description: `${item.farmName} - ${item.category}`,
+        price: item.price,
+        quantity: item.quantity,
+        origin: "",
+        harvestDate: "",
+      }));
+      setCartItems(transformedItems);
+      // Cache the fetched items in localStorage
+      localStorage.setItem('cachedCartItems', JSON.stringify(transformedItems));
+    } catch (error) {
+      console.error("Error fetching cart items", error);
+      // If there's an error, fallback to cached data if available
+      const cached = localStorage.getItem('cachedCartItems');
+      if (cached) {
+        setCartItems(JSON.parse(cached));
+      }
+    }
+  }, [token]);
 
-  const handleQuantityChange = (id, newQuantity) => {
-    setCartItems(cartItems.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, Number(newQuantity)) } : item
-    ));
-  };
+  useEffect(() => {
+    // If cached items exist, set them first before fetching new data.
+    const cached = localStorage.getItem('cachedCartItems');
+    if (cached) {
+      setCartItems(JSON.parse(cached));
+    }
+    fetchCartItems();
+  }, [fetchCartItems]);
+
+  // Memoized handler for removing an item
+  const handleRemove = useCallback((id) => {
+    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+  }, []);
+
+  // Memoized handler for changing item quantity
+  const handleQuantityChange = useCallback((id, newQuantity) => {
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.id === id ? { ...item, quantity: Math.max(1, Number(newQuantity)) } : item
+      )
+    );
+  }, []);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = subtotal > 75 ? 0 : 7.50;
@@ -43,12 +67,8 @@ const CartPage = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Your Organic Basket
-          </h1>
-          <p className="text-gray-600">
-            Review your selection of farm-fresh produce
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Organic Basket</h1>
+          <p className="text-gray-600">Review your selection of farm-fresh produce</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -63,21 +83,13 @@ const CartPage = () => {
                       alt={item.title}
                       className="w-32 h-32 object-cover rounded-lg"
                     />
-                    {/* <div className="absolute bottom-2 left-2 right-2 bg-white/90 p-2 rounded text-xs text-gray-700">
-                      <p className="font-medium">{item.origin}</p>
-                      <p className="text-xs">{item.harvestDate}</p>
-                    </div> */}
                   </div>
                   
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                          {item.title}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-4">
-                          {item.description}
-                        </p>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
+                        <p className="text-gray-600 text-sm mb-4">{item.description}</p>
                       </div>
                       <button 
                         onClick={() => handleRemove(item.id)}
@@ -95,7 +107,7 @@ const CartPage = () => {
                             onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                             className="appearance-none border rounded-lg px-4 py-2 pr-8 text-sm bg-white focus:ring-2 focus:ring-emerald-500"
                           >
-                            {[1,2,3,4,5].map(num => (
+                            {[1, 2, 3, 4, 5].map(num => (
                               <option key={num} value={num}>{num}</option>
                             ))}
                           </select>
@@ -148,10 +160,7 @@ const CartPage = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Order Summary
-              </h2>
-
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal ({cartItems.length} items)</span>
@@ -166,7 +175,6 @@ const CartPage = () => {
                   </div>
                   <span className="font-medium text-gray-900">${shipping.toFixed(2)}</span>
                 </div>
-                
                 {subtotal <= 75 && (
                   <div className="bg-emerald-50 p-3 rounded-lg text-center">
                     <p className="text-sm text-emerald-700">
@@ -174,7 +182,6 @@ const CartPage = () => {
                     </p>
                   </div>
                 )}
-
                 <div className="pt-4 border-t">
                   <div className="flex justify-between">
                     <span className="font-semibold text-gray-900">Total</span>
@@ -182,12 +189,10 @@ const CartPage = () => {
                   </div>
                 </div>
               </div>
-
               <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                 <ShieldCheck className="w-5 h-5" />
                 Secure Checkout
               </button>
-
               <div className="mt-6 flex items-center gap-2 text-sm text-gray-600">
                 <img 
                   src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTjEGue1MO1jcmnO0FX4VrWRm2Ho2LwGHgpQ&s" 
@@ -200,15 +205,11 @@ const CartPage = () => {
 
             <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">
-                  Need help? Our farm team is here
-                </p>
+                <p className="text-sm text-gray-600 mb-2">Need help? Our farm team is here</p>
                 <a href="tel:+11234567890" className="text-emerald-600 hover:underline font-medium">
                   (123) 456-7890
                 </a>
-                <p className="mt-3 text-xs text-gray-500">
-                  Mon-Fri 8am-6pm EST
-                </p>
+                <p className="mt-3 text-xs text-gray-500">Mon-Fri 8am-6pm EST</p>
               </div>
             </div>
           </div>
