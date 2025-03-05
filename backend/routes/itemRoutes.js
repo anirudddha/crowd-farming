@@ -10,8 +10,8 @@ const upload = multer({ storage: storage });
 itemRouter.get("", async (req, res) => {
   try {
     const response = await Items.find();
-    console.log(response);
-    console.log(typeof response);
+    // console.log(response);
+    // console.log(typeof response);
     res
       .status(200)
       .json({ message: "Data retrieved successfully", response: response });
@@ -98,5 +98,23 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
     }
   });
   
+
+  itemRouter.get('/:id', async(req, res) => {
+    const productId = req.params.id;
+    // console.log(productId);
+    // const product = Items.find(p => p.id === productId);
+    
+    try {
+      const items = await Items.find({ _id: productId });
+      res.json(items);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+
+
+
+    // res.json(product);
+  });
+
 
 module.exports = { itemRouter };

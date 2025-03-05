@@ -29,7 +29,7 @@ const AppRoutes = () => {
       <Route path='/shop/cart' element={<CartPage />} />
 
       {/* for testing purpose */}
-      <Route path="/shop/demoinfo" element={<ProductInfoPage />} />
+      <Route path="/shop/itemInfo/:id" element={<ProductInfoPage />} />
       <Route path="/shop/orders" element={<OrdersPage />} />
       
       {/* Protected Routes */}

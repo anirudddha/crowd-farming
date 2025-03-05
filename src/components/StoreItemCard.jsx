@@ -2,18 +2,23 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 const StoreItemCard = ({ item }) => {
-  // console.log( typeof item.image.data);
-  // console.log( item.images);
+  const navigate = useNavigate();
   const [selectedWeight, setSelectedWeight] = useState(item.weights[0]);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e) => {
+    e.stopPropagation(); // Prevent the card's onClick from firing
     setIsAddingToCart(true);
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
     setIsAddingToCart(false);
+  };
+  const handleCardClick = () => {
+    // Navigate to the details page with the product id
+    navigate(`/shop/itemInfo/${item._id}`);
   };
 
   const calculateDiscount = () => {
@@ -27,7 +32,8 @@ const StoreItemCard = ({ item }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 max-w-xs mx-auto border border-gray-100 relative group"
+      onClick={handleCardClick}
+      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 max-w-xs mx-auto border border-gray-100 relative group cursor-pointer"
     >
       {/* Product Image Section */}
       <div className="relative aspect-[4/3] p-4 bg-white border-b border-gray-200 rounded-t-xl overflow-hidden">
@@ -86,7 +92,10 @@ const StoreItemCard = ({ item }) => {
           {item.weights.map(weight => (
             <button
               key={weight}
-              onClick={() => setSelectedWeight(weight)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card navigation when selecting weight
+                setSelectedWeight(weight);
+              }}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                 selectedWeight === weight
                   ? 'bg-green-600 text-white'
@@ -128,6 +137,7 @@ const StoreItemCard = ({ item }) => {
 
 StoreItemCard.propTypes = {
   item: PropTypes.shape({
+    id: PropTypes.string.isRequired, // Ensure each product has an id
     name: PropTypes.string.isRequired,
     images: PropTypes.arrayOf(PropTypes.string),
     farmName: PropTypes.string.isRequired,
