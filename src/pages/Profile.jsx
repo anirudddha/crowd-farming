@@ -147,6 +147,12 @@ const Profile = () => {
 
   // Save address form data – either update an existing address or add a new one.
   const handleAddressSave = useCallback(async () => {
+    // Validate required fields (except landmark)
+    const { street, city, state, zipcode, country, phone } = addressForm;
+    if (!street || !city || !state || !zipcode || !country || !phone) {
+      alert("Please fill in all required fields.");
+      return;
+    }
     setIsLoading(true);
     try {
       let updatedAddresses = [...profileData.addresses];
@@ -184,10 +190,14 @@ const Profile = () => {
   }, [profileData.addresses]);
 
   const handleAddNewAddress = useCallback(() => {
+    if (profileData.addresses && profileData.addresses.length >= 3) {
+      alert("You can only have up to 3 addresses.");
+      return;
+    }
     setEditingAddressIndex(-1); // -1 indicates a new address
     setAddressForm(defaultAddressForm);
     setIsEditingAddress(true);
-  }, []);
+  }, [profileData.addresses]);
 
   const handleCancelNameEdit = useCallback(() => {
     setNewName(profileData.name);
