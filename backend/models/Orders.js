@@ -1,63 +1,79 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const OrderSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    items: [
-      {
-        itemId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Item',
-          required: true,
-        },
-        size: {
-          type: String,
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
-        price: {
-          type: Number,
-          required: true,
-        },
-        totalPrice: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
-    paymentMethod: {
-      type: String,
-      required: true,
-    },
-    paymentStatus: {
-      type: String,
-      enum: ['Pending', 'Paid', 'Failed'],
-      required: true,
-    },
-    shippingAddress: {
-      name: { type: String, required: true },
-      phone: { type: String, required: true },
-      addressLine1: { type: String, required: true },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      zipCode: { type: String, required: true },
-      country: { type: String, required: true },
-    },
-    orderStatus: {
-      type: String,
-      enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
-      default: 'Processing',
-    },
+const orderItemSchema = new Schema({
+  itemId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Item', // Assumes your item collection is named 'Item'
+    required: true
   },
-  { timestamps: true } // Automatically adds createdAt and updatedAt
-);
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  weight: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+});
 
-module.exports = mongoose.model('orders', OrderSchema);
+const orderEntrySchema = new Schema({
+  items: [orderItemSchema],
+  totalPrice: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  orderStatus: {
+    type: String,
+    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+    default: 'Pending'
+  },
+  shippingAddress: {
+    street: { type: String },
+    city: { type: String },
+    state: { type: String },
+    zipCode: { type: String },
+    country: { type: String }
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Pending', 'Paid', 'Failed'],
+    default: 'Pending'
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  },
+  updatedAt: { 
+    type: Date, 
+    default: Date.now 
+  }
+});
+
+// Update the updatedAt field before saving each order entry
+orderEntrySchema.pre('save', function (next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+const userOrdersSchema = new Schema({
+  user: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true,
+    unique: true  // One document per user
+  },
+  orders: [orderEntrySchema]
+}, {
+  timestamps: true // Automatically manages createdAt and updatedAt for the document
+});
+
+module.exports = mongoose.model('UserOrders', userOrdersSchema);

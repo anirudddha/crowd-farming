@@ -1,61 +1,42 @@
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { FiPackage, FiCreditCard, FiTruck, FiCheckCircle, FiUser, FiX } from 'react-icons/fi';
 
 const OrdersPage = () => {
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  
-  // Sample order data matching your schema
-  const orders = [
-    {
-      _id: "65f3a8b97e1561297e85d789",
-      userId: "6713b7b97e1561297e85c253",
-      items: [
-        {
-          itemId: "65f1d6b97e1541297e85a123",
-          name: "Organic Turmeric Powder",
-          image: "https://example.com/turmeric.jpg",
-          size: "250gm",
-          quantity: 2,
-          price: 50,
-          totalPrice: 100
-        },
-        {
-          itemId: "65f1d6b97e1541297e85a456",
-          name: "Cold Pressed Coconut Oil",
-          image: "https://example.com/coconut-oil.jpg",
-          size: "500gm",
-          quantity: 1,
-          price: 90,
-          totalPrice: 90
-        }
-      ],
-      totalAmount: 190,
-      paymentMethod: "Credit Card",
-      paymentStatus: "Paid",
-      shippingAddress: {
-        name: "Aniruddha",
-        phone: "+91-9876543210",
-        addressLine1: "At Pawarwadi, Post Nandgaon",
-        city: "Karad",
-        state: "Maharashtra",
-        zipCode: "415112",
-        country: "India"
-      },
-      orderStatus: "Processing",
-      createdAt: "2024-02-21T12:00:00Z",
-      updatedAt: "2024-02-21T12:10:00Z"
-    }
-    // Add more orders...
-  ];
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/orders`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        // Assuming the API response structure is:
+        // { data: { data: { orders: [ ... ] } } }
+        // Adjust the following line if your structure differs.
+        setOrders(response.data.data.orders);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+
+    fetchOrders();
+  }, [token]);
 
   // Status styling configuration
   const statusStyles = {
     Processing: 'bg-yellow-100 text-yellow-800',
     Shipped: 'bg-blue-100 text-blue-800',
     Delivered: 'bg-green-100 text-green-800',
-    Cancelled: 'bg-red-100 text-red-800'
+    Cancelled: 'bg-red-100 text-red-800',
+    Pending: 'bg-gray-100 text-gray-800'
   };
 
   return (
@@ -81,7 +62,7 @@ const OrdersPage = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {orders.map((order) => (
-                <tr 
+                <tr
                   key={order._id}
                   className="hover:bg-gray-50 cursor-pointer"
                   onClick={() => setSelectedOrder(order)}
@@ -90,7 +71,7 @@ const OrdersPage = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <FiUser className="mr-2 text-gray-500" />
-                      {order.shippingAddress.name}
+                      {order.shippingAddress.name || 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -107,7 +88,7 @@ const OrdersPage = () => {
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end">
                       <span className="mr-1">₹</span>
-                      {order.totalAmount}
+                      {order.totalPrice || order.totalAmount}
                     </div>
                   </td>
                 </tr>
@@ -131,7 +112,7 @@ const OrdersPage = () => {
                     Placed on {new Date(selectedOrder.createdAt).toLocaleDateString('en-IN')}
                   </p>
                 </div>
-                <button 
+                <button
                   className="p-2 hover:bg-gray-100 rounded-full"
                   onClick={() => setSelectedOrder(null)}
                 >
@@ -159,7 +140,7 @@ const OrdersPage = () => {
                       <div>
                         <dt className="text-sm text-gray-600">Address</dt>
                         <dd className="text-sm">
-                          {selectedOrder.shippingAddress.addressLine1},<br />
+                          {selectedOrder.shippingAddress.street || selectedOrder.shippingAddress.addressLine1},<br />
                           {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state}<br />
                           {selectedOrder.shippingAddress.zipCode}, {selectedOrder.shippingAddress.country}
                         </dd>
@@ -179,8 +160,8 @@ const OrdersPage = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Status:</span>
-                        <span className={`px-2 py-1 rounded ${selectedOrder.paymentStatus === 'Paid' 
-                          ? 'bg-green-100 text-green-800' 
+                        <span className={`px-2 py-1 rounded ${selectedOrder.paymentStatus === 'Paid'
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'}`}>
                           {selectedOrder.paymentStatus}
                         </span>
@@ -199,8 +180,8 @@ const OrdersPage = () => {
                     <div className="space-y-4">
                       {selectedOrder.items.map((item, index) => (
                         <div key={index} className="flex items-start gap-4">
-                          <img 
-                            src={item.image} 
+                          <img
+                            src={item.image}
                             alt={item.name}
                             className="w-16 h-16 rounded-lg object-cover border"
                           />
@@ -220,7 +201,7 @@ const OrdersPage = () => {
                     <div className="mt-6 pt-4 border-t">
                       <div className="flex justify-between font-semibold">
                         <span>Total Amount</span>
-                        <span>₹{selectedOrder.totalAmount}</span>
+                        <span>₹{selectedOrder.totalPrice || selectedOrder.totalAmount}</span>
                       </div>
                     </div>
                   </div>
@@ -267,7 +248,7 @@ const OrdersPage = () => {
                       {selectedOrder.orderStatus}
                     </span>
                   </span>
-                  <button 
+                  <button
                     className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
                     onClick={() => setSelectedOrder(null)}
                   >
