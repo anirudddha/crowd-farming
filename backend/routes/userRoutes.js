@@ -8,7 +8,8 @@ const Investment = require('../models/Investment'); // Import Investment model
 const {
     updateName,
     updateAddress,
-    campaignRequestSave
+    campaignRequestSave,
+    deleteAddress
 } = require('../controllers/userController');
 
 const multer = require('multer');
@@ -114,5 +115,6 @@ router.post('/upload-profile-picture', auth, async (req, res) => {
 router.put('/editName', updateName);
 router.put('/editAddress', updateAddress);
 router.post('/sending-request',campaignRequestSave);
+router.delete('/deleteAddress',deleteAddress);
 
 module.exports = router;

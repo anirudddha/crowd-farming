@@ -88,3 +88,26 @@ exports.campaignRequestSave = async (req, res) => {
     res.status(500).json({ message: 'Failed to save request', error });
   }
 };
+
+
+exports.deleteAddress = async (req, res) => {
+  const { userId, addressId } = req.body;
+  
+  try {
+    // Use the $pull operator to remove the address subdocument that matches addressId
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { addresses: { _id: addressId } } },
+      { new: true }
+    );
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error deleting address:", error);
+    res.status(500).json({ message: 'Error deleting address' });
+  }
+};

@@ -30,6 +30,9 @@ const Profile = () => {
   const [editingAddressIndex, setEditingAddressIndex] = useState(null); // null: not editing; -1: adding new
   const [addressForm, setAddressForm] = useState(defaultAddressForm);
   const [newName, setNewName] = useState('');
+  
+  // New state for the delete confirmation modal
+  const [confirmDelete, setConfirmDelete] = useState({ show: false, index: null });
 
   const token = localStorage.getItem('token');
   const cacheKey = `profileData_${token}`;
@@ -168,6 +171,37 @@ const Profile = () => {
     setIsEditingName(false);
   }, [profileData.name]);
 
+  // When delete is clicked, show the confirmation modal.
+  const confirmDeleteAddress = useCallback((index) => {
+    setConfirmDelete({ show: true, index });
+  }, []);
+
+  // Delete address feature if confirmed.
+  const handleConfirmDelete = useCallback(async () => {
+    const index = confirmDelete.index;
+    const addressId = profileData.addresses[index]._id;
+    if (!addressId) return;
+    setIsLoading(true);
+    try {
+      const response = await axios.delete('http://localhost:5000/api/deleteAddress', {
+        data: { userId: profileData._id, addressId },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Update profileData with response from delete
+      setProfileData(response.data);
+      localStorage.setItem(cacheKey, JSON.stringify(response.data));
+      setConfirmDelete({ show: false, index: null });
+    } catch (error) {
+      console.error("Error deleting address:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [confirmDelete, profileData, token, cacheKey]);
+
+  const handleCancelDelete = useCallback(() => {
+    setConfirmDelete({ show: false, index: null });
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-cyan-50 py-8 px-4 sm:px-6 lg:px-8 relative">
       {isLoading && (
@@ -291,7 +325,7 @@ const Profile = () => {
                         <p>{addr.country}</p>
                         <p className="text-emerald-600">📱 {addr.phone}</p>
                         {addr.landmark && <p className="text-sm text-gray-500">Landmark: {addr.landmark}</p>}
-                        {/* Optionally, you can show timestamps for the address */}
+                        {/* Show timestamps if available */}
                         {addr.createdAt && (
                           <p className="text-xs text-gray-400">
                             Added on: {new Date(addr.createdAt).toLocaleDateString('en-IN')}
@@ -303,12 +337,20 @@ const Profile = () => {
                           </p>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleEditExistingAddress(index)}
-                        className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-emerald-600 rounded-md hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        <i className="fa-solid fa-pen fa-xs"></i>
-                      </button>
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <button
+                          onClick={() => handleEditExistingAddress(index)}
+                          className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-md hover:bg-gray-100 transition-colors"
+                        >
+                          <i className="fa-solid fa-pen fa-xs"></i>
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteAddress(index)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-gray-100 transition-colors"
+                        >
+                          <i className="fa-solid fa-trash fa-xs"></i>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -321,10 +363,10 @@ const Profile = () => {
                 </div>
               )}
 
-              {/* Enhanced Address Form */}
+              {/* Enhanced Address Form - Responsive Modal */}
               {isEditingAddress && (
-                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10 flex items-center justify-center">
-                  <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 animate-slide-up">
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-2xl p-6 w-full sm:max-w-md max-h-screen overflow-y-auto animate-slide-up">
                     <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
                       <i className="fa-solid fa-map-location-dot text-emerald-600"></i>
                       {editingAddressIndex === -1 ? 'Add New Address' : 'Edit Address'}
@@ -427,6 +469,30 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Custom Confirmation Modal */}
+      {confirmDelete.show && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full animate-slide-up">
+            <h3 className="text-lg font-semibold mb-4">Delete Address</h3>
+            <p className="mb-6 text-gray-700">Are you sure you want to delete this address?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleCancelDelete}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                No
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
