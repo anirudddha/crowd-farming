@@ -9,7 +9,8 @@ const {
     updateName,
     updateAddress,
     campaignRequestSave,
-    deleteAddress
+    deleteAddress,
+    editPhone
 } = require('../controllers/userController');
 
 const multer = require('multer');
@@ -116,5 +117,6 @@ router.put('/editName', updateName);
 router.put('/editAddress', updateAddress);
 router.post('/sending-request',campaignRequestSave);
 router.delete('/deleteAddress',deleteAddress);
+router.put('/editPhone', editPhone);
 
 module.exports = router;

@@ -6,7 +6,6 @@ const AddressSchema = new mongoose.Schema({
   state:    { type: String, required: true },
   zipcode:  { type: String, required: true },
   country:  { type: String, required: true },
-  phone:    { type: String, required: true },
   landmark: { type: String } // Optional extra field
 }, { timestamps: true });
 
@@ -15,7 +14,8 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: { type: String, required: true },
   profilePicture: { type: String },
-  addresses: { type: [AddressSchema], default: [] }  // Multiple addresses
+  addresses: { type: [AddressSchema], default: [] } , // Multiple addresses
+  phone:    { type: String, required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

@@ -111,3 +111,25 @@ exports.deleteAddress = async (req, res) => {
     res.status(500).json({ message: 'Error deleting address' });
   }
 };
+
+exports.editPhone = async (req, res) => {
+  const { phone, _id } = req.body;
+  if (!phone || !_id) {
+    return res.status(400).json({ message: 'Phone number and user ID are required.' });
+  }
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+
+      {_id:_id}, // User ID to find the user
+      {phone}, // Only update the 'phone' field
+      { new: true } // Return the updated user object
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating phone number:", error);
+    res.status(500).json({ message: 'Error updating phone number.' });
+  }
+};

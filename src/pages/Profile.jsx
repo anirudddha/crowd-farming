@@ -19,18 +19,22 @@ const Profile = () => {
     _id: '',
     name: '',
     email: '',
+    phone: '', // added phone field in profile data
     profilePicture: '',
     addresses: [],
   });
   const [preview, setPreview] = useState('');
   const [base64Image, setBase64Image] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false); // new state for phone editing
+  const [newName, setNewName] = useState('');
+  const [newPhone, setNewPhone] = useState(''); // new state for phone number
+
   // For addresses, we manage a separate form state and editing index.
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [editingAddressIndex, setEditingAddressIndex] = useState(null); // null: not editing; -1: adding new
   const [addressForm, setAddressForm] = useState(defaultAddressForm);
-  const [newName, setNewName] = useState('');
-  
+
   // New state for the delete confirmation modal
   const [confirmDelete, setConfirmDelete] = useState({ show: false, index: null });
 
@@ -47,6 +51,7 @@ const Profile = () => {
       setProfileData(parsedData);
       setPreview(parsedData.profilePicture);
       setNewName(parsedData.name);
+      setNewPhone(parsedData.phone || '');
       setIsLoading(false);
     }
     try {
@@ -56,6 +61,7 @@ const Profile = () => {
       setProfileData(response.data);
       setPreview(response.data.profilePicture);
       setNewName(response.data.name);
+      setNewPhone(response.data.phone || '');
       // Update cache with fresh data
       localStorage.setItem(cacheKey, JSON.stringify(response.data));
     } catch (error) {
@@ -122,6 +128,23 @@ const Profile = () => {
     }
   }, [newName, profileData, cacheKey]);
 
+  // New: Phone Save Handler
+  const handlePhoneSave = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await axios.put('http://localhost:5000/api/editPhone', { phone: newPhone, _id: profileData._id });
+      setProfileData(prev => ({ ...prev, phone: newPhone }));
+      setIsEditingPhone(false);
+      // Update cache with new phone number
+      const updatedProfile = { ...profileData, phone: newPhone };
+      localStorage.setItem(cacheKey, JSON.stringify(updatedProfile));
+    } catch (error) {
+      console.error('Error saving phone number:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [newPhone, profileData, cacheKey]);
+
   // Save address form data – either update an existing address or add a new one.
   const handleAddressSave = useCallback(async () => {
     setIsLoading(true);
@@ -170,6 +193,11 @@ const Profile = () => {
     setNewName(profileData.name);
     setIsEditingName(false);
   }, [profileData.name]);
+
+  const handleCancelPhoneEdit = useCallback(() => {
+    setNewPhone(profileData.phone || '');
+    setIsEditingPhone(false);
+  }, [profileData.phone]);
 
   // When delete is clicked, show the confirmation modal.
   const confirmDeleteAddress = useCallback((index) => {
@@ -251,8 +279,8 @@ const Profile = () => {
         </div>
 
         {/* Profile Details Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 transition-all hover:shadow-2xl">
-          <div className="space-y-8">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-8 transition-all hover:shadow-2xl">
+          <div className="space-y-6">
             {/* Name Section */}
             <div className="group relative">
               <div className="flex items-center justify-between pb-2 border-b border-gray-100">
@@ -264,9 +292,8 @@ const Profile = () => {
                   <i className="fa-solid fa-pen"></i>
                 </button>
               </div>
-
               {isEditingName ? (
-                <div className="pt-4 flex gap-4">
+                <div className="pt-4 flex gap-4 flex-col sm:flex-row">
                   <input
                     type="text"
                     value={newName}
@@ -274,18 +301,20 @@ const Profile = () => {
                     className="flex-1 px-4 py-3 border-b-2 border-emerald-500 focus:outline-none text-xl font-semibold bg-gray-50 rounded-lg"
                     placeholder="Enter your name"
                   />
-                  <button
-                    onClick={handleNameSave}
-                    className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={handleCancelNameEdit}
-                    className="px-6 py-3 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors font-semibold"
-                  >
-                    Cancel
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleNameSave}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelNameEdit}
+                      className="px-4 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors font-semibold"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <h2 className="pt-4 text-2xl font-bold text-gray-800">{profileData.name}</h2>
@@ -303,6 +332,46 @@ const Profile = () => {
               </p>
             </div>
 
+            {/* Phone Number Section */}
+            <div className="group">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                <span className="text-sm font-semibold text-emerald-600">PHONE NUMBER</span>
+                <button
+                  onClick={() => setIsEditingPhone(true)}
+                  className="p-2 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <i className="fa-solid fa-pen"></i>
+                </button>
+              </div>
+              {isEditingPhone ? (
+                <div className="pt-4 flex gap-4 flex-col sm:flex-row">
+                  <input
+                    type="text"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    className="flex-1 px-4 py-3 border-b-2 border-emerald-500 focus:outline-none text-xl font-semibold bg-gray-50 rounded-lg"
+                    placeholder="Enter your phone number"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handlePhoneSave}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelPhoneEdit}
+                      className="px-4 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors font-semibold"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="pt-4 text-gray-600">{profileData.phone || 'No phone number provided'}</p>
+              )}
+            </div>
+
             {/* Enhanced Addresses Section */}
             <div className="group relative">
               <div className="flex items-center justify-between pb-2 border-b border-gray-100">
@@ -314,9 +383,8 @@ const Profile = () => {
                   <i className="fa-solid fa-plus"></i>
                 </button>
               </div>
-
               {profileData.addresses && profileData.addresses.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                   {profileData.addresses.map((addr, index) => (
                     <div key={index} className="relative p-4 bg-gray-50 rounded-lg border hover:border-emerald-200 transition-colors group">
                       <div className="text-sm text-gray-700 space-y-1">
@@ -325,7 +393,6 @@ const Profile = () => {
                         <p>{addr.country}</p>
                         <p className="text-emerald-600">📱 {addr.phone}</p>
                         {addr.landmark && <p className="text-sm text-gray-500">Landmark: {addr.landmark}</p>}
-                        {/* Show timestamps if available */}
                         {addr.createdAt && (
                           <p className="text-xs text-gray-400">
                             Added on: {new Date(addr.createdAt).toLocaleDateString('en-IN')}
@@ -371,7 +438,6 @@ const Profile = () => {
                       <i className="fa-solid fa-map-location-dot text-emerald-600"></i>
                       {editingAddressIndex === -1 ? 'Add New Address' : 'Edit Address'}
                     </h3>
-
                     <div className="grid grid-cols-1 gap-4">
                       <div className="space-y-4">
                         <div>
@@ -383,7 +449,6 @@ const Profile = () => {
                             placeholder="123 Main St"
                           />
                         </div>
-
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm font-medium text-gray-700">City</label>
@@ -404,7 +469,6 @@ const Profile = () => {
                             />
                           </div>
                         </div>
-
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm font-medium text-gray-700">ZIP Code</label>
@@ -425,7 +489,6 @@ const Profile = () => {
                             />
                           </div>
                         </div>
-
                         <div>
                           <label className="text-sm font-medium text-gray-700">Phone Number</label>
                           <input
@@ -435,7 +498,6 @@ const Profile = () => {
                             placeholder="+1 234 567 890"
                           />
                         </div>
-
                         <div>
                           <label className="text-sm font-medium text-gray-700">Landmark (optional)</label>
                           <input
@@ -446,7 +508,6 @@ const Profile = () => {
                           />
                         </div>
                       </div>
-
                       <div className="flex justify-end gap-3 mt-6">
                         <button
                           onClick={handleCancelAddressEdit}
@@ -473,7 +534,7 @@ const Profile = () => {
       {/* Custom Confirmation Modal */}
       {confirmDelete.show && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full animate-slide-up">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full sm:max-w-sm animate-slide-up">
             <h3 className="text-lg font-semibold mb-4">Delete Address</h3>
             <p className="mb-6 text-gray-700">Are you sure you want to delete this address?</p>
             <div className="flex justify-end gap-4">
