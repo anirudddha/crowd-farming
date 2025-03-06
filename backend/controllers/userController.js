@@ -42,23 +42,22 @@ exports.updateName = async (req, res) =>{
     // res.json(error);
   }
 };
-exports.updateAddress = async (req, res) =>{
-  const { address, _id } = req.body;
-  // res.json(req.body);
+exports.updateAddress = async (req, res) => {
+  const { addresses, _id } = req.body; // Expecting addresses to be an array of address objects
   try {
-    // console.log(name,_id);
     const updatedUser = await User.findByIdAndUpdate(
-      {_id:_id}, // User ID to find the user
-      {address}, // Only update the 'name' field
-      { new: true } // Return the updated user object
+      _id,                // User ID
+      { addresses },      // Update the addresses field
+      { new: true }       // Return the updated user document
     );
     
     res.json(updatedUser);
   } catch (error) {
-    res.status(500).send('Error updating profile');
-    // res.json(error);
+    console.error('Error updating addresses:', error);
+    res.status(500).send('Error updating addresses');
   }
 };
+
 
 exports.campaignRequestSave = async (req, res) => {
   const { userId,email } = req.body; // Fix destructuring

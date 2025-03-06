@@ -1,16 +1,12 @@
 import axios from 'axios';
-import { Calendar, Calendar1, Calendar1Icon, CalendarIcon } from 'lucide-react';
-// import { set } from 'mongoose';
+import { Calendar } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { FaCalendar, FaCalendarAlt } from 'react-icons/fa';
 import { FiPackage, FiCreditCard, FiTruck, FiCheckCircle, FiUser, FiX } from 'react-icons/fi';
 const endPoint = "http://localhost:5000/"
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   
 
   const fetchSelectedItem = async (order) => {
@@ -106,7 +102,7 @@ const OrdersPage = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       {/* <FiUser className="mr-2 text-gray-500" /> */}
-                      <Calendar className='mr-2 text-gray-500 p-[2px]'/>
+                      <Calendar className='mr-2 text-gray-500 p-[3.5px]'/>
                       {order.updatedAt.slice(0,10) || 'N/A'}
                     </div>
                   </td>
