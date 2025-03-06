@@ -1,12 +1,43 @@
 import axios from 'axios';
+import { Calendar, Calendar1, Calendar1Icon, CalendarIcon } from 'lucide-react';
+// import { set } from 'mongoose';
 import React, { useEffect, useState } from 'react';
+import { FaCalendar, FaCalendarAlt } from 'react-icons/fa';
 import { FiPackage, FiCreditCard, FiTruck, FiCheckCircle, FiUser, FiX } from 'react-icons/fi';
+const endPoint = "http://localhost:5000/"
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+
+  const fetchSelectedItem = async (order) => {
+    let items = order.items;
+    // console.log(items);
+  
+    // Fetch item details asynchronously and update the state
+    const updatedItems = await Promise.all(
+      items.map(async (item) => {
+        try {
+          const response = await axios.get(`${endPoint}api/items/${item.itemId}`);
+          // console.log(response);
+  
+          return {
+            ...item,
+            image: response.data[0].images[0], // Adding image to the item
+          };
+        } catch (error) {
+          console.error("Error fetching item data:", error);
+          return { ...item, image: "" }; // Handle errors gracefully
+        }
+      })
+    );
+  
+    // Update state with items that include images
+    setSelectedOrder({ ...order, items: updatedItems });
+  };
 
   const token = localStorage.getItem("token");
 
@@ -22,6 +53,7 @@ const OrdersPage = () => {
         // { data: { data: { orders: [ ... ] } } }
         // Adjust the following line if your structure differs.
         setOrders(response.data.data.orders);
+        console.log(orders);
       } catch (error) {
         console.error("Error fetching orders:", error);
       }
@@ -54,7 +86,7 @@ const OrdersPage = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Order ID</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Customer</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Ordered at</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Products</th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Status</th>
                 <th className="px-6 py-3 text-right text-sm font-medium text-gray-500">Amount</th>
@@ -65,18 +97,22 @@ const OrdersPage = () => {
                 <tr
                   key={order._id}
                   className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => setSelectedOrder(order)}
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    fetchSelectedItem(order);
+                  }}
                 >
                   <td className="px-6 py-4 font-medium text-gray-900">#{order._id.slice(-6)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <FiUser className="mr-2 text-gray-500" />
-                      {order.shippingAddress.name || 'N/A'}
+                      {/* <FiUser className="mr-2 text-gray-500" /> */}
+                      <Calendar className='mr-2 text-gray-500 p-[2px]'/>
+                      {order.updatedAt.slice(0,10) || 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <FiPackage className="mr-2 text-gray-500" />
+                      <FiPackage className="mr-2 text-gray-500"/>
                       {order.items.length} items
                     </div>
                   </td>
@@ -192,7 +228,7 @@ const OrdersPage = () => {
                             </p>
                             <div className="flex justify-between items-center mt-2">
                               <span className="text-sm">₹{item.price}/unit</span>
-                              <span className="font-medium">₹{item.totalPrice}</span>
+                              <span className="font-medium">₹{(item.price*item.quantity).toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
