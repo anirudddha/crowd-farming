@@ -119,50 +119,63 @@ itemRouter.get('/:id', async (req, res) => {
 
 
 // Route to add a review to a product
-itemRouter.put('/:id/review', auth ,async (req, res) => {
+itemRouter.put('/:id/review', auth, async (req, res) => {
   try {
-    const {rating, comment } = req.body;
+    const { rating, comment } = req.body;
 
-    const user = await User.findById(req.user); 
-    const username = user.name;
-
-    // console.log(user);
-    
+    // Get user details from the token
+    const user = await User.findById(req.user);
     if (!user) {
-      return res.status(201).json({ message: "User not found" });
+      return res.status(401).json({ message: "User not found" });
     }
-    if (!username || rating === undefined || !comment) {
-      return res.status(400).json({ message: "All fields (username, rating, comment) are required." });
+    const username = user.name;
+    const email = user.email;
+
+    // Validate required fields
+    if (!username || rating === undefined || !comment || !email) {
+      return res.status(400).json({ message: "All fields (username, rating, comment, email) are required." });
     }
 
     if (typeof rating !== "number" || isNaN(rating) || rating < 0 || rating > 5) {
       return res.status(400).json({ message: "Rating must be a number between 0 and 5." });
     }
 
+    // Find the item
     const item = await Items.findById(req.params.id);
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    const newReview = { username, rating, comment, createdAt: new Date() };
+    // Check if the user has already submitted a review for this product
+    const existingReview = item.reviews.find((review) => review.email === email);
+    if (existingReview) {
+      return res.status(202).json({ message: "You have already submitted a review for this product." });
+    }
+
+    // Create and add the new review
+    const newReview = { username, rating, comment, email, createdAt: new Date() };
     item.reviews.push(newReview);
     item.reviewsCount = item.reviews.length;
 
-    // 🔥 Filter out any incomplete reviews before saving
+    // Filter out any incomplete reviews (ensuring each review has email)
     item.reviews = item.reviews.filter(
-      (review) => review.username && review.rating !== undefined && review.comment
+      (review) => review.username && review.rating !== undefined && review.comment && review.email
     );
 
-    item.rating = (item.reviews.reduce((acc, rev) => acc + rev.rating, 0) / item.reviews.length).toFixed(1);
+    // Recalculate average rating
+    item.rating = (
+      item.reviews.reduce((acc, rev) => acc + rev.rating, 0) / item.reviews.length
+    ).toFixed(1);
 
     await item.save();
 
-    res.status(200).json({ message: "Review added successfully", item });
+    return res.status(200).json({ message: "Review added successfully", item });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error", error });
+    return res.status(500).json({ message: "Server error", error });
   }
 });
+
 
 
 module.exports = { itemRouter };

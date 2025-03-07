@@ -91,7 +91,10 @@ const ProductPage = () => {
         alert('You need to sign in before submitting a review.');
         return;
       }
-
+      if (response.status === 202) {
+        alert('You alreay submitted a review.');
+        return;
+      }
       // Update the product's reviews with the updated item from backend
       setProduct(response.data.item);
       // Reset form values

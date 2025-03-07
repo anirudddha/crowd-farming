@@ -5,6 +5,7 @@ const ReviewSchema = new mongoose.Schema(
     username: { type: String, required: true },
     rating: { type: Number, required: true, min: 0, max: 5 },
     comment: { type: String, required: true },
+    email : { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
   },
   { _id: false } // No need for separate _id for each review
