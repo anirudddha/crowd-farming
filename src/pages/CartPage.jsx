@@ -5,11 +5,13 @@ import axios from 'axios';
 const CartPage = () => {
   const token = localStorage.getItem('token');
   const [cartItems, setCartItems] = useState([]);
+  const [itemToDelete, setItemToDelete] = useState(null); // State to manage modal open state and the selected item
+  const endPoint = "http://localhost:5000/api/cart";
 
   // Memoized fetch function
   const fetchCartItems = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/cart", {
+      const response = await axios.get(endPoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // Transform the API response to match our cartItems format.
@@ -46,9 +48,19 @@ const CartPage = () => {
   }, [fetchCartItems]);
 
   // Memoized handler for removing an item
-  const handleRemove = useCallback((id) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
-  }, []);
+  const handleRemove = useCallback(async (id) => {
+    try {
+      console.log("Deleting item with id:", id);
+      const response = await axios.delete(endPoint, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { itemId: id }
+      });
+      console.log(response);
+      setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [token]);
 
   // Memoized handler for changing item quantity
   const handleQuantityChange = useCallback((id, newQuantity) => {
@@ -78,21 +90,21 @@ const CartPage = () => {
               <div key={item.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex gap-6">
                   <div className="relative flex-shrink-0">
-                    <img 
-                      src={item.image} 
+                    <img
+                      src={item.image}
                       alt={item.title}
                       className="w-32 h-32 object-cover rounded-lg"
                     />
                   </div>
-                  
+
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
                         <p className="text-gray-600 text-sm mb-4">{item.description}</p>
                       </div>
-                      <button 
-                        onClick={() => handleRemove(item.id)}
+                      <button
+                        onClick={() => setItemToDelete(item.id)}  // Open confirmation modal
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <XCircle className="w-6 h-6" />
@@ -194,10 +206,10 @@ const CartPage = () => {
                 Secure Checkout
               </button>
               <div className="mt-6 flex items-center gap-2 text-sm text-gray-600">
-                <img 
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTjEGue1MO1jcmnO0FX4VrWRm2Ho2LwGHgpQ&s" 
-                  className="w-5 h-5" 
-                  alt="USDA Organic" 
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTjEGue1MO1jcmnO0FX4VrWRm2Ho2LwGHgpQ&s"
+                  className="w-5 h-5"
+                  alt="USDA Organic"
                 />
                 <span>Certified Organic Operations</span>
               </div>
@@ -215,6 +227,37 @@ const CartPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+        >
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm mx-auto">
+            <h2 className="text-lg font-semibold text-gray-900">Confirm Deletion</h2>
+            <p className="mt-2 text-gray-600">Are you sure you want to delete this item from your cart?</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setItemToDelete(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await handleRemove(itemToDelete);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
