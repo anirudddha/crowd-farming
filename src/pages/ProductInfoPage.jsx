@@ -10,6 +10,9 @@ const ProductPage = () => {
   const [product, setProduct] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [selectedWeight, setSelectedWeight] = useState(null);
+  const endPoint = "http://localhost:5000/api/cart";
+  const token = localStorage.getItem('token'); // adjust key if needed
+
 
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -55,6 +58,28 @@ const ProductPage = () => {
     setSuccessMsg('');
   };
 
+
+  const handleAddToCart = async () => {
+    try {
+      console.log(selectedWeight);
+      const response = await axios.post(
+        endPoint,
+        {
+          itemId: id, // Use proper case to match backend expectation
+          size: selectedWeight,
+          quantity: 1,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // console.log(response);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  
+
   // Handler for review submission
   const handleSubmitReview = async (e) => {
     e.preventDefault();
@@ -68,7 +93,6 @@ const ProductPage = () => {
     }
 
     // Get JWT token from localStorage
-    const token = localStorage.getItem('token'); // adjust key if needed
     if (!token) {
       setError('You must be logged in to submit a review.');
       return;
@@ -155,11 +179,10 @@ const ProductPage = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedMedia({ type: 'image', url: mediaUrl })}
-                    className={`w-20 h-20 rounded-xl overflow-hidden border-4 transition-all duration-300 ${
-                      selectedMedia && selectedMedia.url === mediaUrl
+                    className={`w-20 h-20 rounded-xl overflow-hidden border-4 transition-all duration-300 ${selectedMedia && selectedMedia.url === mediaUrl
                         ? 'border-green-500 scale-110 shadow-lg'
                         : 'border-white hover:border-green-200'
-                    }`}
+                      }`}
                   >
                     <img
                       src={mediaUrl}
@@ -186,6 +209,7 @@ const ProductPage = () => {
                         key={i}
                         className={`w-5 h-5 ${i < Math.round(product.rating) ? 'fill-current' : ''}`}
                       />
+
                     ))}
                 </div>
               </div>
@@ -214,11 +238,10 @@ const ProductPage = () => {
                     <button
                       key={idx}
                       onClick={() => setSelectedWeight(weight)}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all ${
-                        selectedWeight === weight
+                      className={`px-6 py-3 rounded-xl font-medium transition-all ${selectedWeight === weight
                           ? 'bg-green-600 text-white shadow-lg'
                           : 'bg-white text-gray-700 shadow-md hover:shadow-lg'
-                      }`}
+                        }`}
                     >
                       {weight} kg
                     </button>
@@ -242,7 +265,8 @@ const ProductPage = () => {
               </div>
             </div>
             {/* Add to Cart */}
-            <button className="w-full py-5 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3">
+            <button className="w-full py-5 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+              onClick={handleAddToCart}>
               <FiShoppingCart className="w-6 h-6" />
               Add to Cart
             </button>
