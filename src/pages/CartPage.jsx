@@ -14,11 +14,14 @@ const CartPage = () => {
       const response = await axios.get(endPoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      // console.log(response);
       // Transform the API response to match our cartItems format.
       const transformedItems = response.data.data.map(item => ({
         id: item._id,
         image: item.images[0], // Use the first image from the images array
         title: item.name,
+        size: item.size,
         description: `${item.farmName} - ${item.category}`,
         price: item.price,
         quantity: item.quantity,
@@ -27,6 +30,7 @@ const CartPage = () => {
       }));
       setCartItems(transformedItems);
       // Cache the fetched items in localStorage
+      // console.log(cartItems);
       localStorage.setItem('cachedCartItems', JSON.stringify(transformedItems));
     } catch (error) {
       console.error("Error fetching cart items", error);
@@ -63,10 +67,10 @@ const CartPage = () => {
   }, [token]);
 
   // Memoized handler for changing item quantity
-  const handleQuantityChange = useCallback((id, newQuantity) => {
+  const handleQuantityChange = useCallback((id, size,  newQuantity) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
-        item.id === id ? { ...item, quantity: Math.max(1, Number(newQuantity)) } : item
+        item.id === id && item.size===size? { ...item, quantity: Math.max(1, Number(newQuantity)) } : item
       )
     );
   }, []);
@@ -87,7 +91,7 @@ const CartPage = () => {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
             {cartItems.map(item => (
-              <div key={item.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+              <div key={item.id+item.size} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex gap-6">
                   <div className="relative flex-shrink-0">
                     <img
@@ -116,7 +120,7 @@ const CartPage = () => {
                         <div className="relative">
                           <select
                             value={item.quantity}
-                            onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                            onChange={(e) => handleQuantityChange(item.id, item.size, e.target.value)}
                             className="appearance-none border rounded-lg px-4 py-2 pr-8 text-sm bg-white focus:ring-2 focus:ring-emerald-500"
                           >
                             {[1, 2, 3, 4, 5].map(num => (
