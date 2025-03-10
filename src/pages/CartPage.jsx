@@ -5,7 +5,7 @@ import axios from 'axios';
 const CartPage = () => {
   const token = localStorage.getItem('token');
   const [cartItems, setCartItems] = useState([]);
-  const [itemToDelete, setItemToDelete] = useState(null); // State to manage modal open state and the selected item
+  const [itemToDelete, setItemToDelete] = useState(null);
   const endPoint = "http://localhost:5000/api/cart";
 
   // Memoized fetch function
@@ -15,7 +15,6 @@ const CartPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // console.log(response);
       // Transform the API response to match our cartItems format.
       const transformedItems = response.data.data.map(item => ({
         id: item._id,
@@ -30,7 +29,6 @@ const CartPage = () => {
       }));
       setCartItems(transformedItems);
       // Cache the fetched items in localStorage
-      // console.log(cartItems);
       localStorage.setItem('cachedCartItems', JSON.stringify(transformedItems));
     } catch (error) {
       console.error("Error fetching cart items", error);
@@ -66,11 +64,24 @@ const CartPage = () => {
     }
   }, [token]);
 
-  // Memoized handler for changing item quantity
-  const handleQuantityChange = useCallback((id, size,  newQuantity) => {
+  // Handler for decreasing item quantity
+  const handleDecrease = useCallback((id, size) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
-        item.id === id && item.size===size? { ...item, quantity: Math.max(1, Number(newQuantity)) } : item
+        item.id === id && item.size === size
+          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+          : item
+      )
+    );
+  }, []);
+
+  // Handler for increasing item quantity
+  const handleIncrease = useCallback((id, size) => {
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.id === id && item.size === size
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
       )
     );
   }, []);
@@ -91,7 +102,7 @@ const CartPage = () => {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
             {cartItems.map(item => (
-              <div key={item.id+item.size} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+              <div key={item.id + item.size} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
                 <div className="flex gap-6">
                   <div className="relative flex-shrink-0">
                     <img
@@ -117,17 +128,20 @@ const CartPage = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <select
-                            value={item.quantity}
-                            onChange={(e) => handleQuantityChange(item.id, item.size, e.target.value)}
-                            className="appearance-none border rounded-lg px-4 py-2 pr-8 text-sm bg-white focus:ring-2 focus:ring-emerald-500"
+                        <div className="flex items-center border rounded-lg">
+                          <button
+                            onClick={() => handleDecrease(item.id, item.size)}
+                            className="px-3 py-2 text-gray-600 hover:text-gray-800"
                           >
-                            {[1, 2, 3, 4, 5].map(num => (
-                              <option key={num} value={num}>{num}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="w-4 h-4 absolute right-3 top-3 text-gray-400 pointer-events-none" />
+                            -
+                          </button>
+                          <span className="px-3">{item.quantity}</span>
+                          <button
+                            onClick={() => handleIncrease(item.id, item.size)}
+                            className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                          >
+                            +
+                          </button>
                         </div>
                         <div className="text-sm text-gray-600">
                           ${item.price.toFixed(2)} / unit
@@ -261,7 +275,6 @@ const CartPage = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
