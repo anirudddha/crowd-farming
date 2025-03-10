@@ -65,25 +65,55 @@ const CartPage = () => {
   }, [token]);
 
   // Handler for decreasing item quantity
-  const handleDecrease = useCallback((id, size) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id && item.size === size
-          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
-          : item
-      )
-    );
+  const handleDecrease = useCallback(async (id, size, quantity) => {
+    try {
+      setCartItems(prevItems =>
+        prevItems.map(item =>
+          item.id === id && item.size === size
+            ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+            : item
+        )
+      );
+
+      console.log(id, size, quantity);
+      const response = await axios.put(endPoint, {
+        itemId: id,
+        size: size.toString(),
+        quantity: quantity - 1
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      console.log(response);
+    } catch (e) {
+      console.log(e);
+    }
   }, []);
 
   // Handler for increasing item quantity
-  const handleIncrease = useCallback((id, size) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id && item.size === size
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
-    );
+  const handleIncrease = useCallback(async (id, size, quantity) => {
+    try {
+      setCartItems(prevItems =>
+        prevItems.map(item =>
+          item.id === id && item.size === size
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+
+      console.log(id, size, quantity);
+      const response = await axios.put(endPoint, {
+        itemId: id,
+        size: size.toString(),
+        quantity: quantity + 1
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      console.log(response);
+    } catch (e) {
+      console.log(e);
+    }
   }, []);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -130,14 +160,14 @@ const CartPage = () => {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center border rounded-lg">
                           <button
-                            onClick={() => handleDecrease(item.id, item.size)}
+                            onClick={() => handleDecrease(item.id, item.size, item.quantity)}
                             className="px-3 py-2 text-gray-600 hover:text-gray-800"
                           >
                             -
                           </button>
                           <span className="px-3">{item.quantity}</span>
                           <button
-                            onClick={() => handleIncrease(item.id, item.size)}
+                            onClick={() => handleIncrease(item.id, item.size, item.quantity)}
                             className="px-3 py-2 text-gray-600 hover:text-gray-800"
                           >
                             +
