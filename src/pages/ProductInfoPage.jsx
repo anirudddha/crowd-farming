@@ -61,19 +61,19 @@ const ProductPage = () => {
 
   const handleAddToCart = async () => {
     try {
-      console.log(selectedWeight);
+      console.log("selected weight = ",selectedWeight, typeof selectedWeight);
       const response = await axios.post(
         endPoint,
         {
           itemId: id, // Use proper case to match backend expectation
-          size: selectedWeight,
+          size: selectedWeight.toString(),
           quantity: 1,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}`},
         }
       );
-      // console.log(response);
+      console.log(response);
     } catch (e) {
       console.log(e);
     }
