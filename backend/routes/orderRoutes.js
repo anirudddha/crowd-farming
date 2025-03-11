@@ -3,9 +3,10 @@ const UserOrders = require("../models/Orders");
 const auth = require("../middleware/userAuth");
 
 const orderRouter = new Router();
+orderRouter.use(auth);
 
 // POST /orders - Create a new order for a user or add an order to an existing user document
-orderRouter.post('', auth, async (req, res) => {
+orderRouter.post('', async (req, res) => {
     try {
         // Expect req.body to include an `order` object with order details
         const { order } = req.body;
@@ -47,7 +48,7 @@ orderRouter.post('', auth, async (req, res) => {
 
 
 // GET /orders/:userId - Retrieve all orders for a specific user
-orderRouter.get('',auth, async (req, res) => {
+orderRouter.get('', async (req, res) => {
     try {
         const  userId  = req.user;
 
