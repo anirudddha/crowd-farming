@@ -4,23 +4,50 @@ import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+const endPoint = "http://localhost:5000/api/cart";
 
 const StoreItemCard = ({ item }) => {
+  console.log(item);
+  const token = localStorage.getItem('token');
+
   const navigate = useNavigate();
   const [selectedWeight, setSelectedWeight] = useState(item.weights[0]);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const handleAddToCart = async (e) => {
-    e.stopPropagation(); // Prevent the card's onClick from firing
+  const handleAddToCart = async (id) => {
+    // e.stopPropagation(); // Prevent the card's onClick from firing
     setIsAddingToCart(true);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-    setIsAddingToCart(false);
+    // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+    try {
+      console.log("selected weight = ",selectedWeight, typeof selectedWeight);
+      const response = await axios.post(
+        endPoint,
+        {
+          itemId: id, // Use proper case to match backend expectation
+          size: selectedWeight.toString(),
+          quantity: 1,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}`},
+        }
+      );
+      // console.log(response);
+      // console.log(response);
+      toast.success("Item added to cart! 🛒");
+    } catch (e) {
+      console.log(e);
+      toast.error("Failed to add item. Try again."); 
+    }finally{
+      setIsAddingToCart(false);
+    }
   };
   const handleCardClick = () => {
     // Navigate to the details page with the product id
     navigate(`/shop/itemInfo/${item._id}`);
   };
-
+  
   const calculateDiscount = () => {
     if (!item.originalPrice) return 0;
     return Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
@@ -113,7 +140,10 @@ const StoreItemCard = ({ item }) => {
         {/* Add to Cart Button */}
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={handleAddToCart}
+          onClick={(e)=>{
+            e.stopPropagation();
+            handleAddToCart(item._id);
+          }}
           disabled={isAddingToCart}
           className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
         >
