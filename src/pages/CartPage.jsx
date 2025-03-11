@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ShieldCheck, Truck, Sprout, XCircle, Loader } from 'lucide-react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // Helper function to return a promise that resolves after a given time (ms)
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -12,6 +13,13 @@ const CartPage = () => {
   // Loading state for quantity update operations per item (key: id_size)
   const [loadingItems, setLoadingItems] = useState({});
   const endPoint = "http://localhost:5000/api/cart";
+
+  const Navigate = useNavigate();
+
+  // Secure Checkout handeling function
+  const hancleSecureCheckout = () => {
+    Navigate('checkOut');
+  }
 
   // Memoized fetch function
   const fetchCartItems = useCallback(async () => {
@@ -272,7 +280,7 @@ const CartPage = () => {
                   </div>
                 </div>
               </div>
-              <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+              <button onClick={hancleSecureCheckout} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                 <ShieldCheck className="w-5 h-5" />
                 Secure Checkout
               </button>
