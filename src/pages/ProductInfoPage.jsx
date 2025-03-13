@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { FiStar, FiShoppingCart, FiClock, FiPackage } from 'react-icons/fi';
+import { FiStar, FiShoppingCart, FiClock, FiPackage, FiX } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Loader from '../components/Loader';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProductPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [selectedWeight, setSelectedWeight] = useState(null);
-  const endPoint = "http://localhost:5000/api/cart";
   const token = localStorage.getItem('token'); // adjust key if needed
-
 
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -46,6 +46,7 @@ const ProductPage = () => {
         }
       } catch (error) {
         console.error('Error fetching product:', error);
+        toast.error('Error fetching product details.');
       }
     };
     fetchProduct();
@@ -58,27 +59,28 @@ const ProductPage = () => {
     setSuccessMsg('');
   };
 
-
+  // Handle Add to Cart
   const handleAddToCart = async () => {
     try {
-      console.log("selected weight = ",selectedWeight, typeof selectedWeight);
+      console.log("selected weight = ", selectedWeight, typeof selectedWeight);
       const response = await axios.post(
-        endPoint,
+        "http://localhost:5000/api/cart",
         {
           itemId: id, // Use proper case to match backend expectation
           size: selectedWeight.toString(),
           quantity: 1,
         },
         {
-          headers: { Authorization: `Bearer ${token}`},
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       console.log(response);
+      toast.success("Item added to cart!");
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      toast.error("Failed to add item to cart.");
     }
   };
-  
 
   // Handler for review submission
   const handleSubmitReview = async (e) => {
@@ -89,12 +91,14 @@ const ProductPage = () => {
     // Basic validation
     if (rating === 0 || comment.trim() === '') {
       setError('Please select a rating and add your comment.');
+      toast.error('Please select a rating and add your comment.');
       return;
     }
 
     // Get JWT token from localStorage
     if (!token) {
       setError('You must be logged in to submit a review.');
+      toast.error('You must be logged in to submit a review.');
       return;
     }
 
@@ -125,11 +129,13 @@ const ProductPage = () => {
       setRating(0);
       setComment('');
       setSuccessMsg('Review added successfully!');
+      toast.success('Review added successfully!');
       // Optionally close the form
       setShowReviewForm(false);
     } catch (err) {
       console.error('Error adding review:', err);
       setError('Failed to add review. Please try again.');
+      toast.error('Failed to add review. Please try again.');
     }
   };
 
@@ -209,7 +215,6 @@ const ProductPage = () => {
                         key={i}
                         className={`w-5 h-5 ${i < Math.round(product.rating) ? 'fill-current' : ''}`}
                       />
-
                     ))}
                 </div>
               </div>
@@ -265,8 +270,10 @@ const ProductPage = () => {
               </div>
             </div>
             {/* Add to Cart */}
-            <button className="w-full py-5 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
-              onClick={handleAddToCart}>
+            <button 
+              className="w-full py-5 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+              onClick={handleAddToCart}
+            >
               <FiShoppingCart className="w-6 h-6" />
               Add to Cart
             </button>
@@ -400,6 +407,8 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
+      {/* Toast Container to show notifications */}
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
     </div>
   );
 };
