@@ -105,10 +105,44 @@ cartRouter.post("", async (req, res) => {
   }
 });
 
+cartRouter.put("", async(req, res)=>{
+  try{
+    const userId = req.user;
+
+    const {itemId, size, quantity} = req.body;
+
+    let cart = await Cart.findOne({userId});
+
+    console.log(itemId);
+    console.log(size);
+    console.log(quantity);
+    console.log(cart);
+
+    const existingItemIndex = cart.items?.findIndex(
+      (cartItem) => (cartItem.itemId.toString()===itemId && cartItem.size===size)
+    );
+
+    console.log(cart.items[existingItemIndex]);
+    cart.items[existingItemIndex].quantity=quantity;
+
+    await cart.save();
+
+    return res.status(200).json({message:"Quantity changed succesfully"});
+
+  }catch(e){
+    console.log(e);
+    res.status(400).json({error:e});
+  }
+})
+
 cartRouter.delete("", async(req, res) =>{
   try{
-    const {itemId, userId} = req.body;
+    console.log(req.body);
+    const {itemId} = req.body;
+    const userId = req.user;
 
+    console.log(itemId);
+    console.log(userId);
     await Cart.updateOne(
       {userId},
       {$pull:{items:{itemId}}}
@@ -116,6 +150,7 @@ cartRouter.delete("", async(req, res) =>{
     res.status(200).json({message:"Item deleted from cart successfully"});
   }catch(e){
     console.log(e);
+    res.status(400).json({message:"Failed to delete item", error:e});
   }
 })
 

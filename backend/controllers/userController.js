@@ -42,23 +42,22 @@ exports.updateName = async (req, res) =>{
     // res.json(error);
   }
 };
-exports.updateAddress = async (req, res) =>{
-  const { address, _id } = req.body;
-  // res.json(req.body);
+exports.updateAddress = async (req, res) => {
+  const { addresses, _id } = req.body; // Expecting addresses to be an array of address objects
   try {
-    // console.log(name,_id);
     const updatedUser = await User.findByIdAndUpdate(
-      {_id:_id}, // User ID to find the user
-      {address}, // Only update the 'name' field
-      { new: true } // Return the updated user object
+      _id,                // User ID
+      { addresses },      // Update the addresses field
+      { new: true }       // Return the updated user document
     );
     
     res.json(updatedUser);
   } catch (error) {
-    res.status(500).send('Error updating profile');
-    // res.json(error);
+    console.error('Error updating addresses:', error);
+    res.status(500).send('Error updating addresses');
   }
 };
+
 
 exports.campaignRequestSave = async (req, res) => {
   const { userId,email } = req.body; // Fix destructuring
@@ -87,5 +86,50 @@ exports.campaignRequestSave = async (req, res) => {
   } catch (error) {
     // Return an error response
     res.status(500).json({ message: 'Failed to save request', error });
+  }
+};
+
+
+exports.deleteAddress = async (req, res) => {
+  const { userId, addressId } = req.body;
+  
+  try {
+    // Use the $pull operator to remove the address subdocument that matches addressId
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { addresses: { _id: addressId } } },
+      { new: true }
+    );
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error deleting address:", error);
+    res.status(500).json({ message: 'Error deleting address' });
+  }
+};
+
+exports.editPhone = async (req, res) => {
+  const { phone, _id } = req.body;
+  if (!phone || !_id) {
+    return res.status(400).json({ message: 'Phone number and user ID are required.' });
+  }
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+
+      {_id:_id}, // User ID to find the user
+      {phone}, // Only update the 'phone' field
+      { new: true } // Return the updated user object
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating phone number:", error);
+    res.status(500).json({ message: 'Error updating phone number.' });
   }
 };

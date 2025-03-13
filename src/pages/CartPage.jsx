@@ -1,22 +1,29 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ShieldCheck, Truck, Sprout, XCircle, ChevronDown } from 'lucide-react';
+import { ShieldCheck, Truck, Sprout, XCircle, Loader } from 'lucide-react';
 import axios from 'axios';
+
+// Helper function to return a promise that resolves after a given time (ms)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const CartPage = () => {
   const token = localStorage.getItem('token');
   const [cartItems, setCartItems] = useState([]);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  // Loading state for quantity update operations per item (key: id_size)
+  const [loadingItems, setLoadingItems] = useState({});
+  const endPoint = "http://localhost:5000/api/cart";
 
   // Memoized fetch function
   const fetchCartItems = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/cart", {
+      const response = await axios.get(endPoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Transform the API response to match our cartItems format.
       const transformedItems = response.data.data.map(item => ({
         id: item._id,
-        image: item.images[0], // Use the first image from the images array
+        image: item.images[0],
         title: item.name,
+        size: item.size,
         description: `${item.farmName} - ${item.category}`,
         price: item.price,
         quantity: item.quantity,
@@ -24,11 +31,9 @@ const CartPage = () => {
         harvestDate: "",
       }));
       setCartItems(transformedItems);
-      // Cache the fetched items in localStorage
       localStorage.setItem('cachedCartItems', JSON.stringify(transformedItems));
     } catch (error) {
       console.error("Error fetching cart items", error);
-      // If there's an error, fallback to cached data if available
       const cached = localStorage.getItem('cachedCartItems');
       if (cached) {
         setCartItems(JSON.parse(cached));
@@ -37,7 +42,6 @@ const CartPage = () => {
   }, [token]);
 
   useEffect(() => {
-    // If cached items exist, set them first before fetching new data.
     const cached = localStorage.getItem('cachedCartItems');
     if (cached) {
       setCartItems(JSON.parse(cached));
@@ -45,19 +49,86 @@ const CartPage = () => {
     fetchCartItems();
   }, [fetchCartItems]);
 
-  // Memoized handler for removing an item
-  const handleRemove = useCallback((id) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
-  }, []);
+  // Handler for removing an item
+  const handleRemove = useCallback(async (id) => {
+    try {
+      console.log("Deleting item with id:", id);
+      const response = await axios.delete(endPoint, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { itemId: id }
+      });
+      console.log(response);
+      setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [token]);
 
-  // Memoized handler for changing item quantity
-  const handleQuantityChange = useCallback((id, newQuantity) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, quantity: Math.max(1, Number(newQuantity)) } : item
-      )
-    );
-  }, []);
+  // Handler for decreasing item quantity with loader that lasts at least 1 sec
+  const handleDecrease = useCallback(async (id, size, quantity) => {
+    const key = `${id}_${size}`;
+    try {
+      // Set loading for this item
+      setLoadingItems(prev => ({ ...prev, [key]: true }));
+      
+      // Optimistically update UI
+      setCartItems(prevItems =>
+        prevItems.map(item =>
+          item.id === id && item.size === size
+            ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+            : item
+        )
+      );
+
+      // Wait for both axios call and a minimum delay of 1 sec
+      await Promise.all([
+        axios.put(endPoint, {
+          itemId: id,
+          size: size.toString(),
+          quantity: quantity - 1
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        delay(400)
+      ]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      // Clear loading state for this item
+      setLoadingItems(prev => ({ ...prev, [key]: false }));
+    }
+  }, [token]);
+
+  // Handler for increasing item quantity with loader that lasts at least 1 sec
+  const handleIncrease = useCallback(async (id, size, quantity) => {
+    const key = `${id}_${size}`;
+    try {
+      setLoadingItems(prev => ({ ...prev, [key]: true }));
+      
+      setCartItems(prevItems =>
+        prevItems.map(item =>
+          item.id === id && item.size === size
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+
+      await Promise.all([
+        axios.put(endPoint, {
+          itemId: id,
+          size: size.toString(),
+          quantity: quantity + 1
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        delay(400)
+      ]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingItems(prev => ({ ...prev, [key]: false }));
+    }
+  }, [token]);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = subtotal > 75 ? 0 : 7.50;
@@ -74,57 +145,69 @@ const CartPage = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
-            {cartItems.map(item => (
-              <div key={item.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                <div className="flex gap-6">
-                  <div className="relative flex-shrink-0">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-32 h-32 object-cover rounded-lg"
-                    />
-                  </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
-                        <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-                      </div>
-                      <button 
-                        onClick={() => handleRemove(item.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <XCircle className="w-6 h-6" />
-                      </button>
+            {cartItems.map(item => {
+              const key = `${item.id}_${item.size}`;
+              return (
+                <div key={key} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                  <div className="flex gap-6">
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-32 h-32 object-cover rounded-lg"
+                      />
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <select
-                            value={item.quantity}
-                            onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                            className="appearance-none border rounded-lg px-4 py-2 pr-8 text-sm bg-white focus:ring-2 focus:ring-emerald-500"
-                          >
-                            {[1, 2, 3, 4, 5].map(num => (
-                              <option key={num} value={num}>{num}</option>
-                            ))}
-                          </select>
-                          <ChevronDown className="w-4 h-4 absolute right-3 top-3 text-gray-400 pointer-events-none" />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
+                          <p className="text-gray-600 text-sm mb-4">{item.description}</p>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          ${item.price.toFixed(2)} / unit
-                        </div>
+                        <button
+                          onClick={() => setItemToDelete(item.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <XCircle className="w-6 h-6" />
+                        </button>
                       </div>
-                      <span className="text-lg font-medium text-emerald-600">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </span>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          {loadingItems[key] ? (
+                            <div className="flex items-center justify-center border rounded-lg w-20 h-10">
+                              <Loader className="animate-spin w-5 h-5 text-gray-600" />
+                            </div>
+                          ) : (
+                            <div className="flex items-center border rounded-lg">
+                              <button
+                                onClick={() => handleDecrease(item.id, item.size, item.quantity)}
+                                className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                              >
+                                -
+                              </button>
+                              <span className="px-3">{item.quantity}</span>
+                              <button
+                                onClick={() => handleIncrease(item.id, item.size, item.quantity)}
+                                className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                          <div className="text-sm text-gray-600">
+                            ${item.price.toFixed(2)} / unit
+                          </div>
+                        </div>
+                        <span className="text-lg font-medium text-emerald-600">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Trust Badges */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -194,10 +277,10 @@ const CartPage = () => {
                 Secure Checkout
               </button>
               <div className="mt-6 flex items-center gap-2 text-sm text-gray-600">
-                <img 
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTjEGue1MO1jcmnO0FX4VrWRm2Ho2LwGHgpQ&s" 
-                  className="w-5 h-5" 
-                  alt="USDA Organic" 
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTjEGue1MO1jcmnO0FX4VrWRm2Ho2LwGHgpQ&s"
+                  className="w-5 h-5"
+                  alt="USDA Organic"
                 />
                 <span>Certified Organic Operations</span>
               </div>
@@ -215,6 +298,36 @@ const CartPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+        >
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm mx-auto">
+            <h2 className="text-lg font-semibold text-gray-900">Confirm Deletion</h2>
+            <p className="mt-2 text-gray-600">Are you sure you want to delete this item from your cart?</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setItemToDelete(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await handleRemove(itemToDelete);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
