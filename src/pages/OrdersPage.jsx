@@ -7,19 +7,19 @@ const endPoint = "http://localhost:5000/"
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  
+
 
   const fetchSelectedItem = async (order) => {
     let items = order.items;
     // console.log(items);
-  
+
     // Fetch item details asynchronously and update the state
     const updatedItems = await Promise.all(
       items.map(async (item) => {
         try {
           const response = await axios.get(`${endPoint}api/items/${item.itemId}`);
           // console.log(response);
-  
+
           return {
             ...item,
             image: response.data[0].images[0], // Adding image to the item
@@ -30,7 +30,7 @@ const OrdersPage = () => {
         }
       })
     );
-  
+
     // Update state with items that include images
     setSelectedOrder({ ...order, items: updatedItems });
   };
@@ -102,13 +102,13 @@ const OrdersPage = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       {/* <FiUser className="mr-2 text-gray-500" /> */}
-                      <Calendar className='mr-2 text-gray-500 p-[3.5px]'/>
-                      {order.updatedAt.slice(0,10) || 'N/A'}
+                      <Calendar className='mr-2 text-gray-500 p-[3.5px]' />
+                      {order.updatedAt.slice(0, 10) || 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <FiPackage className="mr-2 text-gray-500"/>
+                      <FiPackage className="mr-2 text-gray-500" />
                       {order.items.length} items
                     </div>
                   </td>
@@ -131,8 +131,8 @@ const OrdersPage = () => {
 
         {/* Order Detail Modal */}
         {selectedOrder && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden">
+          <div className="fixed inset-0 bg-opacity-100 flex items-center justify-center p-4 z-50" style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full mx-4 overflow-y-auto max-h-[90vh]" >
               {/* Modal Header */}
               <div className="flex justify-between items-center p-6 border-b">
                 <div>
@@ -224,7 +224,7 @@ const OrdersPage = () => {
                             </p>
                             <div className="flex justify-between items-center mt-2">
                               <span className="text-sm">₹{item.price}/unit</span>
-                              <span className="font-medium">₹{(item.price*item.quantity).toFixed(2)}</span>
+                              <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
