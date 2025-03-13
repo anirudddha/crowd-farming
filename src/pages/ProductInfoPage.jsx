@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FiStar, FiShoppingCart, FiClock, FiPackage, FiX } from 'react-icons/fi';
+import { FiStar, FiShoppingCart, FiClock, FiPackage } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -11,7 +11,7 @@ const ProductPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null);
-  const [selectedWeight, setSelectedWeight] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const token = localStorage.getItem('token'); // adjust key if needed
 
   // Review form state
@@ -29,6 +29,7 @@ const ProductPage = () => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/items/${id}`);
+        console.log(response);
         const fetchedProduct = Array.isArray(response.data)
           ? response.data[0]
           : response.data;
@@ -38,11 +39,11 @@ const ProductPage = () => {
             type: 'image',
             url: fetchedProduct.images && fetchedProduct.images[0] ? fetchedProduct.images[0] : ''
           });
-          setSelectedWeight(
-            fetchedProduct.weights && fetchedProduct.weights.length > 0
-              ? fetchedProduct.weights[0]
-              : null
-          );
+          // Use variants instead of weights; select the first available variant
+          if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
+            const availableVariant = fetchedProduct.variants.find(variant => variant.available);
+            setSelectedVariant(availableVariant || fetchedProduct.variants[0]);
+          }
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -62,12 +63,12 @@ const ProductPage = () => {
   // Handle Add to Cart
   const handleAddToCart = async () => {
     try {
-      console.log("selected weight = ", selectedWeight, typeof selectedWeight);
+      console.log("selected variant = ", selectedVariant, typeof selectedVariant);
       const response = await axios.post(
         "http://localhost:5000/api/cart",
         {
           itemId: id, // Use proper case to match backend expectation
-          size: selectedWeight.toString(),
+          size: selectedVariant ? selectedVariant.size : '',
           quantity: 1,
         },
         {
@@ -227,32 +228,37 @@ const ProductPage = () => {
             </div>
             {/* Pricing */}
             <div className="flex items-baseline gap-4">
-              <span className="text-4xl font-bold text-green-700">${product.price}</span>
+              <span className="text-4xl font-bold text-green-700">
+                ${selectedVariant ? selectedVariant.price : product.price}
+              </span>
               {product.originalPrice && (
                 <span className="text-xl text-gray-400 line-through">
                   ${product.originalPrice}
                 </span>
               )}
             </div>
-            {/* Weight Selector */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Package Size</h3>
-              <div className="flex flex-wrap gap-3">
-                {product.weights &&
-                  product.weights.map((weight, idx) => (
+            {/* Package Size Selector */}
+            {product.variants && product.variants.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Package Size</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.variants.map((variant, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setSelectedWeight(weight)}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all ${selectedWeight === weight
+                      onClick={() => setSelectedVariant(variant)}
+                      disabled={!variant.available}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                        selectedVariant && selectedVariant.size === variant.size
                           ? 'bg-green-600 text-white shadow-lg'
                           : 'bg-white text-gray-700 shadow-md hover:shadow-lg'
-                        }`}
+                      } ${!variant.available && 'opacity-50 cursor-not-allowed'}`}
                     >
-                      {weight} kg
+                      {variant.size}
                     </button>
                   ))}
+                </div>
               </div>
-            </div>
+            )}
             {/* Specifications Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 bg-white rounded-xl shadow-sm border border-green-50">
