@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
   TruckIcon,
   ShieldCheckIcon,
@@ -10,6 +11,7 @@ import {
   PencilSquareIcon,
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
+import toast, { Toaster } from 'react-hot-toast';
 
 const defaultAddressForm = {
   street: '',
@@ -22,6 +24,7 @@ const defaultAddressForm = {
 };
 
 const CheckoutPage = () => {
+  const navigate = useNavigate();
   // --- Cart Items State & Fetching ---
   const [cartItems, setCartItems] = useState([]);
   const token = localStorage.getItem('token');
@@ -55,7 +58,7 @@ const CheckoutPage = () => {
   }, [fetchCartItems]);
 
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 5.99; // You can change this logic as needed
+  const shipping = 5.99;
   const taxes = parseFloat((total * 0.075).toFixed(2));
 
   // --- Profile & Address State & Fetching ---
@@ -101,28 +104,27 @@ const CheckoutPage = () => {
 
   const handleAddressSave = useCallback(async () => {
     if (!validateForm()) return;
-
     try {
       const updatedAddresses = [...(profileData.addresses || [])];
       const isNewAddress = editingAddressIndex === -1;
-
       if (isNewAddress) {
         updatedAddresses.push(addressForm);
       } else {
         updatedAddresses[editingAddressIndex] = addressForm;
       }
-
-      await axios.put('http://localhost:5000/api/editAddress', {
-        addresses: updatedAddresses,
-        _id: profileData._id
-      }, { headers: { Authorization: `Bearer ${token}` } });
-
+      await axios.put(
+        'http://localhost:5000/api/editAddress',
+        { addresses: updatedAddresses, _id: profileData._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setProfileData(prev => ({ ...prev, addresses: updatedAddresses }));
       if (isNewAddress) setSelectedAddressIndex(updatedAddresses.length - 1);
       setIsEditingAddress(false);
       setAddressForm(defaultAddressForm);
+      toast.success('Address saved successfully!');
     } catch (error) {
       console.error('Error saving address:', error);
+      toast.error('Failed to save address.');
     }
   }, [addressForm, editingAddressIndex, profileData, token]);
 
@@ -141,8 +143,68 @@ const CheckoutPage = () => {
   // --- Payment Options State ---
   const [paymentOption, setPaymentOption] = useState('COD');
 
+  // --- Order Posting State & Handler ---
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+
+  const handleConfirmOrder = async () => {
+    // Validate that we have cart items and a shipping address selected
+    if (cartItems.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+    if (selectedAddressIndex === null) {
+      toast.error("Please select a shipping address.");
+      return;
+    }
+    // Build the order object
+    const order = {
+      items: cartItems.map(item => ({
+        itemId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        // weight can be provided if available; here we assume a placeholder value
+        weight: 1
+      })),
+      totalPrice: total + shipping + taxes,
+      shippingAddress: profileData.addresses[selectedAddressIndex],
+      paymentMethod: paymentOption,
+      // Payment status remains "Pending" until processed
+      paymentStatus: "Pending"
+    };
+
+    try {
+      setIsPlacingOrder(true);
+      const response = await axios.post(
+        'http://localhost:5000/api/orders',
+        { order },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Order placed successfully!");
+      console.log(response.data);
+      // Remove all items from the cart backend using the DELETE endpoint for each item
+      await Promise.all(
+        cartItems.map(item =>
+          axios.delete(cartEndpoint, {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { itemId: item.id }
+          })
+        )
+      );
+      // Clear the cart state
+      setCartItems([]);
+      // Redirect to the orders page
+      navigate('/shop/orders');
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast.error("Failed to place order. Please try again.");
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-10">
@@ -175,7 +237,10 @@ const CheckoutPage = () => {
               {cartItems.length > 0 ? (
                 <div className="space-y-4">
                   {cartItems.map((item) => (
-                    <div key={`${item.id}_${item.size}`} className="group flex items-start p-4 border border-gray-100 rounded-xl hover:border-emerald-100 transition-colors">
+                    <div
+                      key={`${item.id}_${item.size}`}
+                      className="group flex items-start p-4 border border-gray-100 rounded-xl hover:border-emerald-100 transition-colors"
+                    >
                       <img
                         src={item.image}
                         alt={item.title}
@@ -328,9 +393,20 @@ const CheckoutPage = () => {
                 </div>
               </div>
 
-              <button className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2">
-                <ShieldCheckIcon className="h-5 w-5" />
-                <span>Confirm Order</span>
+              <button
+                onClick={handleConfirmOrder}
+                disabled={isPlacingOrder}
+                className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2"
+              >
+                {isPlacingOrder ? (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                ) : (
+                  <ShieldCheckIcon className="h-5 w-5" />
+                )}
+                <span>{isPlacingOrder ? 'Placing Order...' : 'Confirm Order'}</span>
               </button>
 
               <div className="mt-6 text-center">
@@ -372,8 +448,7 @@ const CheckoutPage = () => {
                 <input
                   value={addressForm.street}
                   onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg ${formErrors.street ? 'border-red-300' : 'border-gray-300'
-                    } focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500`}
+                  className={`w-full px-3 py-2 border rounded-lg ${formErrors.street ? 'border-red-300' : 'border-gray-300'} focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500`}
                 />
               </div>
 
@@ -388,8 +463,7 @@ const CheckoutPage = () => {
                   <input
                     value={addressForm.city}
                     onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.city ? 'border-red-300' : 'border-gray-300'
-                      } focus:ring-2 focus:ring-emerald-500`}
+                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.city ? 'border-red-300' : 'border-gray-300'} focus:ring-2 focus:ring-emerald-500`}
                   />
                 </div>
                 <div>
@@ -402,8 +476,7 @@ const CheckoutPage = () => {
                   <input
                     value={addressForm.state}
                     onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.state ? 'border-red-300' : 'border-gray-300'
-                      } focus:ring-2 focus:ring-emerald-500`}
+                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.state ? 'border-red-300' : 'border-gray-300'} focus:ring-2 focus:ring-emerald-500`}
                   />
                 </div>
               </div>
@@ -419,8 +492,7 @@ const CheckoutPage = () => {
                   <input
                     value={addressForm.zipcode}
                     onChange={(e) => setAddressForm({ ...addressForm, zipcode: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.zipcode ? 'border-red-300' : 'border-gray-300'
-                      } focus:ring-2 focus:ring-emerald-500`}
+                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.zipcode ? 'border-red-300' : 'border-gray-300'} focus:ring-2 focus:ring-emerald-500`}
                   />
                 </div>
                 <div>
@@ -433,8 +505,7 @@ const CheckoutPage = () => {
                   <input
                     value={addressForm.country}
                     onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.country ? 'border-red-300' : 'border-gray-300'
-                      } focus:ring-2 focus:ring-emerald-500`}
+                    className={`w-full px-3 py-2 border rounded-lg ${formErrors.country ? 'border-red-300' : 'border-gray-300'} focus:ring-2 focus:ring-emerald-500`}
                   />
                 </div>
               </div>
@@ -449,8 +520,7 @@ const CheckoutPage = () => {
                 <input
                   value={addressForm.phone}
                   onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg ${formErrors.phone ? 'border-red-300' : 'border-gray-300'
-                    } focus:ring-2 focus:ring-emerald-500`}
+                  className={`w-full px-3 py-2 border rounded-lg ${formErrors.phone ? 'border-red-300' : 'border-gray-300'} focus:ring-2 focus:ring-emerald-500`}
                   placeholder="10-digit number"
                 />
               </div>
@@ -483,7 +553,8 @@ const CheckoutPage = () => {
               </div>
             </div>
           </div>
-        </div>
+        
+      </div>
       )}
     </div>
   );
