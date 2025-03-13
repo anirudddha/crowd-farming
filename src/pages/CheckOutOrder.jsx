@@ -21,43 +21,46 @@ const defaultAddressForm = {
   landmark: ''
 };
 
-const CheckOutOrder = () => {
-  // --- Cart Items & Calculation ---
-  const cartItems = [
-    {
-      id: 1,
-      name: 'Organic Heirloom Tomatoes',
-      image: 'https://images.unsplash.com/photo-1518977822534-7049a61ee0c2',
-      desc: 'Fresh-picked chemical-free tomatoes',
-      price: 4.99,
-      quantity: 2,
-      unit: 'per lb'
-    },
-    {
-      id: 2,
-      name: 'Farm Fresh Eggs',
-      image: 'https://images.unsplash.com/photo-1582722872447-31389dc4a4a6',
-      desc: 'Free-range chicken eggs',
-      price: 6.99,
-      quantity: 1,
-      unit: 'dozen'
+const CheckoutPage = () => {
+  // --- Cart Items State & Fetching ---
+  const [cartItems, setCartItems] = useState([]);
+  const token = localStorage.getItem('token');
+  const cartEndpoint = "http://localhost:5000/api/cart";
+
+  const fetchCartItems = useCallback(async () => {
+    try {
+      const response = await axios.get(cartEndpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Transform the fetched data to match our UI
+      const transformedItems = response.data.data.map(item => ({
+        id: item._id,
+        title: item.name,
+        size: item.size,
+        description: `${item.farmName} - ${item.category}`,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.images[0],
+        origin: item.origin || "",
+        harvestDate: item.harvestDate || ""
+      }));
+      setCartItems(transformedItems);
+    } catch (error) {
+      console.error("Error fetching cart items", error);
     }
-  ];
+  }, [token]);
+
+  useEffect(() => {
+    fetchCartItems();
+  }, [fetchCartItems]);
 
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 5.99;
-  const taxes = (total * 0.075).toFixed(2);
+  const shipping = 5.99; // You can change this logic as needed
+  const taxes = parseFloat((total * 0.075).toFixed(2));
 
-  // --- Profile & Addresses State ---
+  // --- Profile & Address State & Fetching ---
   const [profileData, setProfileData] = useState({ addresses: [] });
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(null);
-  const token = localStorage.getItem('token');
-
-  const handleAddNewAddress = () => {
-    setEditingAddressIndex(-1);
-    setAddressForm(defaultAddressForm);
-    setIsEditingAddress(true);
-  };
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -73,7 +76,9 @@ const CheckOutOrder = () => {
     }
   }, [token]);
 
-  useEffect(() => { fetchProfile(); }, [fetchProfile]);
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   // --- Address Modal & Form State ---
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -121,12 +126,25 @@ const CheckOutOrder = () => {
     }
   }, [addressForm, editingAddressIndex, profileData, token]);
 
+  const handleAddNewAddress = () => {
+    setEditingAddressIndex(-1);
+    setAddressForm(defaultAddressForm);
+    setIsEditingAddress(true);
+  };
+
+  const handleEditExistingAddress = (index) => {
+    setEditingAddressIndex(index);
+    setAddressForm(profileData.addresses[index]);
+    setIsEditingAddress(true);
+  };
+
   // --- Payment Options State ---
   const [paymentOption, setPaymentOption] = useState('COD');
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-3">
             <ShoppingCartIcon className="h-8 w-8 text-emerald-600" />
@@ -151,38 +169,42 @@ const CheckOutOrder = () => {
         <div className="lg:grid lg:grid-cols-3 lg:gap-8">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Cart Items */}
+            {/* Order Items */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Items</h2>
-              <div className="space-y-4">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="group flex items-start p-4 border border-gray-100 rounded-xl hover:border-emerald-100 transition-colors">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-20 h-20 object-cover rounded-lg shadow-sm"
-                    />
-                    <div className="ml-4 flex-1 grid grid-cols-3 gap-4">
-                      <div className="col-span-2">
-                        <h3 className="font-medium text-gray-900">{item.name}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
-                        <div className="mt-2 flex items-center space-x-3 text-sm text-gray-500">
-                          <span className="bg-gray-50 px-2 py-1 rounded-md">Qty: {item.quantity}</span>
-                          {item.unit && <span className="bg-gray-50 px-2 py-1 rounded-md">{item.unit}</span>}
+              {cartItems.length > 0 ? (
+                <div className="space-y-4">
+                  {cartItems.map((item) => (
+                    <div key={`${item.id}_${item.size}`} className="group flex items-start p-4 border border-gray-100 rounded-xl hover:border-emerald-100 transition-colors">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-20 h-20 object-cover rounded-lg shadow-sm"
+                      />
+                      <div className="ml-4 flex-1 grid grid-cols-3 gap-4">
+                        <div className="col-span-2">
+                          <h3 className="font-medium text-gray-900">{item.title}</h3>
+                          <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                          <div className="mt-2 flex items-center space-x-3 text-sm text-gray-500">
+                            <span className="bg-gray-50 px-2 py-1 rounded-md">Qty: {item.quantity}</span>
+                            <span className="bg-gray-50 px-2 py-1 rounded-md">Size: {item.size}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-medium text-emerald-600">
+                            ${(item.price * item.quantity).toFixed(2)}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            ${item.price.toFixed(2)} each
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-medium text-emerald-600">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          ${item.price.toFixed(2)} each
-                        </p>
-                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center">Loading order items...</p>
+              )}
             </div>
 
             {/* Delivery Information */}
@@ -281,7 +303,7 @@ const CheckOutOrder = () => {
             </div>
           </div>
 
-          {/* Right Column */}
+          {/* Right Column – Order Summary */}
           <div className="mt-8 lg:mt-0 lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-25">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
@@ -296,12 +318,12 @@ const CheckOutOrder = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Taxes</span>
-                  <span className="text-gray-900">${taxes}</span>
+                  <span className="text-gray-900">${taxes.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-gray-200 pt-4 flex justify-between">
                   <span className="font-semibold text-gray-900">Total</span>
                   <span className="font-semibold text-emerald-600">
-                    ${(total + shipping + parseFloat(taxes)).toFixed(2)}
+                    ${(total + shipping + taxes).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -467,4 +489,4 @@ const CheckOutOrder = () => {
   );
 };
 
-export default CheckOutOrder;
+export default CheckoutPage;
