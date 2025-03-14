@@ -187,8 +187,8 @@ const ProductPage = () => {
                     key={index}
                     onClick={() => setSelectedMedia({ type: 'image', url: mediaUrl })}
                     className={`w-20 h-20 rounded-xl overflow-hidden border-4 transition-all duration-300 ${selectedMedia && selectedMedia.url === mediaUrl
-                        ? 'border-green-500 scale-110 shadow-lg'
-                        : 'border-white hover:border-green-200'
+                      ? 'border-green-500 scale-110 shadow-lg'
+                      : 'border-white hover:border-green-200'
                       }`}
                   >
                     <img
@@ -229,11 +229,11 @@ const ProductPage = () => {
             {/* Pricing */}
             <div className="flex items-baseline gap-4">
               <span className="text-4xl font-bold text-green-700">
-                ${selectedVariant ? selectedVariant.price : product.price}
+                ₹{selectedVariant ? selectedVariant.price : product.price}
               </span>
               {product.originalPrice && (
                 <span className="text-xl text-gray-400 line-through">
-                  ${selectedVariant.originalPrice}
+                  ₹{selectedVariant.originalPrice}
                 </span>
               )}
             </div>
@@ -247,11 +247,10 @@ const ProductPage = () => {
                       key={idx}
                       onClick={() => setSelectedVariant(variant)}
                       disabled={!variant.available}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all ${
-                        selectedVariant && selectedVariant.size === variant.size
+                      className={`px-6 py-3 rounded-xl font-medium transition-all ${selectedVariant && selectedVariant.size === variant.size
                           ? 'bg-green-600 text-white shadow-lg'
                           : 'bg-white text-gray-700 shadow-md hover:shadow-lg'
-                      } ${!variant.available && 'opacity-50 cursor-not-allowed'}`}
+                        } ${!variant.available && 'opacity-50 cursor-not-allowed'}`}
                     >
                       {variant.size}
                     </button>
@@ -276,7 +275,7 @@ const ProductPage = () => {
               </div>
             </div>
             {/* Add to Cart */}
-            <button 
+            <button
               className="w-full py-5 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
               onClick={handleAddToCart}
             >
