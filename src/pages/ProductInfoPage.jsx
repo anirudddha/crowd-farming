@@ -233,7 +233,7 @@ const ProductPage = () => {
               </span>
               {product.originalPrice && (
                 <span className="text-xl text-gray-400 line-through">
-                  ${product.originalPrice}
+                  ${selectedVariant.originalPrice}
                 </span>
               )}
             </div>

@@ -72,6 +72,14 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
     } else {
       parsedTags = tags;
     }
+    
+    // Parse reviews if sent as a JSON string; otherwise, assume it's already an array
+    let parsedReviews = [];
+    if (typeof reviews === "string") {
+      parsedReviews = JSON.parse(reviews);
+    } else {
+      parsedReviews = reviews;
+    }
 
     // Create a new item using all the provided fields along with the array of Base64 images
     const newItem = new Items({
@@ -84,7 +92,7 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
       weights: parsedWeights,
       isOrganic: isOrganic === "true", // converting string to boolean
       rating: Number(rating),
-      reviews: Number(reviews),
+      reviews: parsedReviews, // use the parsed reviews array
       deliveryTime,
       tags: parsedTags,
       variants: parsedVariants,
@@ -98,6 +106,7 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
     res.status(400).json({ message: "Failed to add item" });
   }
 });
+
 
 
 itemRouter.get('/:id', async (req, res) => {

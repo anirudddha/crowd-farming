@@ -100,7 +100,7 @@ const StoreItemCard = ({ item }) => {
         <div className="flex items-baseline gap-2">
           <span className="text-xl font-bold text-gray-900">₹{selectedVariant ? selectedVariant.price : item.price}</span>
           {item.originalPrice && (
-            <span className="text-gray-400 line-through text-sm">₹{item.originalPrice}</span>
+            <span className="text-gray-400 line-through text-sm">₹{selectedVariant.originalPrice}</span>
           )}
         </div>
 
