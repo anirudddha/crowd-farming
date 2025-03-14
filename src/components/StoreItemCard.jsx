@@ -6,54 +6,56 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+
 const endPoint = "http://localhost:5000/api/cart";
 
 const StoreItemCard = ({ item }) => {
   console.log(item);
   const token = localStorage.getItem('token');
-
   const navigate = useNavigate();
-  const [selectedWeight, setSelectedWeight] = useState(item.weights[0]);
+  
+  // Set the default variant to the first available variant or fallback to the first variant if none available
+  const [selectedVariant, setSelectedVariant] = useState(
+    item.variants.find(variant => variant.available) || item.variants[0]
+  );
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const handleAddToCart = async (id) => {
-    // e.stopPropagation(); // Prevent the card's onClick from firing
     setIsAddingToCart(true);
-    // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
     try {
-      console.log("selected weight = ",selectedWeight, typeof selectedWeight);
+      console.log("selected variant = ", selectedVariant, typeof selectedVariant);
       const response = await axios.post(
         endPoint,
         {
           itemId: id, // Use proper case to match backend expectation
-          size: selectedWeight.toString(),
+          size: selectedVariant.size,
           quantity: 1,
         },
         {
-          headers: { Authorization: `Bearer ${token}`},
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // console.log(response);
-      // console.log(response);
       toast.success("Item added to cart! 🛒");
     } catch (e) {
       console.log(e);
       toast.error("Failed to add item. Try again."); 
-    }finally{
+    } finally {
       setIsAddingToCart(false);
     }
   };
+
   const handleCardClick = () => {
     // Navigate to the details page with the product id
     navigate(`/shop/itemInfo/${item._id}`);
   };
-  
+
   const calculateDiscount = () => {
     if (!item.originalPrice) return 0;
     return Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
   };
 
-  const totalPrice = (item.price * selectedWeight).toFixed(2);
+  // Use the selected variant's price for total price
+  const totalPrice = selectedVariant ? selectedVariant.price.toFixed(2) : item.price.toFixed(2);
 
   return (
     <motion.div
@@ -96,9 +98,9 @@ const StoreItemCard = ({ item }) => {
 
         {/* Price */}
         <div className="flex items-baseline gap-2">
-          <span className="text-xl font-bold text-gray-900">₹{item.price}/kg</span>
+          <span className="text-xl font-bold text-gray-900">₹{selectedVariant ? selectedVariant.price : item.price}</span>
           {item.originalPrice && (
-            <span className="text-gray-400 line-through text-sm">₹{item.originalPrice}/kg</span>
+            <span className="text-gray-400 line-through text-sm">₹{item.originalPrice}</span>
           )}
         </div>
 
@@ -114,22 +116,23 @@ const StoreItemCard = ({ item }) => {
           ))}
         </div>
 
-        {/* Weight Selector */}
+        {/* Variant Selector */}
         <div className="flex flex-wrap gap-2">
-          {item.weights.map(weight => (
+          {item.variants.map(variant => (
             <button
-              key={weight}
+              key={variant._id}
               onClick={(e) => {
-                e.stopPropagation(); // Prevent card navigation when selecting weight
-                setSelectedWeight(weight);
+                e.stopPropagation(); // Prevent card navigation when selecting a variant
+                setSelectedVariant(variant);
               }}
+              disabled={!variant.available}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                selectedWeight === weight
+                selectedVariant._id === variant._id
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
+              } ${!variant.available && 'opacity-50 cursor-not-allowed'}`}
             >
-              {weight} kg
+              {variant.size}
             </button>
           ))}
         </div>
@@ -140,7 +143,7 @@ const StoreItemCard = ({ item }) => {
         {/* Add to Cart Button */}
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={(e)=>{
+          onClick={(e) => {
             e.stopPropagation();
             handleAddToCart(item._id);
           }}
@@ -156,7 +159,7 @@ const StoreItemCard = ({ item }) => {
           ) : (
             <>
               <FiShoppingCart className="text-lg" />
-              Add {selectedWeight}kg
+              Add {selectedVariant.size}
             </>
           )}
         </motion.button>
@@ -173,10 +176,18 @@ StoreItemCard.propTypes = {
     farmName: PropTypes.string.isRequired,
     price: PropTypes.number.isRequired,
     originalPrice: PropTypes.number,
-    weights: PropTypes.arrayOf(PropTypes.number).isRequired,
+    weights: PropTypes.arrayOf(PropTypes.number),
     isOrganic: PropTypes.bool,
     rating: PropTypes.number,
     tags: PropTypes.arrayOf(PropTypes.string),
+    variants: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        size: PropTypes.string.isRequired,
+        price: PropTypes.number.isRequired,
+        available: PropTypes.bool.isRequired,
+      })
+    ).isRequired,
   }).isRequired,
 };
 
