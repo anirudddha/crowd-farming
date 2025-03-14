@@ -13,7 +13,7 @@ const StoreItemCard = ({ item }) => {
   console.log(item);
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
-  
+
   // Set the default variant to the first available variant or fallback to the first variant if none available
   const [selectedVariant, setSelectedVariant] = useState(
     item.variants.find(variant => variant.available) || item.variants[0]
@@ -38,7 +38,7 @@ const StoreItemCard = ({ item }) => {
       toast.success("Item added to cart! 🛒");
     } catch (e) {
       console.log(e);
-      toast.error("Failed to add item. Try again."); 
+      toast.error("Failed to add item. Try again.");
     } finally {
       setIsAddingToCart(false);
     }
@@ -50,8 +50,8 @@ const StoreItemCard = ({ item }) => {
   };
 
   const calculateDiscount = () => {
-    if (!item.originalPrice) return 0;
-    return Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
+    if (!selectedVariant.originalPrice) return 0;
+    return Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100);
   };
 
   // Use the selected variant's price for total price
@@ -71,7 +71,7 @@ const StoreItemCard = ({ item }) => {
             <FaLeaf /> Organic
           </div>
         )}
-        {item.originalPrice && (
+        {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
           <div className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold z-10">
             {calculateDiscount()}% OFF
           </div>
@@ -126,11 +126,10 @@ const StoreItemCard = ({ item }) => {
                 setSelectedVariant(variant);
               }}
               disabled={!variant.available}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                selectedVariant._id === variant._id
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              } ${!variant.available && 'opacity-50 cursor-not-allowed'}`}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${selectedVariant._id === variant._id
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                } ${!variant.available && 'opacity-50 cursor-not-allowed'}`}
             >
               {variant.size}
             </button>
