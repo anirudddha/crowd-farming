@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+// Define a sub-schema for each visual
+const ImageSchema = new mongoose.Schema(
+  {
+    url: {
+      type: String,
+      required: true,
+    },
+    public_id: {
+      type: String,
+      required: true,
+    }
+  },
+  { _id: false } // We don't need an _id for each embedded image
+);
+
 const CampaignSchema = new mongoose.Schema(
   {
     farmerName: {
@@ -67,14 +82,14 @@ const CampaignSchema = new mongoose.Schema(
       required: true,
     },
     visuals: {
-      type: [String], // Array to store paths to uploaded files
+      type: [ImageSchema], // Now storing objects with url and public_id
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    raisedAmount:{
+    raisedAmount: {
       type: Number,
       required: true,
     }

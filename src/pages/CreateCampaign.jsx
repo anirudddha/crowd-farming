@@ -3,9 +3,6 @@ import axios from 'axios';
 import Loader from '../components/Loader';
 
 const CreateCampaign = () => {
-  // State declarations
-  const [base64Strings, setBase64Strings] = useState([]);
-  const [pendingPermission, setPendingPermission] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: '',
@@ -14,23 +11,29 @@ const CreateCampaign = () => {
     address: '',
   });
 
-  // Request verification if account not active
-  const handleRequest = async () => {
-    setLoading(true);
-    try {
-      await axios.post('http://localhost:5000/api/sending-request', {
-        userId: profileData._id,
-        email: profileData.email,
-      });
-      alert("Request has been sent. We will contact you soon");
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        alert('You already sent a request!');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  // For campaign form
+  const [formData, setFormData] = useState({
+    farmerName: '',
+    phoneNumber: '',
+    email: '',
+    farmName: '',
+    farmLocation: '',
+    farmSize: '',
+    campaignTitle: '',
+    fundingGoal: '',
+    minInvestment: '',
+    expectedReturns: '',
+    cropTypes: '',
+    farmingMethods: '',
+    startDate: '',
+    endDate: '',
+    fundUsage: '',
+    impactMetrics: '',
+    visuals: [], // Will store actual file objects
+  });
+
+  // If user is not active, they must request verification
+  const [pendingPermission, setPendingPermission] = useState(false);
 
   // Fetch user profile on mount
   useEffect(() => {
@@ -52,68 +55,66 @@ const CreateCampaign = () => {
     fetchProfile();
   }, []);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    farmerName: '',
-    phoneNumber: '',
-    email: '',
-    farmName: '',
-    farmLocation: '',
-    farmSize: '',
-    campaignTitle: '',
-    fundingGoal: '',
-    minInvestment: '',
-    expectedReturns: '',
-    cropTypes: '',
-    farmingMethods: '',
-    startDate: '',
-    endDate: '',
-    fundUsage: '',
-    impactMetrics: '',
-    visuals: [],
-  });
-
-  // Update form state for each input change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Request verification if account not active
+  const handleRequest = async () => {
+    setLoading(true);
+    try {
+      await axios.post('http://localhost:5000/api/sending-request', {
+        userId: profileData._id,
+        email: profileData.email,
+      });
+      alert("Request has been sent. We will contact you soon");
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        alert('You already sent a request!');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Handle file uploads and convert them to Base64 strings
+  // Handle form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle file selection (store file objects)
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    const promises = files.map(file => {
-      const reader = new FileReader();
-      return new Promise(resolve => {
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-    });
-    Promise.all(promises).then(results => {
-      setBase64Strings(results);
-      setFormData(prev => ({
-        ...prev,
-        visuals: results,
-      }));
-    });
+    setFormData(prev => ({
+      ...prev,
+      visuals: files,  // Store the actual file objects
+    }));
   };
 
   // Submit form data
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Ensure visuals is set from base64Strings
-    formData.visuals = base64Strings;
+
     try {
-      await axios.post('http://localhost:5000/api/campaigns', formData, {
+      // Build a FormData object
+      const data = new FormData();
+      // Append all fields except 'visuals'
+      Object.keys(formData).forEach((key) => {
+        if (key !== 'visuals') {
+          data.append(key, formData[key]);
+        }
+      });
+      // Append each file from 'visuals'
+      formData.visuals.forEach((file) => {
+        data.append('visuals', file);
+      });
+
+      // Make POST request with multipart/form-data
+      await axios.post('http://localhost:5000/api/campaigns', data, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
+
       alert('Campaign created!');
       // Reset form on success
       setFormData({
@@ -135,7 +136,6 @@ const CreateCampaign = () => {
         impactMetrics: '',
         visuals: [],
       });
-      setBase64Strings([]);
     } catch (error) {
       console.error('Error creating campaign:', error);
       alert('Failed to create campaign. Please check your inputs.');
@@ -388,7 +388,8 @@ const CreateCampaign = () => {
                   Choose Files
                 </label>
                 <p className="mt-4 text-sm text-emerald-600">
-                  {base64Strings.length} file{base64Strings.length !== 1 && "s"} selected
+                  {formData.visuals.length} file
+                  {formData.visuals.length !== 1 && "s"} selected
                 </p>
               </div>
             </section>

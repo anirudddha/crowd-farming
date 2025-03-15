@@ -117,7 +117,7 @@ const CampaignDetails = () => {
           <div className="space-y-6">
             <div className="aspect-square rounded-3xl overflow-hidden shadow-xl">
               <img 
-                src={campaign.visuals[selectedImage]} 
+                src={campaign.visuals[selectedImage].url} 
                 className="w-full h-full object-cover transform transition-transform duration-300 hover:scale-105"
                 alt="Main campaign visual"
               />
@@ -134,7 +134,7 @@ const CampaignDetails = () => {
                   }`}
                 >
                   <img 
-                    src={visual} 
+                    src={visual.url} 
                     className="w-full h-full object-cover" 
                     alt={`Campaign visual ${index + 1}`}
                   />
