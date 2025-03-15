@@ -79,10 +79,10 @@ const DashboardEdit = ({ editedCampaign, handleEditChange, saveEdits, closeModal
                     <div className="grid grid-cols-2 gap-4">
                         {editedCampaign.visuals?.map((visual, index) => (
                             <div key={index} className="relative group">
-                                {visual.startsWith('data:image') ? (
+                                {visual.url ? (
                                     <>
                                         <img
-                                            src={visual}
+                                            src={visual.url}
                                             alt={`Visual ${index}`}
                                             className="w-full h-24 object-cover rounded-lg border"
                                         />
@@ -159,7 +159,7 @@ const Section = ({ title, children }) => (
     <div className="bg-white p-4 rounded-lg border border-gray-200">
         <h4 className="text-sm font-semibold text-gray-800 mb-3">{title}</h4>
         {children}
-    </div>
+    </div> 
 );
 
 
