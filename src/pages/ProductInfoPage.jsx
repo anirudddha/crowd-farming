@@ -158,7 +158,7 @@ const ProductPage = () => {
             <div className="relative aspect-square rounded-3xl shadow-xl border-8 border-white bg-white overflow-hidden">
               {selectedMedia && selectedMedia.type === 'image' ? (
                 <img
-                  src={selectedMedia.url}
+                  src={selectedMedia.url.url}
                   alt={product.name}
                   className="w-full h-full object-contain transform transition-transform duration-500 hover:scale-105"
                 />
@@ -192,7 +192,7 @@ const ProductPage = () => {
                       }`}
                   >
                     <img
-                      src={mediaUrl}
+                      src={mediaUrl.url}
                       alt={`Thumbnail ${index}`}
                       className="w-full h-full object-cover"
                     />

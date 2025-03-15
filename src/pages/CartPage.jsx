@@ -182,7 +182,7 @@ const CartPage = () => {
                     <div className="flex gap-6">
                       <div className="relative flex-shrink-0">
                         <img
-                          src={item.image}
+                          src={item.image.url}
                           alt={item.title}
                           className="w-32 h-32 object-cover rounded-lg"
                         />
