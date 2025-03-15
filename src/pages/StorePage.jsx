@@ -17,8 +17,7 @@ const StorePage = () => {
 
   // Fetch cart items from localStorage on component mount
   useEffect(() => {
-
-    const fetchNumber = async()=>{
+    const fetchNumber = async () => {
       try {
         const token = localStorage.getItem('token');
         const endPoint = 'http://localhost:5000/api/cart';
@@ -26,12 +25,10 @@ const StorePage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCartItems(response.data.data.length);
-        // console.log(response.data.data.length);
-      }
-      catch (error) {
+      } catch (error) {
         console.error('Error fetching cart items:', error);
       }
-    }
+    };
     
     fetchNumber();
   }, []);
@@ -71,9 +68,26 @@ const StorePage = () => {
   // Memoize filtered items based on search query and selected category
   const filteredItems = useMemo(() => {
     return items.filter(product => {
-      // Assuming product has 'category' and 'name' properties
+      // Filter by category if it's not "All"
       if (selectedCategory !== 'All' && product.category !== selectedCategory) return false;
-      if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+
+      // Enable search to match against name, brand, category, and farmName
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const name = product.name?.toLowerCase() || '';
+        const brand = product.brand?.toLowerCase() || '';
+        const category = product.category?.toLowerCase() || '';
+        const farmName = product.farmName?.toLowerCase() || '';
+        
+        if (
+          !name.includes(query) &&
+          !brand.includes(query) &&
+          !category.includes(query) &&
+          !farmName.includes(query)
+        ) {
+          return false;
+        }
+      }
       return true;
     });
   }, [items, selectedCategory, searchQuery]);
