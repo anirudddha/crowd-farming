@@ -146,18 +146,51 @@ exports.updateCampaign = [
   upload.array('visuals'),
   async (req, res) => {
     const { id } = req.params;
-    const { farmerName, phoneNumber, email, farmName, farmLocation, farmSize, campaignTitle, fundingGoal, minInvestment, expectedReturns, cropTypes, farmingMethods, startDate, endDate, fundUsage, impactMetrics } = req.body;
+    const {
+      farmerName,
+      phoneNumber,
+      email,
+      farmName,
+      farmLocation,
+      farmSize,
+      campaignTitle,
+      fundingGoal,
+      minInvestment,
+      expectedReturns,
+      cropTypes,
+      farmingMethods,
+      startDate,
+      endDate,
+      fundUsage,
+      impactMetrics,
+      visuals // this comes as a JSON string from the frontend
+    } = req.body;
+    
+    // Initialize updateData with the parsed visuals if provided
     let updateData = { farmerName, phoneNumber, email, farmName, farmLocation, farmSize, campaignTitle, fundingGoal, minInvestment, expectedReturns, cropTypes, farmingMethods, startDate, endDate, fundUsage, impactMetrics };
-    // console.log(updateData);
+    
+    // Parse the visuals JSON string to get an array if it exists.
+    if (visuals) {
+      try {
+        updateData.visuals = JSON.parse(visuals);
+      } catch (parseError) {
+        console.error('Error parsing visuals:', parseError);
+        updateData.visuals = [];
+      }
+    }
+    
     try {
-      // Retrieve the current campaign to preserve existing visuals
+      // Retrieve the current campaign
       const campaign = await Campaign.findById(id);
       if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
       
-      // Only upload new images and append them to existing visuals
+      // Upload new images (if any) and append them to the visuals array
       if (req.files && req.files.length > 0) {
-        const newVisuals = await Promise.all(req.files.map(file => uploadToCloudinary(file.buffer)));
-        updateData.visuals = campaign.visuals.concat(newVisuals);
+        const newVisuals = await Promise.all(
+          req.files.map(file => uploadToCloudinary(file.buffer))
+        );
+        // If visuals wasn't provided or parsed correctly, start with the existing visuals.
+        updateData.visuals = (updateData.visuals || campaign.visuals).concat(newVisuals);
       }
       
       const updatedCampaign = await Campaign.findByIdAndUpdate(id, updateData, { new: true });
@@ -168,6 +201,7 @@ exports.updateCampaign = [
     }
   }
 ];
+
 
 
 
