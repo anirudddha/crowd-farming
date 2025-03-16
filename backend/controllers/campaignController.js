@@ -21,6 +21,7 @@ const upload = multer({ storage });
 
 // Helper function to upload a file buffer to Cloudinary
 const uploadToCloudinary = (buffer) => {
+  // console.log(buffer);
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder: 'campaign_visuals' },
@@ -141,57 +142,34 @@ exports.createCampaign = [
 ];
 
 // Update an existing campaign
-exports.updateCampaign = async (req, res) => {
-  try {
-    const { _id } = req.body;
-    if (!_id) {
-      return res.status(400).json({ msg: 'Missing campaign ID (_id).' });
+exports.updateCampaign = [
+  upload.array('visuals'),
+  async (req, res) => {
+    const { id } = req.params;
+    const { farmerName, phoneNumber, email, farmName, farmLocation, farmSize, campaignTitle, fundingGoal, minInvestment, expectedReturns, cropTypes, farmingMethods, startDate, endDate, fundUsage, impactMetrics } = req.body;
+    let updateData = { farmerName, phoneNumber, email, farmName, farmLocation, farmSize, campaignTitle, fundingGoal, minInvestment, expectedReturns, cropTypes, farmingMethods, startDate, endDate, fundUsage, impactMetrics };
+    // console.log(updateData);
+    try {
+      // Retrieve the current campaign to preserve existing visuals
+      const campaign = await Campaign.findById(id);
+      if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
+      
+      // Only upload new images and append them to existing visuals
+      if (req.files && req.files.length > 0) {
+        const newVisuals = await Promise.all(req.files.map(file => uploadToCloudinary(file.buffer)));
+        updateData.visuals = campaign.visuals.concat(newVisuals);
+      }
+      
+      const updatedCampaign = await Campaign.findByIdAndUpdate(id, updateData, { new: true });
+      res.status(200).json(updatedCampaign);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
     }
-
-    // Convert textual fields from req.body into an object
-    // ignoring visuals, which will be handled separately
-    const updatedFields = { ...req.body };
-    delete updatedFields.visuals;
-
-    // 1) If the request includes new files, upload them to Cloudinary
-    let newVisuals = [];
-    if (req.files && req.files.length > 0) {
-      newVisuals = await Promise.all(
-        req.files.map(file => uploadToCloudinary(file.buffer))
-      );
-    }
-
-    // 2) Find the existing campaign
-    const existingCampaign = await Campaign.findById(_id);
-    if (!existingCampaign) {
-      return res.status(404).json({ msg: 'Campaign not found' });
-    }
-
-    // 3) Merge or replace visuals
-    //    Decide how you want to handle existing visuals. For example:
-    //    Option A: Append new visuals to existing
-    //    Option B: Replace existing visuals with new
-    // Here, we demonstrate Option A: append new visuals
-    let updatedVisuals = existingCampaign.visuals;
-    if (newVisuals.length > 0) {
-      updatedVisuals = [...updatedVisuals, ...newVisuals];
-    }
-
-    // 4) Update the campaign fields
-    Object.keys(updatedFields).forEach((key) => {
-      existingCampaign[key] = updatedFields[key];
-    });
-    existingCampaign.visuals = updatedVisuals;
-
-    // 5) Save updated campaign
-    const updatedCampaign = await existingCampaign.save();
-
-    res.json(updatedCampaign);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: 'Server error', error: err.message });
   }
-};
+];
+
+
 
 // Delete a campaign
 exports.deleteCampaign = async (req, res) => {
