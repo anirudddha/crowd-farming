@@ -88,10 +88,10 @@ const DashboardView = ({ campaign, closeModal }) => {
             <div className="grid grid-cols-3 gap-4">
               {campaign.visuals?.length > 0 ? (
                 campaign.visuals.map((visual, index) =>
-                  visual.startsWith('data:image') ? (
+                  visual.url ? (
                     <img
                       key={index}
-                      src={visual}
+                      src={visual.url}
                       alt={`Visual ${index}`}
                       className="w-full h-24 object-cover rounded-lg border"
                     />

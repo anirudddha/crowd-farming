@@ -4,15 +4,15 @@ import { FaLeaf } from 'react-icons/fa';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import Loader from '../components/Loader';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProductPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null);
-  const [selectedWeight, setSelectedWeight] = useState(null);
-  const endPoint = "http://localhost:5000/api/cart";
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const token = localStorage.getItem('token'); // adjust key if needed
-
 
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -29,6 +29,7 @@ const ProductPage = () => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/items/${id}`);
+        console.log(response);
         const fetchedProduct = Array.isArray(response.data)
           ? response.data[0]
           : response.data;
@@ -38,14 +39,15 @@ const ProductPage = () => {
             type: 'image',
             url: fetchedProduct.images && fetchedProduct.images[0] ? fetchedProduct.images[0] : ''
           });
-          setSelectedWeight(
-            fetchedProduct.weights && fetchedProduct.weights.length > 0
-              ? fetchedProduct.weights[0]
-              : null
-          );
+          // Use variants instead of weights; select the first available variant
+          if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
+            const availableVariant = fetchedProduct.variants.find(variant => variant.available);
+            setSelectedVariant(availableVariant || fetchedProduct.variants[0]);
+          }
         }
       } catch (error) {
         console.error('Error fetching product:', error);
+        toast.error('Error fetching product details.');
       }
     };
     fetchProduct();
@@ -58,27 +60,28 @@ const ProductPage = () => {
     setSuccessMsg('');
   };
 
-
+  // Handle Add to Cart
   const handleAddToCart = async () => {
     try {
-      console.log("selected weight = ",selectedWeight, typeof selectedWeight);
+      console.log("selected variant = ", selectedVariant, typeof selectedVariant);
       const response = await axios.post(
-        endPoint,
+        "http://localhost:5000/api/cart",
         {
           itemId: id, // Use proper case to match backend expectation
-          size: selectedWeight.toString(),
+          size: selectedVariant ? selectedVariant.size : '',
           quantity: 1,
         },
         {
-          headers: { Authorization: `Bearer ${token}`},
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       console.log(response);
+      toast.success("Item added to cart!");
     } catch (e) {
-      console.log(e);
+      console.error(e);
+      toast.error("Failed to add item to cart.");
     }
   };
-  
 
   // Handler for review submission
   const handleSubmitReview = async (e) => {
@@ -89,12 +92,14 @@ const ProductPage = () => {
     // Basic validation
     if (rating === 0 || comment.trim() === '') {
       setError('Please select a rating and add your comment.');
+      toast.error('Please select a rating and add your comment.');
       return;
     }
 
     // Get JWT token from localStorage
     if (!token) {
       setError('You must be logged in to submit a review.');
+      toast.error('You must be logged in to submit a review.');
       return;
     }
 
@@ -125,11 +130,13 @@ const ProductPage = () => {
       setRating(0);
       setComment('');
       setSuccessMsg('Review added successfully!');
+      toast.success('Review added successfully!');
       // Optionally close the form
       setShowReviewForm(false);
     } catch (err) {
       console.error('Error adding review:', err);
       setError('Failed to add review. Please try again.');
+      toast.error('Failed to add review. Please try again.');
     }
   };
 
@@ -151,7 +158,7 @@ const ProductPage = () => {
             <div className="relative aspect-square rounded-3xl shadow-xl border-8 border-white bg-white overflow-hidden">
               {selectedMedia && selectedMedia.type === 'image' ? (
                 <img
-                  src={selectedMedia.url}
+                  src={selectedMedia.url.url}
                   alt={product.name}
                   className="w-full h-full object-contain transform transition-transform duration-500 hover:scale-105"
                 />
@@ -180,12 +187,12 @@ const ProductPage = () => {
                     key={index}
                     onClick={() => setSelectedMedia({ type: 'image', url: mediaUrl })}
                     className={`w-20 h-20 rounded-xl overflow-hidden border-4 transition-all duration-300 ${selectedMedia && selectedMedia.url === mediaUrl
-                        ? 'border-green-500 scale-110 shadow-lg'
-                        : 'border-white hover:border-green-200'
+                      ? 'border-green-500 scale-110 shadow-lg'
+                      : 'border-white hover:border-green-200'
                       }`}
                   >
                     <img
-                      src={mediaUrl}
+                      src={mediaUrl.url}
                       alt={`Thumbnail ${index}`}
                       className="w-full h-full object-cover"
                     />
@@ -209,7 +216,6 @@ const ProductPage = () => {
                         key={i}
                         className={`w-5 h-5 ${i < Math.round(product.rating) ? 'fill-current' : ''}`}
                       />
-
                     ))}
                 </div>
               </div>
@@ -222,32 +228,36 @@ const ProductPage = () => {
             </div>
             {/* Pricing */}
             <div className="flex items-baseline gap-4">
-              <span className="text-4xl font-bold text-green-700">${product.price}</span>
+              <span className="text-4xl font-bold text-green-700">
+                ₹{selectedVariant ? selectedVariant.price : product.price}
+              </span>
               {product.originalPrice && (
                 <span className="text-xl text-gray-400 line-through">
-                  ${product.originalPrice}
+                  ₹{selectedVariant.originalPrice}
                 </span>
               )}
             </div>
-            {/* Weight Selector */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Package Size</h3>
-              <div className="flex flex-wrap gap-3">
-                {product.weights &&
-                  product.weights.map((weight, idx) => (
+            {/* Package Size Selector */}
+            {product.variants && product.variants.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Package Size</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.variants.map((variant, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setSelectedWeight(weight)}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all ${selectedWeight === weight
+                      onClick={() => setSelectedVariant(variant)}
+                      disabled={!variant.available}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all ${selectedVariant && selectedVariant.size === variant.size
                           ? 'bg-green-600 text-white shadow-lg'
                           : 'bg-white text-gray-700 shadow-md hover:shadow-lg'
-                        }`}
+                        } ${!variant.available && 'opacity-50 cursor-not-allowed'}`}
                     >
-                      {weight} kg
+                      {variant.size}
                     </button>
                   ))}
+                </div>
               </div>
-            </div>
+            )}
             {/* Specifications Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 bg-white rounded-xl shadow-sm border border-green-50">
@@ -265,8 +275,10 @@ const ProductPage = () => {
               </div>
             </div>
             {/* Add to Cart */}
-            <button className="w-full py-5 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
-              onClick={handleAddToCart}>
+            <button
+              className="w-full py-5 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+              onClick={handleAddToCart}
+            >
               <FiShoppingCart className="w-6 h-6" />
               Add to Cart
             </button>
@@ -400,6 +412,8 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
+      {/* Toast Container to show notifications */}
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
     </div>
   );
 };

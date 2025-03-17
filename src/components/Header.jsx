@@ -1,15 +1,39 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { FaShoppingCart } from 'react-icons/fa';
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [cartItems, setCartItems] = useState(0);
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem('token'));
   }, [pathname]);
+
+  // Fetch cart items count from the API
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const endPoint = 'http://localhost:5000/api/cart';
+          const response = await axios.get(endPoint, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Assuming response.data.data is an array of cart items
+          setCartItems(response.data.data.length);
+        }
+      } catch (error) {
+        console.error('Error fetching cart items:', error);
+      }
+    };
+
+    fetchCartCount();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -55,7 +79,7 @@ const Header = () => {
               {isLoggedIn ? (
                 <>
                   <NotificationBell />
-                  <ProfileDropdown onLogout={handleLogout} />
+                  <ProfileDropdown onLogout={handleLogout} cartItems={cartItems} />
                 </>
               ) : (
                 <>
@@ -95,6 +119,22 @@ const Header = () => {
               <>
                 <MobileNavLink to="/dashboard" text="Dashboard" current={pathname} onClose={toggleMenu} icon="chart-line" />
                 <MobileNavLink to="/shop/orders" text="Orders" current={pathname} onClose={toggleMenu} icon="shopping-bag" />
+                {/* Cart Link with badge */}
+                <Link
+                  to="/shop/cart"
+                  onClick={toggleMenu}
+                  className="flex items-center justify-between px-4 py-4 rounded-lg text-lg text-gray-700 hover:bg-gray-50"
+                >
+                  <div className="flex items-center">
+                    <i className="fas fa-shopping-cart mr-3 text-emerald-600"></i>
+                    <span className="font-medium text-black">Cart</span>
+                  </div>
+                  {cartItems > 0 && (
+                    <span className="ml-auto bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                      {cartItems}
+                    </span>
+                  )}
+                </Link>
                 <MobileNavLink to="/profile" text="Profile" current={pathname} onClose={toggleMenu} icon="user-cog" />
                 <button
                   onClick={handleLogout}
@@ -140,16 +180,17 @@ const NavLink = ({ to, text, current, icon }) => (
 const AuthButton = ({ to, variant = 'primary', children, className = '' }) => (
   <Link
     to={to}
-    className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center ${className} ${variant === 'primary'
+    className={`px-5 py-2.5 rounded-lg font-medium transition-all flex items-center ${className} ${
+      variant === 'primary'
         ? 'bg-gradient-to-br from-emerald-700 to-teal-600 text-white shadow-md hover:shadow-lg'
         : 'text-gray-600 hover:bg-gray-50 hover:text-emerald-700'
-      }`}
+    }`}
   >
     {children}
   </Link>
 );
 
-const ProfileDropdown = ({ onLogout }) => {
+const ProfileDropdown = ({ onLogout, cartItems }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const toggle = useCallback(() => setIsOpen(prev => !prev), []);
@@ -198,6 +239,20 @@ const ProfileDropdown = ({ onLogout }) => {
             >
               <i className="fas fa-shopping-bag mr-2 text-emerald-600"></i>
               Orders
+            </Link>
+            {/* Cart Link */}
+            <Link
+              to="/shop/cart"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+            >
+              <i className="fas fa-shopping-cart mr-2 text-emerald-600"></i>
+              Cart
+              {cartItems > 0 && (
+                <span className="ml-auto bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {cartItems}
+                </span>
+              )}
             </Link>
             <Link
               to="/profile"

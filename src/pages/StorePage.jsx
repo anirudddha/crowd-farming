@@ -9,9 +9,29 @@ import axios from 'axios';
 const StorePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [cartItemsCount] = useState(2);
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // New state for cart items
+  const [cartItems, setCartItems] = useState([]);
+
+  // Fetch cart items from localStorage on component mount
+  useEffect(() => {
+    const fetchNumber = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const endPoint = 'http://localhost:5000/api/cart';
+        const response = await axios.get(endPoint, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCartItems(response.data.data.length);
+      } catch (error) {
+        console.error('Error fetching cart items:', error);
+      }
+    };
+    
+    fetchNumber();
+  }, []);
 
   // Check for cached data in localStorage and then fetch updated data
   useEffect(() => {
@@ -48,9 +68,26 @@ const StorePage = () => {
   // Memoize filtered items based on search query and selected category
   const filteredItems = useMemo(() => {
     return items.filter(product => {
-      // Assuming product has 'category' and 'name' properties
+      // Filter by category if it's not "All"
       if (selectedCategory !== 'All' && product.category !== selectedCategory) return false;
-      if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+
+      // Enable search to match against name, brand, category, and farmName
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const name = product.name?.toLowerCase() || '';
+        const brand = product.brand?.toLowerCase() || '';
+        const category = product.category?.toLowerCase() || '';
+        const farmName = product.farmName?.toLowerCase() || '';
+        
+        if (
+          !name.includes(query) &&
+          !brand.includes(query) &&
+          !category.includes(query) &&
+          !farmName.includes(query)
+        ) {
+          return false;
+        }
+      }
       return true;
     });
   }, [items, selectedCategory, searchQuery]);
@@ -82,9 +119,9 @@ const StorePage = () => {
                 className="p-2 relative text-gray-700 hover:text-green-700 transition-colors"
               >
                 <FaShoppingCart className="w-6 h-6" />
-                {cartItemsCount > 0 && (
+                {cartItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center">
-                    {cartItemsCount}
+                    {cartItems}
                   </span>
                 )}
               </Link>
@@ -185,28 +222,6 @@ const StorePage = () => {
           </div>
         </motion.section>
       </main>
-
-      {/* Footer */}
-      {/* <footer className="bg-white border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600">
-            <div className="flex justify-center space-x-6 mb-4">
-              {['Terms of Service', 'Privacy Policy', 'Contact Us'].map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="hover:text-green-600 transition-colors"
-                >
-                  {item}
-                </a>
-              ))}
-            </div>
-            <p className="text-sm">
-              © {new Date().getFullYear()} AgroMarket. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer> */}
     </div>
   );
 };
