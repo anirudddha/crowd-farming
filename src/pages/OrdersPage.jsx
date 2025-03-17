@@ -33,6 +33,7 @@ const OrdersPage = () => {
 
     // Update state with items that include images
     setSelectedOrder({ ...order, items: updatedItems });
+    // console.log(selectedOrder);
   };
 
   const token = localStorage.getItem("token");
@@ -49,7 +50,7 @@ const OrdersPage = () => {
         // { data: { data: { orders: [ ... ] } } }
         // Adjust the following line if your structure differs.
         setOrders(response.data.data.orders);
-        console.log(orders);
+        // console.log(orders);
       } catch (error) {
         console.error("Error fetching orders:", error);
       }
@@ -94,8 +95,8 @@ const OrdersPage = () => {
                   key={order._id}
                   className="hover:bg-gray-50 cursor-pointer"
                   onClick={() => {
-                    setSelectedOrder(order);
                     fetchSelectedItem(order);
+                    // setSelectedOrder(order);
                   }}
                 >
                   <td className="px-6 py-4 font-medium text-gray-900">#{order._id.slice(-6)}</td>
@@ -150,6 +151,9 @@ const OrdersPage = () => {
                 >
                   <FiX className="w-6 h-6" />
                 </button>
+                {/* <button onClick={()=>{console.log(selectedOrder)}}>
+                  hello bhai
+                </button> */}
               </div>
 
               <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -213,7 +217,7 @@ const OrdersPage = () => {
                       {selectedOrder.items.map((item, index) => (
                         <div key={index} className="flex items-start gap-4">
                           <img
-                            src={item.image}
+                            src={item.image.url}
                             alt={item.name}
                             className="w-16 h-16 rounded-lg object-cover border"
                           />
