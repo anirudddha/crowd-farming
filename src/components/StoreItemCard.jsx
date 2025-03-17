@@ -13,8 +13,8 @@ const StoreItemCard = ({ item }) => {
   console.log(item);
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
-  
-  // Set the default variant to the first available variant or fallback to the first variant if none available
+
+  // Set default variant to first available variant or fallback to first variant
   const [selectedVariant, setSelectedVariant] = useState(
     item.variants.find(variant => variant.available) || item.variants[0]
   );
@@ -23,11 +23,11 @@ const StoreItemCard = ({ item }) => {
   const handleAddToCart = async (id) => {
     setIsAddingToCart(true);
     try {
-      console.log("selected variant = ", selectedVariant, typeof selectedVariant);
+      console.log("selected variant =", selectedVariant, typeof selectedVariant);
       const response = await axios.post(
         endPoint,
         {
-          itemId: id, // Use proper case to match backend expectation
+          itemId: id,
           size: selectedVariant.size,
           quantity: 1,
         },
@@ -38,7 +38,7 @@ const StoreItemCard = ({ item }) => {
       toast.success("Item added to cart! 🛒");
     } catch (e) {
       console.log(e);
-      toast.error("Failed to add item. Try again."); 
+      toast.error("Failed to add item. Try again.");
     } finally {
       setIsAddingToCart(false);
     }
@@ -50,8 +50,8 @@ const StoreItemCard = ({ item }) => {
   };
 
   const calculateDiscount = () => {
-    if (!item.originalPrice) return 0;
-    return Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
+    if (!selectedVariant.originalPrice) return 0;
+    return Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100);
   };
 
   // Use the selected variant's price for total price
@@ -71,13 +71,13 @@ const StoreItemCard = ({ item }) => {
             <FaLeaf /> Organic
           </div>
         )}
-        {item.originalPrice && (
+        {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
           <div className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold z-10">
             {calculateDiscount()}% OFF
           </div>
         )}
         <img
-          src={item.images[0]}
+          src={item.images && item.images.length > 0 ? item.images[0].url : "https://via.placeholder.com/150"}
           alt={item.name}
           className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105 rounded-md-2xl"
         />
@@ -99,8 +99,8 @@ const StoreItemCard = ({ item }) => {
         {/* Price */}
         <div className="flex items-baseline gap-2">
           <span className="text-xl font-bold text-gray-900">₹{selectedVariant ? selectedVariant.price : item.price}</span>
-          {item.originalPrice && (
-            <span className="text-gray-400 line-through text-sm">₹{item.originalPrice}</span>
+          {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
+            <span className="text-gray-400 line-through text-sm">₹{selectedVariant.originalPrice}</span>
           )}
         </div>
 
@@ -170,9 +170,14 @@ const StoreItemCard = ({ item }) => {
 
 StoreItemCard.propTypes = {
   item: PropTypes.shape({
-    _id: PropTypes.string.isRequired, // Ensure each product has an id
+    _id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    images: PropTypes.arrayOf(PropTypes.string),
+    images: PropTypes.arrayOf(
+      PropTypes.shape({
+        url: PropTypes.string.isRequired,
+        public_id: PropTypes.string.isRequired,
+      })
+    ),
     farmName: PropTypes.string.isRequired,
     price: PropTypes.number.isRequired,
     originalPrice: PropTypes.number,

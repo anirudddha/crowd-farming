@@ -3,7 +3,17 @@ const Items = require("../models/Items");
 const multer = require("multer");
 const User = require("../models/User");
 const auth = require("../middleware/userAuth");
+const cloudinary = require("cloudinary").v2;
 const itemRouter = new Router();
+
+
+// Configure Cloudinary
+cloudinary.config({ 
+  cloud_name: 'duz18zmq0', 
+  api_key: '396247895111179', 
+  api_secret: 'lgi9nLxOZs3FoFv2Kh9lPfFlz6M' // replace with your actual API secret
+});
+
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -22,15 +32,33 @@ itemRouter.get("", async (req, res) => {
   }
 });
 
+
+// Helper function to upload a buffer to Cloudinary using a stream
+const uploadBufferToCloudinary = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "ecommerce_items" },
+      (error, result) => {
+        if (error) return reject(error);
+        // Resolve with an object containing both url and public_id
+        resolve({ url: result.secure_url, public_id: result.public_id });
+      }
+    );
+    stream.end(buffer);
+  });
+};
+
+
 itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
   try {
-    // Ensure at least one image file is provided
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "At least one image is needed" });
     }
 
-    // Convert each image file's buffer to a Base64 string
-    const base64Images = req.files.map(file => "data:image/png;base64," + file.buffer.toString("base64"));
+    // Upload all image buffers to Cloudinary
+    const uploadedImageUrls = await Promise.all(
+      req.files.map(file => uploadBufferToCloudinary(file.buffer))
+    );
 
     // Destructure fields from the request body
     const {
@@ -50,30 +78,15 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
     } = req.body;
 
     // Parse variants if sent as a JSON string
-    let parsedVariants = [];
-    if (typeof variants === "string") {
-      parsedVariants = JSON.parse(variants);
-    } else {
-      parsedVariants = variants;
-    }
+    let parsedVariants = typeof variants === "string" ? JSON.parse(variants) : variants;
+    // Parse weights if sent as a JSON string
+    let parsedWeights = typeof weights === "string" ? JSON.parse(weights) : weights;
+    // Parse tags if sent as a JSON string
+    let parsedTags = typeof tags === "string" ? JSON.parse(tags) : tags;
+    // Parse reviews if sent as a JSON string
+    let parsedReviews = typeof reviews === "string" ? JSON.parse(reviews) : reviews;
 
-    // Parse weights if sent as a JSON string; otherwise, assume it's already an array
-    let parsedWeights = [];
-    if (typeof weights === "string") {
-      parsedWeights = JSON.parse(weights);
-    } else {
-      parsedWeights = weights;
-    }
-
-    // Parse tags if sent as a JSON string; otherwise, assume it's already an array
-    let parsedTags = [];
-    if (typeof tags === "string") {
-      parsedTags = JSON.parse(tags);
-    } else {
-      parsedTags = tags;
-    }
-
-    // Create a new item using all the provided fields along with the array of Base64 images
+    // Create a new item using provided fields and the Cloudinary image URLs
     const newItem = new Items({
       name,
       category,
@@ -84,20 +97,21 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
       weights: parsedWeights,
       isOrganic: isOrganic === "true", // converting string to boolean
       rating: Number(rating),
-      reviews: Number(reviews),
+      reviews: parsedReviews,
       deliveryTime,
       tags: parsedTags,
       variants: parsedVariants,
-      images: base64Images, // Save all images as an array of Base64 strings
+      images: uploadedImageUrls, // Save Cloudinary URLs instead of Base64 strings
     });
 
     await newItem.save();
     res.status(201).json({ message: "Item added successfully", data: newItem });
   } catch (e) {
     console.error(e);
-    res.status(400).json({ message: "Failed to add item" });
+    res.status(400).json({ message: "Failed to add item", error: e.message });
   }
 });
+
 
 
 itemRouter.get('/:id', async (req, res) => {

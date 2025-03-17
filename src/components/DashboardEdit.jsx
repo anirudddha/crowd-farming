@@ -1,168 +1,108 @@
 import React from 'react';
 
 const DashboardEdit = ({ editedCampaign, handleEditChange, saveEdits, closeModal }) => {
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-4">
-                <Section title="Basic Information">
-                    <FormInput
-                        label="Campaign Title"
-                        name="campaignTitle"
-                        value={editedCampaign.campaignTitle}
-                        onChange={handleEditChange}
-                    />
-                    <FormInput
-                        label="Farmer Name"
-                        name="farmerName"
-                        value={editedCampaign.farmerName}
-                        onChange={handleEditChange}
-                    />
-                    <FormInput
-                        label="Farm Location"
-                        name="farmLocation"
-                        value={editedCampaign.farmLocation}
-                        onChange={handleEditChange}
-                    />
-                </Section>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Left Column */}
+      <div className="space-y-4">
+        <Section title="Basic Information">
+          <FormInput label="Campaign Title" name="campaignTitle" value={editedCampaign.campaignTitle} onChange={handleEditChange} />
+          <FormInput label="Farmer Name" name="farmerName" value={editedCampaign.farmerName} onChange={handleEditChange} />
+          <FormInput label="Farm Location" name="farmLocation" value={editedCampaign.farmLocation} onChange={handleEditChange} />
+        </Section>
+        <Section title="Financial Targets">
+          <FormInput type="number" label="Funding Goal ($)" name="fundingGoal" value={editedCampaign.fundingGoal} onChange={handleEditChange} />
+          <FormInput type="number" label="Minimum Investment ($)" name="minInvestment" value={editedCampaign.minInvestment} onChange={handleEditChange} />
+          <FormInput label="Expected Returns (%)" name="expectedReturns" value={editedCampaign.expectedReturns} onChange={handleEditChange} />
+        </Section>
+      </div>
 
-                <Section title="Financial Targets">
-                    <FormInput
-                        type="number"
-                        label="Funding Goal ($)"
-                        name="fundingGoal"
-                        value={editedCampaign.fundingGoal}
-                        onChange={handleEditChange}
+      {/* Right Column */}
+      <div className="space-y-4">
+        <Section title="Campaign Details">
+          <FormInput type="date" label="Start Date" name="startDate" value={editedCampaign.startDate.split('T')[0]} onChange={handleEditChange} />
+          <FormInput type="date" label="End Date" name="endDate" value={editedCampaign.endDate.split('T')[0]} onChange={handleEditChange} />
+          <FormInput label="Crop Types" name="cropTypes" value={editedCampaign.cropTypes} onChange={handleEditChange} />
+        </Section>
+        <Section title="Visuals & Documentation">
+          <div className="grid grid-cols-2 gap-4">
+            {editedCampaign.visuals?.map((visual, index) => (
+              <div key={index} className="relative group">
+                {visual.url ? (
+                  <>
+                    <img
+                      src={visual.url}
+                      alt={`Visual ${index}`}
+                      className="w-full h-24 object-cover rounded-lg border"
                     />
-                    <FormInput
-                        type="number"
-                        label="Minimum Investment ($)"
-                        name="minInvestment"
-                        value={editedCampaign.minInvestment}
-                        onChange={handleEditChange}
-                    />
-                    <FormInput
-                        label="Expected Returns (%)"
-                        name="expectedReturns"
-                        value={editedCampaign.expectedReturns}
-                        onChange={handleEditChange}
-                    />
-                </Section>
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-4">
-                <Section title="Campaign Details">
-                    <FormInput
-                        type="date"
-                        label="Start Date"
-                        name="startDate"
-                        value={editedCampaign.startDate.split('T')[0]}
-                        onChange={handleEditChange}
-                    />
-                    <FormInput
-                        type="date"
-                        label="End Date"
-                        name="endDate"
-                        value={editedCampaign.endDate.split('T')[0]}
-                        onChange={handleEditChange}
-                    />
-                    <FormInput
-                        label="Crop Types"
-                        name="cropTypes"
-                        value={editedCampaign.cropTypes}
-                        onChange={handleEditChange}
-                    />
-                </Section>
-
-                <Section title="Visuals & Documentation">
-                    <div className="grid grid-cols-2 gap-4">
-                        {editedCampaign.visuals?.map((visual, index) => (
-                            <div key={index} className="relative group">
-                                {visual.startsWith('data:image') ? (
-                                    <>
-                                        <img
-                                            src={visual}
-                                            alt={`Visual ${index}`}
-                                            className="w-full h-24 object-cover rounded-lg border"
-                                        />
-                                        <button
-                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            onClick={() => {
-                                                const newVisuals = [...editedCampaign.visuals];
-                                                newVisuals.splice(index, 1);
-                                                handleEditChange({ target: { name: 'visuals', value: newVisuals } });
-                                            }}
-                                        >
-                                            ✖
-                                        </button>
-                                    </>
-                                ) : (
-                                    <input
-                                        type="text"
-                                        value={visual}
-                                        onChange={(e) => {
-                                            const newVisuals = [...editedCampaign.visuals];
-                                            newVisuals[index] = e.target.value;
-                                            handleEditChange({ target: { name: 'visuals', value: newVisuals } });
-                                        }}
-                                        className="w-full px-3 py-2 border rounded-md text-sm"
-                                    />
-                                )}
-                            </div>
-                        ))}
-                        <div className="col-span-full">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files[0];
-                                    if (file) {
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                            const newVisuals = editedCampaign.visuals ? [...editedCampaign.visuals] : [];
-                                            newVisuals.push(reader.result);
-                                            handleEditChange({ target: { name: 'visuals', value: newVisuals } });
-                                        };
-                                        reader.readAsDataURL(file);
-                                    }
-                                }}
-                                className="text-sm text-gray-600"
-                            />
-                        </div>
-                    </div>
-                </Section>
-            </div>
-
-            {/* Save and Cancel Buttons */}
-            <div className="col-span-full border-t pt-6">
-                <div className="flex justify-end space-x-3">
                     <button
-                        onClick={closeModal}
-                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {
+                        // Remove existing visual
+                        const newVisuals = editedCampaign.visuals.filter((_, i) => i !== index);
+                        handleEditChange({ target: { name: 'visuals', value: newVisuals } });
+                      }}
                     >
-                        Cancel
+                      ✖
                     </button>
+                  </>
+                ) : (
+                  // For new visuals (File objects), show the file name.
+                  <div className="p-2 border rounded-md">
+                    <p className="text-xs truncate">{visual.name}</p>
                     <button
-                        onClick={saveEdits}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
+                      className="mt-1 text-red-500 text-xs"
+                      onClick={() => {
+                        const newNewVisuals = editedCampaign.newVisuals.filter((_, i) => i !== index);
+                        handleEditChange({ target: { name: 'newVisuals', value: newNewVisuals } });
+                      }}
                     >
-                        Save Changes
+                      Remove
                     </button>
-                </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            <div className="col-span-full">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    // Append the new file to the newVisuals array.
+                    const updatedFiles = editedCampaign.newVisuals ? [...editedCampaign.newVisuals, file] : [file];
+                    handleEditChange({ target: { name: 'newVisuals', value: updatedFiles } });
+                  }
+                }}
+                className="text-sm text-gray-600"
+              />
             </div>
+          </div>
+        </Section>
+      </div>
+
+      {/* Save and Cancel Buttons */}
+      <div className="col-span-full border-t pt-6">
+        <div className="flex justify-end space-x-3">
+          <button onClick={closeModal} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+            Cancel
+          </button>
+          <button onClick={saveEdits} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium">
+            Save Changes
+          </button>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 const Section = ({ title, children }) => (
-    <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <h4 className="text-sm font-semibold text-gray-800 mb-3">{title}</h4>
-        {children}
-    </div>
+  <div className="bg-white p-4 rounded-lg border border-gray-200">
+    <h4 className="text-sm font-semibold text-gray-800 mb-3">{title}</h4>
+    {children}
+  </div>
 );
-
-
 
 const FormInput = ({ label, type = 'text', ...props }) => (
   <div className="mb-4">
@@ -174,6 +114,5 @@ const FormInput = ({ label, type = 'text', ...props }) => (
     />
   </div>
 );
-
 
 export default DashboardEdit;

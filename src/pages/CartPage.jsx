@@ -14,12 +14,12 @@ const CartPage = () => {
   const [loadingItems, setLoadingItems] = useState({});
   const endPoint = "http://localhost:5000/api/cart";
 
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
 
-  // Secure Checkout handeling function
+  // Secure Checkout handling function
   const hancleSecureCheckout = () => {
-    Navigate('checkOut');
-  }
+    navigate('checkOut');
+  };
 
   // Memoized fetch function
   const fetchCartItems = useCallback(async () => {
@@ -88,7 +88,7 @@ const CartPage = () => {
         )
       );
 
-      // Wait for both axios call and a minimum delay of 1 sec
+      // Wait for both axios call and a minimum delay of 400 ms
       await Promise.all([
         axios.put(endPoint, {
           itemId: id,
@@ -173,11 +173,16 @@ const CartPage = () => {
               {cartItems.map(item => {
                 const key = `${item.id}_${item.size}`;
                 return (
-                  <div key={key} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                  // CHANGED: Added onClick handler on the container div to redirect to item info page
+                  <div 
+                    key={key} 
+                    onClick={() => navigate(`/shop/itemInfo/${item.id}`)} 
+                    className="cursor-pointer bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
+                  >
                     <div className="flex gap-6">
                       <div className="relative flex-shrink-0">
                         <img
-                          src={item.image}
+                          src={item.image.url}
                           alt={item.title}
                           className="w-32 h-32 object-cover rounded-lg"
                         />
@@ -188,8 +193,12 @@ const CartPage = () => {
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
                             <p className="text-gray-600 text-sm mb-4">{item.description}</p>
                           </div>
+                          {/* Keep the delete button clickable without propagating the redirect */}
                           <button
-                            onClick={() => setItemToDelete(item.id)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent redirection when clicking delete
+                              setItemToDelete(item.id);
+                            }}
                             className="text-gray-400 hover:text-red-500 transition-colors"
                           >
                             <XCircle className="w-6 h-6" />
@@ -204,14 +213,20 @@ const CartPage = () => {
                             ) : (
                               <div className="flex items-center border rounded-lg">
                                 <button
-                                  onClick={() => handleDecrease(item.id, item.size, item.quantity)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDecrease(item.id, item.size, item.quantity);
+                                  }}
                                   className="px-3 py-2 text-gray-600 hover:text-gray-800"
                                 >
                                   -
                                 </button>
                                 <span className="px-3">{item.quantity}</span>
                                 <button
-                                  onClick={() => handleIncrease(item.id, item.size, item.quantity)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleIncrease(item.id, item.size, item.quantity);
+                                  }}
                                   className="px-3 py-2 text-gray-600 hover:text-gray-800"
                                 >
                                   +
@@ -359,7 +374,6 @@ const CartPage = () => {
       )}
     </div>
   );
-
 };
 
 export default CartPage;

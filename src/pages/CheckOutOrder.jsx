@@ -242,7 +242,7 @@ const CheckoutPage = () => {
                       className="group flex items-start p-4 border border-gray-100 rounded-xl hover:border-emerald-100 transition-colors"
                     >
                       <img
-                        src={item.image}
+                        src={item.image.url}
                         alt={item.title}
                         className="w-20 h-20 object-cover rounded-lg shadow-sm"
                       />

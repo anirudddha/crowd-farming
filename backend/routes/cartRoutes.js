@@ -113,16 +113,16 @@ cartRouter.put("", async(req, res)=>{
 
     let cart = await Cart.findOne({userId});
 
-    console.log(itemId);
-    console.log(size);
-    console.log(quantity);
-    console.log(cart);
+    // console.log(itemId);
+    // console.log(size);
+    // console.log(quantity);
+    // console.log(cart);
 
     const existingItemIndex = cart.items?.findIndex(
       (cartItem) => (cartItem.itemId.toString()===itemId && cartItem.size===size)
     );
 
-    console.log(cart.items[existingItemIndex]);
+    // console.log(cart.items[existingItemIndex]);
     cart.items[existingItemIndex].quantity=quantity;
 
     await cart.save();
@@ -137,12 +137,12 @@ cartRouter.put("", async(req, res)=>{
 
 cartRouter.delete("", async(req, res) =>{
   try{
-    console.log(req.body);
+    // console.log(req.body);
     const {itemId} = req.body;
     const userId = req.user;
 
-    console.log(itemId);
-    console.log(userId);
+    // console.log(itemId);
+    // console.log(userId);
     await Cart.updateOne(
       {userId},
       {$pull:{items:{itemId}}}

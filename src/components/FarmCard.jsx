@@ -11,7 +11,7 @@ const FarmCard = ({ farm }) => {
       {/* Image Section with Overlay */}
       <div className="relative h-48 overflow-hidden">
         <img 
-          src={imageUrl} 
+          src={imageUrl.url} 
           alt={farm.farmName} 
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
         />

@@ -14,6 +14,7 @@ const CampaignDetails = () => {
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
+  const [investing, setInvesting] = useState(false);
 
   useEffect(() => {
     const fetchCampaignDetails = async () => {
@@ -31,7 +32,53 @@ const CampaignDetails = () => {
 
   const handleInvest = async (e) => {
     e.preventDefault();
-    // Add your investment logic here
+
+    // Validate investment amount
+    if (parseInt(investmentAmount, 10) < parseInt(campaign.minInvestment, 10)) {
+      toast.error(`Minimum investment of ₹${campaign.minInvestment} is required`);
+      return;
+    }
+    const raised = parseInt(campaign.raisedAmount, 10);
+    const goal = parseInt(campaign.fundingGoal, 10);
+    const invest = parseInt(investmentAmount, 10);
+    if (raised + invest > goal) {
+      toast.error(`This amount exceeds the campaign goal of ₹${campaign.fundingGoal}`);
+      return;
+    }
+
+    // Start investing loader
+    setInvesting(true);
+
+    try {
+      // Update raised amount in the campaign
+      await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
+        amount: parseFloat(investmentAmount),
+        userId: id,
+        name: campaign.campaignTitle,
+      });
+      // Log the investment in the system
+      await axios.post(
+        `http://localhost:5000/api/campaigns/${id}/investment`,
+        { amount: parseFloat(investmentAmount) },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
+      toast.success('Investment successful!');
+      // Optionally, update the campaign's raised amount in state
+      setCampaign((prev) => ({
+        ...prev,
+        raisedAmount: parseFloat(prev.raisedAmount) + parseFloat(investmentAmount),
+      }));
+      setInvestmentAmount('');
+      setIsInvestModalOpen(true); // if you want to show a modal on success
+    } catch (error) {
+      console.error('Error investing:', error);
+      toast.error(error.response?.data?.message || 'Investment failed');
+    } finally {
+      // End investing loader
+      setInvesting(false);
+    }
   };
 
   if (loading) {
@@ -70,7 +117,7 @@ const CampaignDetails = () => {
           <div className="space-y-6">
             <div className="aspect-square rounded-3xl overflow-hidden shadow-xl">
               <img 
-                src={campaign.visuals[selectedImage]} 
+                src={campaign.visuals[selectedImage].url} 
                 className="w-full h-full object-cover transform transition-transform duration-300 hover:scale-105"
                 alt="Main campaign visual"
               />
@@ -87,7 +134,7 @@ const CampaignDetails = () => {
                   }`}
                 >
                   <img 
-                    src={visual} 
+                    src={visual.url} 
                     className="w-full h-full object-cover" 
                     alt={`Campaign visual ${index + 1}`}
                   />
@@ -114,7 +161,7 @@ const CampaignDetails = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-emerald-700">Funding Progress</span>
                     <span className="text-sm text-emerald-600">
-                      ${campaign.raisedAmount} raised of ${campaign.fundingGoal}
+                    ₹{campaign.raisedAmount} raised of ₹{campaign.fundingGoal}
                     </span>
                   </div>
                   <div className="h-3 bg-emerald-100 rounded-full overflow-hidden">
@@ -132,7 +179,7 @@ const CampaignDetails = () => {
                       <Coins className="w-5 h-5 text-emerald-600" />
                       <span className="text-sm font-medium text-emerald-700">Minimum Investment</span>
                     </div>
-                    <div className="text-2xl font-bold text-emerald-900">${campaign.minInvestment}</div>
+                    <div className="text-2xl font-bold text-emerald-900">₹{campaign.minInvestment}</div>
                   </div>
                   <div className="bg-emerald-50 p-4 rounded-xl">
                     <div className="flex items-center gap-2 mb-2">
@@ -161,13 +208,22 @@ const CampaignDetails = () => {
                         placeholder="Enter investment amount"
                         className="w-full pl-12 pr-6 py-4 bg-white border-2 border-emerald-100 rounded-xl focus:border-emerald-500 focus:ring-0 text-emerald-900"
                       />
-                      <span className="absolute left-4 top-4 text-emerald-600">$</span>
+                      <span className="absolute left-4 top-4 text-emerald-600">₹</span>
                     </div>
                     <button
-                      type="submit"
+                      type="submit" 
+                      disabled={investing}
                       className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all transform hover:scale-[1.02] shadow-lg"
                     >
-                      Invest Now
+                      {investing ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                          className="h-6 w-6 mx-auto border-2 border-t-transparent border-white rounded-full"
+                        />
+                      ) : (
+                        'Invest Now'
+                      )}
                     </button>
                   </motion.form>
                 ) : (

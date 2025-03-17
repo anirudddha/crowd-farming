@@ -12,7 +12,6 @@ const {
   storeInvestment,
   getFilterOptions,
   refundRequest,
-  RazorInvestment,
   getReciept
 } = require('../controllers/campaignController');
 
@@ -31,7 +30,7 @@ router.put('/:id/raisedAmount', invest);
 router.post('/', auth, createCampaign); // Ensure auth middleware is used here
 
 // PUT (update) a campaign
-router.put('/editCampaign', updateCampaign);
+router.put('/editCampaign/:id', updateCampaign);
 
 // DELETE a campaign
 // router.delete('/:id', deleteCampaign);
@@ -49,10 +48,6 @@ router.get('/filters/options', getFilterOptions);
 //delete campaign
 router.delete('/deleteCampaign', deleteCampaign);
 
-// raise investment usign razorpay
-router.post('/razorInvestment', RazorInvestment);
 
-// for geting recipt of the payments
-router.get('/getReciept', getReciept);
 
 module.exports = router;
