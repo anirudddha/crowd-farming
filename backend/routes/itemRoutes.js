@@ -75,16 +75,23 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
       deliveryTime,
       tags,
       variants,
+      description,
+      ingredients,
+      usageInfo,
+      benefits,
+      storageInfo,
+      faq,
     } = req.body;
 
-    // Parse variants if sent as a JSON string
+    // Parse fields that might be sent as JSON strings
     let parsedVariants = typeof variants === "string" ? JSON.parse(variants) : variants;
-    // Parse weights if sent as a JSON string
     let parsedWeights = typeof weights === "string" ? JSON.parse(weights) : weights;
-    // Parse tags if sent as a JSON string
     let parsedTags = typeof tags === "string" ? JSON.parse(tags) : tags;
-    // Parse reviews if sent as a JSON string
     let parsedReviews = typeof reviews === "string" ? JSON.parse(reviews) : reviews;
+    let parsedIngredients = typeof ingredients === "string" ? JSON.parse(ingredients) : ingredients;
+    let parsedUsageInfo = typeof usageInfo === "string" ? JSON.parse(usageInfo) : usageInfo;
+    let parsedBenefits = typeof benefits === "string" ? JSON.parse(benefits) : benefits;
+    let parsedFaq = typeof faq === "string" ? JSON.parse(faq) : faq;
 
     // Create a new item using provided fields and the Cloudinary image URLs
     const newItem = new Items({
@@ -101,7 +108,13 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
       deliveryTime,
       tags: parsedTags,
       variants: parsedVariants,
-      images: uploadedImageUrls, // Save Cloudinary URLs instead of Base64 strings
+      images: uploadedImageUrls, // Save Cloudinary URLs
+      description,
+      ingredients: parsedIngredients,
+      usageInfo: parsedUsageInfo,
+      benefits: parsedBenefits,
+      storageInfo,
+      faq: parsedFaq,
     });
 
     await newItem.save();
@@ -111,6 +124,7 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
     res.status(400).json({ message: "Failed to add item", error: e.message });
   }
 });
+
 
 
 
