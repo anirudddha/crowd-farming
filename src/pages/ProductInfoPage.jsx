@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FiStar, FiShoppingCart, FiClock, FiPackage,FiEdit3  } from 'react-icons/fi';
+import { FiStar, FiShoppingCart, FiClock, FiPackage, FiEdit3 } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -356,128 +356,121 @@ const ProductPage = () => {
           </div>
         )}
 
-        {/* Reviews Section */}
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-7xl mx-auto mb-10">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
-              Customer Reviews
-              <span className="text-gray-500 ml-2 text-lg font-normal">
-                ({product.reviews?.length || 0})
-              </span>
-            </h2>
-            <button
-              onClick={toggleReviewForm}
-              className="flex items-center gap-2 px-6 py-3 text-base font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all duration-300 shadow-sm"
-            >
-              <FiEdit3 className="w-5 h-5" />
-              {showReviewForm ? "Cancel Review" : "Write a Review"}
-            </button>
-          </div>
-
-          {/* Review Form */}
-          {showReviewForm && (
-            <div className="mb-10 bg-gray-50 rounded-xl p-6 border border-gray-200">
-              <form onSubmit={handleSubmitReview} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Rating *
-                  </label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setRating(star)}
-                        className="p-1.5 hover:scale-110 transition-transform"
-                      >
+        {/* Premium Review Section */}
+        <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-10 mb-16">
+          <div className="flex flex-col lg:flex-row gap-12">
+            {/* Review Summary */}
+            <div className="lg:w-1/3 space-y-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-4">Customer Experiences</h2>
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl font-bold text-gray-900">{product.rating}/5</div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
                         <FiStar
-                          className={`w-8 h-8 ${star <= rating ? "text-amber-500" : "text-gray-300"}`}
-                          strokeWidth={star <= rating ? 2 : 1}
+                          key={i}
+                          className={`w-5 h-5 ${i < product.rating ? 'text-amber-500' : 'text-gray-300'}`}
                         />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Review *
-                  </label>
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    rows="4"
-                    placeholder="Share your experience with this product..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="px-8 py-3 text-base font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors duration-300 shadow-sm"
-                  >
-                    Submit Review
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Reviews List */}
-          <div className="space-y-6">
-            {product.reviews && product.reviews.length > 0 ? (
-              product.reviews.map((review, index) => (
-                <div
-                  key={index}
-                  className="p-6 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                    <div className="flex items-center gap-3 mb-3 sm:mb-0">
-                      <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-semibold shrink-0">
-                        {review.username?.[0]?.toUpperCase() || "U"}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">
-                          {review.username || "Anonymous"}
-                        </p>
-                        <div className="flex items-center gap-1 mt-1">
-                          {Array(5)
-                            .fill()
-                            .map((_, i) => (
-                              <FiStar
-                                key={i}
-                                className={`w-5 h-5 ${i < review.rating ? "text-amber-500" : "text-gray-300"}`}
-                                strokeWidth={i < review.rating ? 2 : 1}
-                              />
-                            ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                    <span className="text-sm text-gray-500">
-                      {new Date(review.createdAt || Date.now()).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric"
-                      })}
-                    </span>
+                    <span className="text-gray-600">{product.reviews?.length} verified reviews</span>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">
-                    {review.comment}
-                  </p>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <div className="mb-4 text-gray-400">
-                  <FiMessageSquare className="w-16 h-16 mx-auto" />
-                </div>
-                <p className="text-gray-600 font-medium">
-                  No reviews yet. Be the first to share your thoughts!
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={toggleReviewForm}
+                  className="w-full py-4 bg-gray-900 hover:bg-gray-800 text-white rounded-xl flex items-center justify-center gap-3 transition-all"
+                >
+                  <FiEdit3 className="w-5 h-5" />
+                  {showReviewForm ? 'Cancel Review' : 'Write a Review'}
+                </button>
+                <p className="text-sm text-gray-500 text-center">
+                  Share your authentic experience with our community
                 </p>
               </div>
-            )}
+            </div>
+
+            {/* Review Form/List */}
+            <div className="lg:w-2/3">
+              {showReviewForm ? (
+                <div className="bg-gray-50 rounded-xl p-8">
+                  <form onSubmit={handleSubmitReview} className="space-y-8">
+                    <div>
+                      <label className="block text-lg font-medium mb-4">Rating</label>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRating(star)}
+                            className={`p-2 transition-all ${rating >= star ? 'scale-110' : 'hover:scale-105'}`}
+                          >
+                            <FiStar
+                              className={`w-10 h-10 ${rating >= star ? 'text-amber-500 fill-current' : 'text-gray-300'}`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-lg font-medium mb-4">Detailed Review</label>
+                      <textarea
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        rows="5"
+                        className="w-full px-6 py-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                        placeholder="What makes this product stand out? How was your experience using it?"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors"
+                    >
+                      Publish Review
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {product.reviews?.map((review, index) => (
+                    <div key={index} className="pb-8 border-b border-gray-100 last:border-0">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-medium">
+                          {review.username?.[0] || 'U'}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-2">
+                            <h4 className="font-medium">{review.username || 'Anonymous'}</h4>
+                            <div className="flex items-center gap-1 text-amber-500">
+                              {[...Array(5)].map((_, i) => (
+                                <FiStar
+                                  key={i}
+                                  className={`w-4 h-4 ${i < review.rating ? 'fill-current' : ''}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-500 text-sm">
+                            {new Date(review.createdAt).toLocaleDateString('en-US', {
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-gray-800 leading-relaxed">
+                        {review.comment}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
