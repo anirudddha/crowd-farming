@@ -10,9 +10,27 @@ const endpoint = createSlice({
     }
 })
 
+const cartNumber = createSlice({
+    name: "cartNumber",
+    initialState : {
+        count :0
+    },
+    reducers :{
+        increase :(state)=>{
+            state.count ++;
+        },
+        setNumber :(state,action)=>{
+            state.count = action.payload;
+        }
+    }
+    
+})
+export const {increase,setNumber} = cartNumber.actions;
+
 const store = configureStore({
     reducer: {
         endpoint: endpoint.reducer,
+        cartCount :cartNumber.reducer
     }
 })
 
