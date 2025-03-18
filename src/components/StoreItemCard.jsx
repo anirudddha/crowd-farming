@@ -5,10 +5,14 @@ import { FaLeaf } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { increase } from '../redux/globalStates';
 
 const StoreItemCard = ({ item }) => {
   const endpoint = useSelector(state => state.endpoint.endpoint);
+
+  const dispatch = useDispatch();
+
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
@@ -38,6 +42,7 @@ const StoreItemCard = ({ item }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      dispatch(increase());
       // You can show a toast or notification here
     } catch (e) {
       console.log(e);

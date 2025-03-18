@@ -7,36 +7,16 @@ import { useSelector } from 'react-redux';
 const Header = () => {
 
   const endpoint = useSelector(state=> state.endpoint.endpoint);
+  const cartNumber = useSelector(state=>state.cartCount.count);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(0);
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem('token'));
   }, [pathname]);
-
-  // Fetch cart items count from the API
-  useEffect(() => {
-    const fetchCartCount = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const response = await axios.get(`${endpoint}/cart`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          // Assuming response.data.data is an array of cart items
-          setCartItems(response.data.data.length);
-        }
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-      }
-    };
-
-    fetchCartCount();
-  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -85,9 +65,9 @@ const Header = () => {
                   {/* Prominent Cart Icon */}
                   <Link to="/shop/cart" className="relative p-2 hover:bg-gray-50 rounded-full transition-colors">
                     <FaShoppingCart className="text-xl text-gray-700" />
-                    {cartItems > 0 && (
+                    {cartNumber > 0 && (
                       <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        {cartItems}
+                        {cartNumber}
                       </span>
                     )}
                   </Link>
@@ -135,9 +115,9 @@ const Header = () => {
                 <i className="fas fa-shopping-cart mr-3 text-emerald-600"></i>
                 <span className="font-medium text-black">Cart</span>
               </div>
-              {cartItems > 0 && (
+              {cartNumber > 0 && (
                 <span className="ml-auto bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
-                  {cartItems}
+                  {cartNumber}
                 </span>
               )}
             </Link>

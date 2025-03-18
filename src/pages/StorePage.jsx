@@ -5,9 +5,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import StoreItemCard from '../components/StoreItemCard';
 import Loader from '../components/Loader'; // Import your loader component
 import axios from 'axios';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { setNumber } from '../redux/globalStates';
 
 const StorePage = () => {
+
+  const dispatch = useDispatch();
+  const cartItemNumber = useSelector(state => state.cartCount.count);
+
+  // console.log(cartItemNumber)
 
   const endpoint = useSelector(state => state.endpoint.endpoint);
 
@@ -16,8 +22,6 @@ const StorePage = () => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // New state for cart items
-  const [cartItems, setCartItems] = useState([]);
 
   // Fetch cart items from localStorage on component mount
   useEffect(() => {
@@ -28,7 +32,12 @@ const StorePage = () => {
           const response = await axios.get(`${endpoint}/cart`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          setCartItems(response.data.data.length);
+          console.log(response.data.data)
+          let count = 0;
+          response.data.data.map((a) => {
+            count += a.quantity;
+          })
+          dispatch(setNumber(count));
         }
       } catch (error) {
         console.error('Error fetching cart items:', error);
@@ -124,9 +133,9 @@ const StorePage = () => {
                 className="p-2 relative text-gray-700 hover:text-green-700 transition-colors"
               >
                 <FaShoppingCart className="w-6 h-6" />
-                {cartItems > 0 && (
+                {cartItemNumber > 0 && (
                   <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs h-5 w-5 rounded-full flex items-center justify-center">
-                    {cartItems}
+                    {cartItemNumber}
                   </span>
                 )}
               </Link>
@@ -146,8 +155,8 @@ const StorePage = () => {
               whileTap={{ scale: 0.95 }}
               onClick={() => handleCategoryClick(category)}
               className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedCategory === category
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
             >
               {category}
