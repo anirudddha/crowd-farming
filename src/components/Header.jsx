@@ -2,8 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaShoppingCart } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
 
 const Header = () => {
+
+  const endpoint = useSelector(state=> state.endpoint.endpoint);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartItems, setCartItems] = useState(0);
@@ -20,8 +24,7 @@ const Header = () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const endPoint = 'http://localhost:5000/api/cart';
-          const response = await axios.get(endPoint, {
+          const response = await axios.get(`${endpoint}/cart`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           // Assuming response.data.data is an array of cart items

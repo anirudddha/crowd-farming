@@ -2,9 +2,13 @@ import axios from 'axios';
 import { Calendar } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { FiPackage, FiCreditCard, FiTruck, FiCheckCircle, FiUser, FiX } from 'react-icons/fi';
-const endPoint = "http://localhost:5000/"
+import { useSelector } from 'react-redux';
+
 
 const OrdersPage = () => {
+
+  const endpoint = useSelector(state=>state.endpoint.endpoint);
+
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -17,7 +21,7 @@ const OrdersPage = () => {
     const updatedItems = await Promise.all(
       items.map(async (item) => {
         try {
-          const response = await axios.get(`${endPoint}api/items/${item.itemId}`);
+          const response = await axios.get(`${endpoint}/items/${item.itemId}`);
           // console.log(response);
 
           return {
@@ -41,7 +45,7 @@ const OrdersPage = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/orders`, {
+        const response = await axios.get(`${endpoint}/orders`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

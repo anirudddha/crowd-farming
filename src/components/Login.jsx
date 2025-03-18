@@ -3,8 +3,12 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sprout } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 const Login = () => {
+
+  const endpoint = useSelector(state=> state.endpoint.endpoint);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -12,7 +16,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const response = await axios.post(`${endpoint}/auth/login`, { email, password });
       localStorage.setItem('token', response.data.token);
       navigate('/dashboard');
     } catch (error) {

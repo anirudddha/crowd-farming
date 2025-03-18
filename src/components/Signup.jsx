@@ -3,8 +3,12 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sprout } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 const Signup = () => {
+
+  const endpoint = useSelector(state =>state.endpoint.endpoint);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,7 +23,7 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/auth/signup', formData);
+      await axios.post(`${endpoint}/auth/signup`, formData);
       alert('Signup successful! Please log in.');
       navigate('/login');
     } catch (error) {

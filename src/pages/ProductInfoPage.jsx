@@ -6,8 +6,12 @@ import { useParams } from 'react-router-dom';
 import Loader from '../components/Loader';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useSelector } from 'react-redux';
 
 const ProductPage = () => {
+
+  const endpoint = useSelector(state => state.endpoint.endpoint);
+
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null);
@@ -28,7 +32,7 @@ const ProductPage = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/items/${id}`);
+        const response = await axios.get(`${endpoint}/items/${id}`);
         const fetchedProduct = Array.isArray(response.data)
           ? response.data[0]
           : response.data;
@@ -62,7 +66,7 @@ const ProductPage = () => {
   const handleAddToCart = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/cart",
+        `${endpoint}/cart`,
         {
           itemId: id,
           size: selectedVariant ? selectedVariant.size : '',
@@ -99,7 +103,7 @@ const ProductPage = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/items/${id}/review`,
+        `${endpoint}/items/${id}/review`,
         { rating, comment },
         {
           headers: {

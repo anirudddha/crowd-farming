@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Loader from '../components/Loader';
+import { useSelector } from 'react-redux';
 
 const CreateCampaign = () => {
+
+  const endpoint = useSelector((state)=>state.endpoint.endpoint);
+
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: '',
@@ -40,7 +44,7 @@ const CreateCampaign = () => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/user-profile', {
+        const response = await axios.get(`${endpoint}/user-profile`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -59,7 +63,7 @@ const CreateCampaign = () => {
   const handleRequest = async () => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/sending-request', {
+      await axios.post(`${endpoint}/sending-request`, {
         userId: profileData._id,
         email: profileData.email,
       });
@@ -108,7 +112,7 @@ const CreateCampaign = () => {
       });
 
       // Make POST request with multipart/form-data
-      await axios.post('http://localhost:5000/api/campaigns', data, {
+      await axios.post(`${endpoint}/campaigns`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`,

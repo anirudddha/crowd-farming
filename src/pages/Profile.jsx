@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import '../styles/Profile.css';
+import { useSelector } from 'react-redux';
 
 const defaultAddressForm = {
   street: '',
@@ -14,6 +15,9 @@ const defaultAddressForm = {
 };
 
 const Profile = () => {
+
+  const endpoint = useSelector(state=>state.endpoint.endpoint);
+
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     _id: '',
@@ -55,7 +59,7 @@ const Profile = () => {
       setIsLoading(false);
     }
     try {
-      const response = await axios.get('http://localhost:5000/api/user-profile', {
+      const response = await axios.get(`${endpoint}/user-profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileData(response.data);
@@ -90,7 +94,7 @@ const Profile = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/upload-profile-picture',
+        `${endpoint}/upload-profile-picture`,
         { profilePicture: base64Image },
         {
           headers: {
@@ -115,7 +119,7 @@ const Profile = () => {
   const handleNameSave = useCallback(async () => {
     setIsLoading(true);
     try {
-      await axios.put('http://localhost:5000/api/editName', { name: newName, _id: profileData._id });
+      await axios.put(`${endpoint}/editName`, { name: newName, _id: profileData._id });
       setProfileData(prev => ({ ...prev, name: newName }));
       setIsEditingName(false);
       // Update cache with new name
@@ -132,7 +136,7 @@ const Profile = () => {
   const handlePhoneSave = useCallback(async () => {
     setIsLoading(true);
     try {
-      await axios.put('http://localhost:5000/api/editPhone', { phone: newPhone, _id: profileData._id });
+      await axios.put(`${endpoint}/editPhone`, { phone: newPhone, _id: profileData._id });
       setProfileData(prev => ({ ...prev, phone: newPhone }));
       setIsEditingPhone(false);
       // Update cache with new phone number
@@ -163,7 +167,7 @@ const Profile = () => {
         // Update existing address at index
         updatedAddresses[editingAddressIndex] = addressForm;
       }
-      await axios.put('http://localhost:5000/api/editAddress', { addresses: updatedAddresses, _id: profileData._id });
+      await axios.put(`${endpoint}/editAddress`, { addresses: updatedAddresses, _id: profileData._id });
       setProfileData(prev => ({ ...prev, addresses: updatedAddresses }));
       setIsEditingAddress(false);
       setEditingAddressIndex(null);
@@ -221,7 +225,7 @@ const Profile = () => {
     if (!addressId) return;
     setIsLoading(true);
     try {
-      const response = await axios.delete('http://localhost:5000/api/deleteAddress', {
+      const response = await axios.delete(`${endpoint}/deleteAddress`, {
         data: { userId: profileData._id, addressId },
         headers: { Authorization: `Bearer ${token}` }
       });

@@ -6,6 +6,7 @@ import {
   Leaf, Coins, CalendarDays, MapPin, User, Crop, Clock, BarChart, Wallet, Phone, Mail 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
 const CampaignDetails = () => {
   const { id } = useParams();
@@ -16,10 +17,12 @@ const CampaignDetails = () => {
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
   const [investing, setInvesting] = useState(false);
 
+  const endpoint = useSelector((state)=> state.endpoint.endpoint);
+
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/campaigns/${id}`);
+        const response = await axios.get(`${endpoint}/campaigns/${id}`);
         setCampaign(response.data);
       } catch (error) {
         console.error('Error fetching campaign details:', error);
@@ -51,14 +54,14 @@ const CampaignDetails = () => {
 
     try {
       // Update raised amount in the campaign
-      await axios.put(`http://localhost:5000/api/campaigns/${id}/raisedAmount`, {
+      await axios.put(`${endpoint}/campaigns/${id}/raisedAmount`, {
         amount: parseFloat(investmentAmount),
         userId: id,
         name: campaign.campaignTitle,
       });
       // Log the investment in the system
       await axios.post(
-        `http://localhost:5000/api/campaigns/${id}/investment`,
+        `${endpoint}/campaigns/${id}/investment`,
         { amount: parseFloat(investmentAmount) },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },

@@ -7,8 +7,12 @@ import { Link } from 'react-router-dom';
 import Loader from '../components/Loader';
 import DashboardView from './DashboardView';
 import DashboardEdit from './DashboardEdit';
+import { useSelector } from 'react-redux';
 
 const InvestorDashboard = () => {
+
+  const endpoint = useSelector(state => state.endpoint.endpoint);
+
   const [isLoading, setIsLoading] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
@@ -38,7 +42,7 @@ const InvestorDashboard = () => {
     }
     setIsLoading(true);
     try {
-      await axios.post(`http://localhost:5000/api/campaigns/refundRequest`, {
+      await axios.post(`${endpoint}/campaigns/refundRequest`, {
         Reason: refundMessage,
         investId: currentInvestmentId,
       });
@@ -65,7 +69,7 @@ const InvestorDashboard = () => {
         setIsLoading(false);
       }
       try {
-        const response = await axios.get('http://localhost:5000/api/user-campaigns', {
+        const response = await axios.get(`${endpoint}/user-campaigns`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const { campaigns: fetchedCampaigns, investments: fetchedInvestments } = response.data;
@@ -85,7 +89,7 @@ const InvestorDashboard = () => {
   const handleDeleteCampaign = useCallback(async (id) => {
     setIsLoading(true);
     try {
-      await axios.delete('http://localhost:5000/api/campaigns/deleteCampaign', { data: { id } });
+      await axios.delete(`${endpoint}/campaigns/deleteCampaign`, { data: { id } });
       setCampaigns(campaigns.filter(campaign => campaign._id !== id));
     } catch (error) {
       console.error('Error deleting campaign:', error);
@@ -144,7 +148,7 @@ const InvestorDashboard = () => {
         });
       }
 
-      await axios.put(`http://localhost:5000/api/campaigns/editCampaign/${editedCampaign._id}`, formData, {
+      await axios.put(`${endpoint}/campaigns/editCampaign/${editedCampaign._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
