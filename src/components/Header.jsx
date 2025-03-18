@@ -74,12 +74,21 @@ const Header = () => {
               <NavLink to="/shop" current={pathname} text="Shop" icon="shopping-basket" />
             </nav>
 
-            {/* Auth Section */}
+            {/* Auth and Cart Section */}
             <div className="hidden lg:flex items-center space-x-4 ml-auto">
               {isLoggedIn ? (
                 <>
                   <NotificationBell />
-                  <ProfileDropdown onLogout={handleLogout} cartItems={cartItems} />
+                  {/* Prominent Cart Icon */}
+                  <Link to="/shop/cart" className="relative p-2 hover:bg-gray-50 rounded-full transition-colors">
+                    <FaShoppingCart className="text-xl text-gray-700" />
+                    {cartItems > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        {cartItems}
+                      </span>
+                    )}
+                  </Link>
+                  <ProfileDropdown onLogout={handleLogout} />
                 </>
               ) : (
                 <>
@@ -113,28 +122,29 @@ const Header = () => {
             <MobileNavLink to="/create" text="Campaigns" current={pathname} onClose={toggleMenu} icon="hand-holding-usd" />
             <MobileNavLink to="/shop" text="Shop" current={pathname} onClose={toggleMenu} icon="shopping-basket" />
 
+            {/* Prominent Cart Link for Mobile */}
+            <Link
+              to="/shop/cart"
+              onClick={toggleMenu}
+              className="flex items-center justify-between px-4 py-4 rounded-lg text-lg text-gray-700 hover:bg-gray-50"
+            >
+              <div className="flex items-center">
+                <i className="fas fa-shopping-cart mr-3 text-emerald-600"></i>
+                <span className="font-medium text-black">Cart</span>
+              </div>
+              {cartItems > 0 && (
+                <span className="ml-auto bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {cartItems}
+                </span>
+              )}
+            </Link>
+
             <div className="h-px bg-black my-4" />
 
             {isLoggedIn ? (
               <>
                 <MobileNavLink to="/dashboard" text="Dashboard" current={pathname} onClose={toggleMenu} icon="chart-line" />
                 <MobileNavLink to="/shop/orders" text="Orders" current={pathname} onClose={toggleMenu} icon="shopping-bag" />
-                {/* Cart Link with badge */}
-                <Link
-                  to="/shop/cart"
-                  onClick={toggleMenu}
-                  className="flex items-center justify-between px-4 py-4 rounded-lg text-lg text-gray-700 hover:bg-gray-50"
-                >
-                  <div className="flex items-center">
-                    <i className="fas fa-shopping-cart mr-3 text-emerald-600"></i>
-                    <span className="font-medium text-black">Cart</span>
-                  </div>
-                  {cartItems > 0 && (
-                    <span className="ml-auto bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
-                      {cartItems}
-                    </span>
-                  )}
-                </Link>
                 <MobileNavLink to="/profile" text="Profile" current={pathname} onClose={toggleMenu} icon="user-cog" />
                 <button
                   onClick={handleLogout}
@@ -190,7 +200,7 @@ const AuthButton = ({ to, variant = 'primary', children, className = '' }) => (
   </Link>
 );
 
-const ProfileDropdown = ({ onLogout, cartItems }) => {
+const ProfileDropdown = ({ onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const toggle = useCallback(() => setIsOpen(prev => !prev), []);
@@ -239,20 +249,6 @@ const ProfileDropdown = ({ onLogout, cartItems }) => {
             >
               <i className="fas fa-shopping-bag mr-2 text-emerald-600"></i>
               Orders
-            </Link>
-            {/* Cart Link */}
-            <Link
-              to="/shop/cart"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
-            >
-              <i className="fas fa-shopping-cart mr-2 text-emerald-600"></i>
-              Cart
-              {cartItems > 0 && (
-                <span className="ml-auto bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
-                  {cartItems}
-                </span>
-              )}
             </Link>
             <Link
               to="/profile"
