@@ -74,6 +74,7 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
       reviews,
       deliveryTime,
       tags,
+      isAvailable,
       variants,
       description,
       ingredients,
@@ -103,6 +104,7 @@ itemRouter.post("/add", upload.array("images", 10), async (req, res) => {
       farmName,
       weights: parsedWeights,
       isOrganic: isOrganic === "true", // converting string to boolean
+      isAvailable: isAvailable === "true", // converting string to boolean
       rating: Number(rating),
       reviews: parsedReviews,
       deliveryTime,
