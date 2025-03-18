@@ -24,15 +24,17 @@ const StorePage = () => {
     const fetchNumber = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`${endpoint}/cart`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCartItems(response.data.data.length);
+        if (token) {
+          const response = await axios.get(`${endpoint}/cart`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setCartItems(response.data.data.length);
+        }
       } catch (error) {
         console.error('Error fetching cart items:', error);
       }
     };
-    
+
     fetchNumber();
   }, []);
 
@@ -81,7 +83,7 @@ const StorePage = () => {
         const brand = product.brand?.toLowerCase() || '';
         const category = product.category?.toLowerCase() || '';
         const farmName = product.farmName?.toLowerCase() || '';
-        
+
         if (
           !name.includes(query) &&
           !brand.includes(query) &&
@@ -117,7 +119,7 @@ const StorePage = () => {
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                 />
               </div>
-              <Link 
+              <Link
                 to="/shop/cart"
                 className="p-2 relative text-gray-700 hover:text-green-700 transition-colors"
               >
@@ -143,11 +145,10 @@ const StorePage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleCategoryClick(category)}
-              className={`px-4 py-2 rounded-full font-medium transition-colors ${
-                selectedCategory === category
+              className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedCategory === category
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               {category}
             </motion.button>
@@ -186,7 +187,7 @@ const StorePage = () => {
         )}
 
         {/* Quality Assurance */}
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -210,7 +211,7 @@ const StorePage = () => {
                 text: "30-day satisfaction guarantee"
               }
             ].map((feature, idx) => (
-              <motion.div 
+              <motion.div
                 key={idx}
                 whileHover={{ y: -5 }}
                 className="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"

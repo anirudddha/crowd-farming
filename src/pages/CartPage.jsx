@@ -31,17 +31,22 @@ const CartPage = () => {
       const response = await axios.get(endPoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const transformedItems = response.data.data.map(item => ({
-        id: item._id,
-        image: item.images[0],
-        title: item.name,
-        size: item.size,
-        description: `${item.farmName} - ${item.category}`,
-        price: item.price,
-        quantity: item.quantity,
-        origin: "",
-        harvestDate: "",
-      }));
+      // console.log(response);
+      const transformedItems = response.data.data.map(item => {
+        const variant = item.variants.find(v => v.size=== item.size);
+
+        return {
+          id: item._id,
+          image: item.images[0],
+          title: item.name,
+          size: item.size,
+          description: `${item.farmName} - ${item.category}`,
+          price: variant? variant.price: item.price,
+          quantity: item.quantity,
+          origin: "",
+          harvestDate: "",
+        };
+      });
       setCartItems(transformedItems);
       localStorage.setItem('cachedCartItems', JSON.stringify(transformedItems));
     } catch (error) {
@@ -171,6 +176,7 @@ const CartPage = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Organic Basket</h1>
             <p className="text-gray-600">Review your selection of farm-fresh produce</p>
           </div>
+          {/* <button onClick={()=>{console.log(cartItems)}}>hello</button> */}
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Cart Items Section */}
             <div className="lg:col-span-2 space-y-6">
@@ -238,11 +244,11 @@ const CartPage = () => {
                               </div>
                             )}
                             <div className="text-sm text-gray-600">
-                              ${item.price.toFixed(2)} / unit
+                            <span>&#8377;</span>{item.price.toFixed(2)} / unit
                             </div>
                           </div>
                           <span className="text-lg font-medium text-emerald-600">
-                            ${(item.price * item.quantity).toFixed(2)}
+                          <span>&#8377;</span>{(item.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -289,7 +295,7 @@ const CartPage = () => {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal ({cartItems.length} items)</span>
-                    <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium text-gray-900"><span>&#8377;</span>{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
@@ -298,19 +304,19 @@ const CartPage = () => {
                         {subtotal > 75 ? 'FREE' : 'Standard'}
                       </span>
                     </div>
-                    <span className="font-medium text-gray-900">${shipping.toFixed(2)}</span>
+                    <span className="font-medium text-gray-900"><span>&#8377;</span>{shipping.toFixed(2)}</span>
                   </div>
                   {subtotal <= 75 && (
                     <div className="bg-emerald-50 p-3 rounded-lg text-center">
                       <p className="text-sm text-emerald-700">
-                        Spend ${(75 - subtotal).toFixed(2)} more for free shipping!
+                        Spend <span>&#8377;</span>{(75 - subtotal).toFixed(2)} more for free shipping!
                       </p>
                     </div>
                   )}
                   <div className="pt-4 border-t">
                     <div className="flex justify-between">
                       <span className="font-semibold text-gray-900">Total</span>
-                      <span className="font-semibold text-emerald-600">${total.toFixed(2)}</span>
+                      <span className="font-semibold text-emerald-600"><span>&#8377;</span>{total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
