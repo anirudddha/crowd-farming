@@ -152,8 +152,9 @@ const Profile = () => {
   // Save address form data – either update an existing address or add a new one.
   const handleAddressSave = useCallback(async () => {
     // Validate required fields (except landmark)
-    const { street, city, state, zipcode, country, phone } = addressForm;
-    if (!street || !city || !state || !zipcode || !country || !phone) {
+    console.log(addressForm);
+    const {name, street, city, state, zipcode, country, phone } = addressForm;
+    if (!name || !street || !city || !state || !zipcode || !country || !phone) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -454,6 +455,15 @@ const Profile = () => {
                     </h3>
                     <div className="grid grid-cols-1 gap-4">
                       <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Name</label>
+                          <input
+                            value={addressForm.name}
+                            onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            placeholder="Enter your name"
+                          />
+                        </div>
                         <div>
                           <label className="text-sm font-medium text-gray-700">Street Address</label>
                           <input
