@@ -12,7 +12,8 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import toast, { Toaster } from 'react-hot-toast';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import {setNumber} from '../redux/globalStates'
 
 const defaultAddressForm = {
   street: '',
@@ -27,6 +28,7 @@ const defaultAddressForm = {
 const CheckoutPage = () => {
 
   const endpoint = useSelector((state)=> state.endpoint.endpoint);
+  const dispatch = useDispatch();
 
   const navigate = useNavigate();
   // --- Cart Items State & Fetching ---
@@ -197,6 +199,7 @@ const CheckoutPage = () => {
       // Clear the cart state
       setCartItems([]);
       // Redirect to the orders page
+      dispatch(setNumber(0));
       navigate('/shop/orders');
     } catch (error) {
       console.error("Error placing order:", error);
