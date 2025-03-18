@@ -8,8 +8,12 @@ import Loader from '../components/Loader';
 import { 
   FiSearch, FiFilter, FiChevronDown, FiChevronLeft, FiChevronRight 
 } from 'react-icons/fi';
+import { useSelector } from 'react-redux';
 
 const FarmListings = () => {
+
+  const endpoint = useSelector(state=> state.endpoint.endpoint);
+
   const [farms, setFarms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -76,7 +80,7 @@ const FarmListings = () => {
       setLoading(false);
     }
     try {
-      const response = await axios.get(`http://localhost:5000/api/campaigns`, {
+      const response = await axios.get(`${endpoint}/campaigns`, {
         params: {
           page: pageNum,
           limit: 10,
@@ -100,7 +104,7 @@ const FarmListings = () => {
 
   const fetchAllOptions = useCallback(async (field) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
+      const response = await axios.get(`${endpoint}/campaigns/filters/options`, {
         params: { field },
       });
       setFilterOptions((prev) => ({ ...prev, [field]: response.data }));
@@ -116,7 +120,7 @@ const FarmListings = () => {
 
       if (value) {
         try {
-          const response = await axios.get(`http://localhost:5000/api/campaigns/filters/options`, {
+          const response = await axios.get(`${endpoint}/campaigns/filters/options`, {
             params: { field: name, term: value },
           });
           setFilterOptions((prev) => ({ ...prev, [name]: response.data }));
@@ -148,7 +152,7 @@ const FarmListings = () => {
   const handleNextPage = useCallback(async () => {
     const nextPage = page + 1;
     try {
-      const response = await axios.get(`http://localhost:5000/api/campaigns`, {
+      const response = await axios.get(`${endpoint}/campaigns`, {
         params: {
           page: nextPage,
           limit: 10,

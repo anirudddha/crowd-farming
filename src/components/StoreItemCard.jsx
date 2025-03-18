@@ -6,11 +6,15 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
-const endPoint = "http://localhost:5000/api/cart";
+
 
 const StoreItemCard = ({ item }) => {
-  console.log(item);
+
+  const endpoint = useSelector(state=>state.endpoint.endPoint);
+
+  // console.log(item);
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
@@ -25,7 +29,7 @@ const StoreItemCard = ({ item }) => {
     try {
       console.log("selected variant =", selectedVariant, typeof selectedVariant);
       const response = await axios.post(
-        endPoint,
+        `${endpoint}/cart`,
         {
           itemId: id,
           size: selectedVariant.size,

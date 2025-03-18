@@ -5,8 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import StoreItemCard from '../components/StoreItemCard';
 import Loader from '../components/Loader'; // Import your loader component
 import axios from 'axios';
+import { useSelector } from 'react-redux';
 
 const StorePage = () => {
+
+  const endpoint = useSelector(state => state.endpoint.endpoint);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [items, setItems] = useState([]);
@@ -20,8 +24,7 @@ const StorePage = () => {
     const fetchNumber = async () => {
       try {
         const token = localStorage.getItem('token');
-        const endPoint = 'http://localhost:5000/api/cart';
-        const response = await axios.get(endPoint, {
+        const response = await axios.get(`${endpoint}/cart`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCartItems(response.data.data.length);
@@ -42,7 +45,7 @@ const StorePage = () => {
       setIsLoading(false);
     }
 
-    axios.get('http://localhost:5000/api/items')
+    axios.get(`${endpoint}/items`)
       .then(response => {
         // Extract the items array from the API response
         const fetchedItems = response.data.response;

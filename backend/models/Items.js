@@ -8,14 +8,21 @@ const ReviewSchema = new mongoose.Schema(
     email: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
   },
-  { _id: false } // No separate _id for each review
+  { _id: false }
 );
 
-// Update images field to store Cloudinary-specific data
 const ImageSchema = new mongoose.Schema(
   {
     url: { type: String, required: true },
     public_id: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const FAQSchema = new mongoose.Schema(
+  {
+    question: { type: String, required: true },
+    answer: { type: String, required: true },
   },
   { _id: false }
 );
@@ -42,8 +49,14 @@ const ItemSchema = new mongoose.Schema(
         originalPrice: { type: Number },
       },
     ],
-    images: { type: [ImageSchema] }, // Now each image has a URL and a public_id
-    reviews: [ReviewSchema], // Nested schema for reviews
+    images: { type: [ImageSchema] },
+    reviews: [ReviewSchema],
+    description: { type: String, required: true },
+    ingredients: { type: [String], default: [] },
+    usageInfo: { type: [String], default: [] }, // Updated to an array of strings
+    benefits: { type: [String], default: [] },  // Updated to an array of strings
+    storageInfo: { type: String },
+    faq: { type: [FAQSchema], default: [] },
   },
   { timestamps: true }
 );

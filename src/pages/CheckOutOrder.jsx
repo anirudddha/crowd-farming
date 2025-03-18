@@ -12,6 +12,7 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import toast, { Toaster } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
 const defaultAddressForm = {
   street: '',
@@ -24,11 +25,14 @@ const defaultAddressForm = {
 };
 
 const CheckoutPage = () => {
+
+  const endpoint = useSelector((state)=> state.endpoint.endpoint);
+
   const navigate = useNavigate();
   // --- Cart Items State & Fetching ---
   const [cartItems, setCartItems] = useState([]);
   const token = localStorage.getItem('token');
-  const cartEndpoint = "http://localhost:5000/api/cart";
+  const cartEndpoint = `${endpoint}/cart`;
 
   const fetchCartItems = useCallback(async () => {
     try {
@@ -67,7 +71,7 @@ const CheckoutPage = () => {
 
   const fetchProfile = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/user-profile', {
+      const response = await axios.get(`${endpoint}/user-profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileData(response.data);
@@ -113,7 +117,7 @@ const CheckoutPage = () => {
         updatedAddresses[editingAddressIndex] = addressForm;
       }
       await axios.put(
-        'http://localhost:5000/api/editAddress',
+        `${endpoint}/editAddress`,
         { addresses: updatedAddresses, _id: profileData._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -175,7 +179,7 @@ const CheckoutPage = () => {
     try {
       setIsPlacingOrder(true);
       const response = await axios.post(
-        'http://localhost:5000/api/orders',
+        `${endpoint}/orders`,
         { order },
         { headers: { Authorization: `Bearer ${token}` } }
       );

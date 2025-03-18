@@ -2,17 +2,21 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { ShieldCheck, Truck, Sprout, XCircle, Loader } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 // Helper function to return a promise that resolves after a given time (ms)
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const CartPage = () => {
+
+  const endpoint = useSelector((state)=>state.endpoint.endpoint);
+
   const token = localStorage.getItem('token');
   const [cartItems, setCartItems] = useState([]);
   const [itemToDelete, setItemToDelete] = useState(null);
   // Loading state for quantity update operations per item (key: id_size)
   const [loadingItems, setLoadingItems] = useState({});
-  const endPoint = "http://localhost:5000/api/cart";
+  const endPoint = `${endpoint}/cart`;
 
   const navigate = useNavigate();
 
