@@ -2,12 +2,16 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaShoppingCart } from 'react-icons/fa';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { setNumber } from '../redux/globalStates';
+
 
 const Header = () => {
 
   const endpoint = useSelector(state=> state.endpoint.endpoint);
   const cartNumber = useSelector(state=>state.cartCount.count);
+  const dispatch = useDispatch();
+
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,6 +21,30 @@ const Header = () => {
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem('token'));
   }, [pathname]);
+
+  // Fetch cart items from localStorage on component mount
+  useEffect(() => {
+    const fetchNumber = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const response = await axios.get(`${endpoint}/cart`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // console.log(response.data.data)
+          let count = 0;
+          response.data.data.map((a) => {
+            count += a.quantity;
+          })
+          dispatch(setNumber(count));
+        }
+      } catch (error) {
+        console.error('Error fetching cart items:', error);
+      }
+    };
+
+    fetchNumber();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');

@@ -6,11 +6,9 @@ import StoreItemCard from '../components/StoreItemCard';
 import Loader from '../components/Loader'; // Import your loader component
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { setNumber } from '../redux/globalStates';
 
 const StorePage = () => {
 
-  const dispatch = useDispatch();
   const cartItemNumber = useSelector(state => state.cartCount.count);
 
   // console.log(cartItemNumber)
@@ -23,29 +21,7 @@ const StorePage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
 
-  // Fetch cart items from localStorage on component mount
-  useEffect(() => {
-    const fetchNumber = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const response = await axios.get(`${endpoint}/cart`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          console.log(response.data.data)
-          let count = 0;
-          response.data.data.map((a) => {
-            count += a.quantity;
-          })
-          dispatch(setNumber(count));
-        }
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-      }
-    };
-
-    fetchNumber();
-  }, []);
+  
 
   // Check for cached data in localStorage and then fetch updated data
   useEffect(() => {
