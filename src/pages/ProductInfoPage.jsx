@@ -2,15 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { FiStar, FiShoppingCart, FiClock, FiPackage, FiEdit3 } from 'react-icons/fi';
 import { FaLeaf } from 'react-icons/fa';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Loader from '../components/Loader';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { increase } from '../redux/globalStates';
 
 const ProductPage = () => {
 
   const endpoint = useSelector(state => state.endpoint.endpoint);
+  const dispatch = useDispatch();
 
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -76,7 +78,16 @@ const ProductPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      toast.success("Item added to cart!");
+      dispatch(increase());
+      toast.success(
+        <div className="flex items-center gap-2">
+          <span>Item added to cart!</span>
+          <Link to="/shop/cart" style={{ color: '#00b4d8', fontWeight: 'bold' }} className="flex items-center gap-1">
+            <span>View Cart</span> <FiShoppingCart />
+          </Link>
+        </div>
+      );
+
     } catch (e) {
       console.error(e);
       toast.error("Failed to add item to cart.");

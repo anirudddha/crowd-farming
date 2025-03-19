@@ -44,7 +44,7 @@ const Header = () => {
     };
 
     fetchNumber();
-  }, []);
+  }, [cartNumber]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');

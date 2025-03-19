@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { ShieldCheck, Truck, Sprout, XCircle, Loader } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { decrease, increase } from '../redux/globalStates';
 
 // Helper function to return a promise that resolves after a given time (ms)
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -10,6 +11,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const CartPage = () => {
 
   const endpoint = useSelector((state)=>state.endpoint.endpoint);
+  const dispatch = useDispatch();
 
   const token = localStorage.getItem('token');
   const [cartItems, setCartItems] = useState([]);
@@ -75,10 +77,12 @@ const CartPage = () => {
         data: { itemId: id }
       });
       console.log(response);
+      dispatch(decrease());
       setCartItems(prevItems => prevItems.filter(item => item.id !== id));
     } catch (e) {
       console.error(e);
     }
+    
   }, [token]);
 
   // Handler for decreasing item quantity with loader that lasts at least 1 sec
@@ -106,6 +110,7 @@ const CartPage = () => {
         }, {
           headers: { Authorization: `Bearer ${token}` }
         }),
+        dispatch(decrease()),
         delay(400)
       ]);
     } catch (e) {
@@ -138,6 +143,7 @@ const CartPage = () => {
         }, {
           headers: { Authorization: `Bearer ${token}` }
         }),
+        dispatch(increase()),
         delay(400)
       ]);
     } catch (e) {
