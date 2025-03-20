@@ -27,13 +27,12 @@ const AppRoutes = () => {
       <Route path="/signup" element={<Signup />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path='/shop' element={<StorePage />} />
-      <Route path='/shop/cart' element={<CartPage />} />
 
       {/* for testing purpose */}
       <Route path="/shop/itemInfo/:id" element={<ProductInfoPage />} />
       <Route path="/shop/orders" element={<OrdersPage />} />
       <Route path="/shop/cart/checkOut" element={<CheckOutOrder />} />
-      
+
       {/* Protected Routes */}
       <Route
         path="/create"
@@ -43,6 +42,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path='/shop/cart'
+        element={
+          <ProtectedRoute>
+            <CartPage />
+          </ProtectedRoute>}
+      />
+
       <Route
         path="/dashboard"
         element={
