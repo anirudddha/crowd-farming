@@ -16,11 +16,13 @@ import CartPage from '../pages/CartPage';
 import ProductInfoPage from '../pages/ProductInfoPage';
 import OrdersPage from '../pages/OrdersPage';
 import CheckOutOrder from '../pages/CheckOutOrder';
+import GoogleSigninPage from '../pages/GoogleSigninPage';
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/google-login" element={<GoogleSigninPage />} />
       <Route path="/farms" element={<FarmListings />} />
       <Route path="/campaign/:id" element={<CampaignDetails />} />
       <Route path="/login" element={<Login />} />

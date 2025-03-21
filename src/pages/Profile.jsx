@@ -265,7 +265,7 @@ const Profile = () => {
                 <div className="p-1 bg-white rounded-full">
                   <img
                     className="w-32 h-32 rounded-full object-cover border-4 border-white"
-                    src={preview || '/default-profile.png'}
+                    src={`${preview}`}
                     alt="Profile"
                   />
                 </div>
