@@ -2,6 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const admin = require('./firebaseAdmin'); 
+
 require('dotenv').config();
 const router = express.Router();
 
@@ -69,6 +71,41 @@ router.post('/login', async (req, res) => {
 // Logout Route
 router.post('/logout', (req, res) => {
   res.clearCookie('token').json({ message: 'Logged out successfully!' });
+});
+
+router.post('/google-signin', async (req, res) => {
+  const { idToken } = req.body;
+
+  try {
+    // Verify Firebase ID Token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { email, name, picture, uid, phone_number } = decodedToken;
+    // console.log(phone_number);
+    // const phoneno = phone_number ||"";
+    // console.log(typeof phoneno);
+
+    // Check if user exists in MongoDB
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        email,
+        name,
+        profilePicture: picture,
+        phone: phone_number ? phone_number : undefined,
+        addresses: [],
+        googleId: uid, // Save the Google UID
+      });
+      await user.save();
+    }
+
+    // Generate JWT for session management
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
+    res.status(200).json({ message: 'Login successful', token, user });
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
+    res.status(401).json({ error: 'Invalid Google authentication' });
+  }
 });
 
 module.exports = router;
