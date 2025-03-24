@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import FarmCard from '../components/FarmCard'; // Ensure FarmCard is wrapped with React.memo
+import FarmCard from '../components/FarmCard';
 import '../styles/FarmListings.css';
 import Loader from '../components/Loader';
 import { 
@@ -11,37 +11,30 @@ import {
 import { useSelector } from 'react-redux';
 
 const FarmListings = () => {
-
   const endpoint = useSelector(state=> state.endpoint.endpoint);
 
-  const [farms, setFarms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-
-  // Separately track filter inputs and applied filters
+  // Removed projectNeeds and expectedReturns from the filters
   const [filterInputs, setFilterInputs] = useState({
     farmLocation: '',
     cropTypes: '',
     farmingMethods: '',
-    projectNeeds: '',
-    expectedReturns: '',
   });
 
   const [appliedFilters, setAppliedFilters] = useState({
     farmLocation: '',
     cropTypes: '',
     farmingMethods: '',
-    projectNeeds: '',
-    expectedReturns: '',
   });
 
   const [filterOptions, setFilterOptions] = useState({
     farmLocation: [],
     cropTypes: [],
     farmingMethods: [],
-    projectNeeds: [],
-    expectedReturns: [],
   });
+
+  const [farms, setFarms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   // Ref for the entire filters container
   const filtersContainerRef = useRef(null);
@@ -54,8 +47,6 @@ const FarmListings = () => {
           farmLocation: [],
           cropTypes: [],
           farmingMethods: [],
-          projectNeeds: [],
-          expectedReturns: [],
         });
       }
     };
@@ -96,7 +87,7 @@ const FarmListings = () => {
     } finally {
       setLoading(false);
     }
-  }, [appliedFilters, cacheKey]);
+  }, [appliedFilters, cacheKey, endpoint]);
 
   useEffect(() => {
     fetchFarms(page);
@@ -111,7 +102,7 @@ const FarmListings = () => {
     } catch (error) {
       console.error(`Error fetching all options for ${field}:`, error);
     }
-  }, []);
+  }, [endpoint]);
 
   const handleInputChange = useCallback(
     async (e) => {
@@ -131,7 +122,7 @@ const FarmListings = () => {
         await fetchAllOptions(name);
       }
     },
-    [fetchAllOptions]
+    [fetchAllOptions, endpoint]
   );
 
   const handleSelectOption = useCallback((name, value) => {
@@ -167,7 +158,7 @@ const FarmListings = () => {
     } catch (error) {
       console.error("Error fetching next page:", error);
     }
-  }, [page, appliedFilters]);
+  }, [page, appliedFilters, endpoint]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -195,7 +186,11 @@ const FarmListings = () => {
                 <FiChevronDown className="absolute right-3 top-3.5 h-5 w-5 text-gray-400" />
               </div>
               {filterOptions[filterKey].length > 0 && (
-                <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <ul 
+                  className={`absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg ${
+                    filterOptions[filterKey].length > 5 ? 'max-h-40 overflow-y-auto' : ''
+                  }`}
+                >
                   {filterOptions[filterKey].map((option) => (
                     <li
                       key={option}
