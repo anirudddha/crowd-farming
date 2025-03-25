@@ -161,103 +161,133 @@ const FarmListings = () => {
   }, [page, appliedFilters, endpoint]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Filters Section */}
-        <div ref={filtersContainerRef} className="lg:col-span-1 bg-white rounded-xl shadow-sm p-6 h-fit lg:sticky lg:top-6">
-          <div className="flex items-center gap-2 mb-6">
-            <FiFilter className="w-5 h-5 text-emerald-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-          </div>
-          {Object.keys(filterInputs).map((filterKey) => (
-            <div key={filterKey} className="mb-4 relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                {filterKey.replace(/([A-Z])/g, ' $1').toLowerCase()}
-              </label>
-              <div className="relative">
-                <input
-                  name={filterKey}
-                  value={filterInputs[filterKey]}
-                  onChange={handleInputChange}
-                  placeholder={`Search ${filterKey.replace(/([A-Z])/g, ' $1').toLowerCase()}...`}
-                  onFocus={() => fetchAllOptions(filterKey)}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                />
-                <FiChevronDown className="absolute right-3 top-3.5 h-5 w-5 text-gray-400" />
-              </div>
-              {filterOptions[filterKey].length > 0 && (
-                <ul 
-                  className={`absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg ${
-                    filterOptions[filterKey].length > 5 ? 'max-h-40 overflow-y-auto' : ''
-                  }`}
-                >
-                  {filterOptions[filterKey].map((option) => (
-                    <li
-                      key={option}
-                      onClick={() => handleSelectOption(filterKey, option)}
-                      className="px-4 py-2.5 hover:bg-emerald-50 cursor-pointer text-sm text-gray-700 transition-colors"
-                    >
-                      {option}
-                    </li>
-                  ))}
-                </ul>
-              )}
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Agricultural Investment Opportunities</h1>
+          <div className="flex items-center text-sm text-gray-500">
+            <span>Showing {farms.length} results</span>
+            <span className="mx-2">•</span>
+            <div className="flex items-center">
+              <span className="mr-2">Sorted by:</span>
+              <select className="bg-transparent border-0 text-gray-700 font-medium">
+                <option>Newest First</option>
+                <option>Funding Progress</option>
+                <option>Return Potential</option>
+              </select>
             </div>
-          ))}
-          <button
-            onClick={applyFilters}
-            className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition-all flex items-center justify-center gap-2"
-          >
-            <FiSearch className="w-5 h-5" />
-            Apply Filters
-          </button>
+          </div>
         </div>
 
-        {/* Farms Listing */}
-        <div className="lg:col-span-3">
-          {loading ? (
-            <div className="flex items-center justify-center h-96">
-              <Loader />
-            </div>
-          ) : farms.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {farms.map((farm) => (
-                  <FarmCard key={farm._id} farm={farm} />
-                ))}
+        {/* Filters Row */}
+        <div ref={filtersContainerRef} className="mb-8 border-b border-gray-200 pb-6">
+          <div className="flex flex-wrap gap-4 items-center">
+            {Object.keys(filterInputs).map((filterKey) => (
+              <div key={filterKey} className="relative">
+                <div className="relative w-48">
+                  <input
+                    name={filterKey}
+                    value={filterInputs[filterKey]}
+                    onChange={handleInputChange}
+                    placeholder={filterKey.replace(/([A-Z])/g, ' $1')}
+                    onFocus={() => fetchAllOptions(filterKey)}
+                    className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-green-600 focus:border-green-600 outline-none"
+                  />
+                  <FiChevronDown className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                  {filterOptions[filterKey].length > 0 && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                      {filterOptions[filterKey].map((option) => (
+                        <div
+                          key={option}
+                          onClick={() => handleSelectOption(filterKey, option)}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          {option}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="mt-8 flex items-center justify-end gap-4">
-                <button
-                  onClick={handlePreviousPage}
-                  disabled={page === 1}
-                  className={`px-4 py-2 rounded-lg font-medium ${
-                    page === 1 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  } transition-all flex items-center gap-2`}
-                >
-                  <FiChevronLeft className="w-5 h-5" />
-                  Previous
-                </button>
-                <span className="text-gray-600 font-medium">Page {page}</span>
-                <button
-                  onClick={handleNextPage}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all flex items-center gap-2"
-                >
-                  Next
-                  <FiChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-96 text-center">
-              <div className="text-6xl text-gray-300 mb-4">🌱</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No farms found</h3>
-              <p className="text-gray-500">Try adjusting your filters or check back later.</p>
-            </div>
-          )}
+            ))}
+            <button
+              onClick={applyFilters}
+              className="ml-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center"
+            >
+              <FiSearch className="mr-2" />
+              Apply Filters
+            </button>
+          </div>
         </div>
+
+        {/* Content Area */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl p-4 border border-gray-200 animate-pulse">
+                <div className="h-48 bg-gray-100 rounded-lg mb-4" />
+                <div className="h-4 bg-gray-100 rounded mb-3 w-3/4" />
+                <div className="h-4 bg-gray-100 rounded mb-3 w-1/2" />
+                <div className="h-4 bg-gray-100 rounded w-2/3" />
+              </div>
+            ))}
+          </div>
+        ) : farms.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {farms.map((farm) => (
+                <FarmCard 
+                  key={farm._id}
+                  farm={farm}
+                  className="border border-gray-200 hover:border-green-100 hover:shadow-lg transition-all rounded-xl overflow-hidden"
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="mt-12 flex items-center justify-center space-x-2">
+              <button
+                onClick={handlePreviousPage}
+                disabled={page === 1}
+                className={`p-2.5 rounded-lg ${
+                  page === 1 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                } transition-colors border border-gray-200`}
+              >
+                <FiChevronLeft className="w-5 h-5" />
+              </button>
+              <div className="flex items-center space-x-1">
+                <span className="px-3 py-2 text-sm text-gray-600">Page {page}</span>
+              </div>
+              <button
+                onClick={handleNextPage}
+                className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+              >
+                <FiChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="mb-6 text-green-600">
+              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No matching results</h3>
+            <p className="text-gray-600 mb-6">Try adjusting your search parameters</p>
+            <button
+              onClick={() => setAppliedFilters({})}
+              className="px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
       </div>
+
       <ToastContainer
         position="bottom-right"
         autoClose={3000}
@@ -265,6 +295,7 @@ const FarmListings = () => {
         newestOnTop
         closeOnClick
         theme="colored"
+        toastClassName="rounded-lg border border-gray-200"
       />
     </div>
   );
