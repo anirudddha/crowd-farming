@@ -1,23 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { 
-  Leaf, Coins, CalendarDays, MapPin, User, Crop, Clock, BarChart, Wallet, Phone, Mail 
+import {
+  Leaf, Coins, CalendarDays, MapPin, User, Crop, Clock, BarChart, Wallet, Phone, Mail
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 const CampaignDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [investmentAmount, setInvestmentAmount] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
-  const [investing, setInvesting] = useState(false);
 
-  const endpoint = useSelector((state)=> state.endpoint.endpoint);
+
+  const endpoint = useSelector((state) => state.endpoint.endpoint);
 
   useEffect(() => {
     const fetchCampaignDetails = async () => {
@@ -31,57 +31,16 @@ const CampaignDetails = () => {
       }
     };
     fetchCampaignDetails();
-  }, [id]);
+  }, [id, endpoint]);
 
-  const handleInvest = async (e) => {
-    e.preventDefault();
+  const handleInvestNow = () => {
+    // Pass along campaign details via navigation state.
+    navigate('invest', { state: { campaign } });
+  };
 
-    // Validate investment amount
-    if (parseInt(investmentAmount, 10) < parseInt(campaign.minInvestment, 10)) {
-      toast.error(`Minimum investment of ₹${campaign.minInvestment} is required`);
-      return;
-    }
-    const raised = parseInt(campaign.raisedAmount, 10);
-    const goal = parseInt(campaign.fundingGoal, 10);
-    const invest = parseInt(investmentAmount, 10);
-    if (raised + invest > goal) {
-      toast.error(`This amount exceeds the campaign goal of ₹${campaign.fundingGoal}`);
-      return;
-    }
-
-    // Start investing loader
-    setInvesting(true);
-
-    try {
-      // Update raised amount in the campaign
-      await axios.put(`${endpoint}/campaigns/${id}/raisedAmount`, {
-        amount: parseFloat(investmentAmount),
-        userId: id,
-        name: campaign.campaignTitle,
-      });
-      // Log the investment in the system
-      await axios.post(
-        `${endpoint}/campaigns/${id}/investment`,
-        { amount: parseFloat(investmentAmount) },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
-      toast.success('Investment successful!');
-      // Optionally, update the campaign's raised amount in state
-      setCampaign((prev) => ({
-        ...prev,
-        raisedAmount: parseFloat(prev.raisedAmount) + parseFloat(investmentAmount),
-      }));
-      setInvestmentAmount('');
-      setIsInvestModalOpen(true); // if you want to show a modal on success
-    } catch (error) {
-      console.error('Error investing:', error);
-      toast.error(error.response?.data?.message || 'Investment failed');
-    } finally {
-      // End investing loader
-      setInvesting(false);
-    }
+  const handleContactUs = () => {
+    // Redirect to a contact page or open a modal (here we assume a route exists)
+    navigate('/contact', { state: { campaignId: id, campaignTitle: campaign.campaignTitle } });
   };
 
   if (loading) {
@@ -111,7 +70,7 @@ const CampaignDetails = () => {
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="grid lg:grid-cols-2 gap-12"
@@ -119,8 +78,8 @@ const CampaignDetails = () => {
           {/* Image Gallery */}
           <div className="space-y-6">
             <div className="aspect-square rounded-3xl overflow-hidden shadow-xl">
-              <img 
-                src={campaign.visuals[selectedImage].url} 
+              <img
+                src={campaign.visuals[selectedImage].url}
                 className="w-full h-full object-cover transform transition-transform duration-300 hover:scale-105"
                 alt="Main campaign visual"
               />
@@ -129,16 +88,15 @@ const CampaignDetails = () => {
               {campaign.visuals.map((visual, index) => (
                 <button
                   key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`flex-shrink-0 w-24 h-24 mt-2 ml-2 rounded-xl overflow-hidden border-2 transition-all ${
-                    selectedImage === index 
-                      ? 'border-emerald-600 scale-110' 
+                  onClick={() => { setSelectedImage(index)}}
+                  className={`flex-shrink-0 w-24 h-24 mt-2 ml-2 rounded-xl overflow-hidden border-2 transition-all ${selectedImage === index 
+                      ? 'border-emerald-600 scale-110'
                       : 'border-gray-200 hover:border-emerald-400'
-                  }`}
+                    }`}
                 >
-                  <img 
-                    src={visual.url} 
-                    className="w-full h-full object-cover" 
+                  <img
+                    src={visual.url}
+                    className="w-full h-full object-cover"
                     alt={`Campaign visual ${index + 1}`}
                   />
                 </button>
@@ -148,7 +106,7 @@ const CampaignDetails = () => {
 
           {/* Campaign Details */}
           <div className="space-y-8">
-            <motion.div 
+            <motion.div
               initial={{ y: 20 }}
               animate={{ y: 0 }}
               className="bg-white rounded-3xl p-8 shadow-xl border border-emerald-100"
@@ -164,17 +122,17 @@ const CampaignDetails = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-emerald-700">Funding Progress</span>
                     <span className="text-sm text-emerald-600">
-                    ₹{campaign.raisedAmount} raised of ₹{campaign.fundingGoal}
+                      ₹{campaign.raisedAmount} raised of ₹{campaign.fundingGoal}
                     </span>
                   </div>
                   <div className="h-3 bg-emerald-100 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-emerald-500 to-teal-500"
                       style={{ width: `${Math.min((campaign.raisedAmount / campaign.fundingGoal) * 100, 100)}%` }}
                     />
                   </div>
                 </div>
-
+                
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-emerald-50 p-4 rounded-xl">
@@ -195,45 +153,21 @@ const CampaignDetails = () => {
                   </div>
                 </div>
 
-                {/* Investment Form */}
-                {campaign.raisedAmount < campaign.fundingGoal ? (
-                  <motion.form 
-                    onSubmit={handleInvest}
-                    className="space-y-4"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                {/* Two Action Buttons */}
+                <div className="flex gap-4 mt-8">
+                  <button
+                    onClick={handleInvestNow}
+                    className="flex-1 py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all transform hover:scale-[1.02] shadow-lg"
                   >
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={investmentAmount}
-                        onChange={(e) => setInvestmentAmount(e.target.value)}
-                        placeholder="Enter investment amount"
-                        className="w-full pl-12 pr-6 py-4 bg-white border-2 border-emerald-100 rounded-xl focus:border-emerald-500 focus:ring-0 text-emerald-900"
-                      />
-                      <span className="absolute left-4 top-4 text-emerald-600">₹</span>
-                    </div>
-                    <button
-                      type="submit" 
-                      disabled={investing}
-                      className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all transform hover:scale-[1.02] shadow-lg"
-                    >
-                      {investing ? (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity }}
-                          className="h-6 w-6 mx-auto border-2 border-t-transparent border-white rounded-full"
-                        />
-                      ) : (
-                        'Invest Now'
-                      )}
-                    </button>
-                  </motion.form>
-                ) : (
-                  <div className="p-4 bg-emerald-100 border border-emerald-200 rounded-xl text-center">
-                    <span className="text-emerald-700 font-medium">🎉 Campaign Fully Funded!</span>
-                  </div>
-                )}
+                    Invest Now
+                  </button>
+                  <button
+                    onClick={handleContactUs}
+                    className="flex-1 py-4 bg-white border-2 border-emerald-600 text-emerald-600 font-semibold rounded-xl transition-all transform hover:scale-[1.02] shadow-lg"
+                  >
+                    Contact Us
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -246,7 +180,7 @@ const CampaignDetails = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">
             {/* Campaign Story */}
-            <motion.section 
+            <motion.section
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="bg-white rounded-3xl p-8 shadow-xl border border-emerald-100"
@@ -259,7 +193,7 @@ const CampaignDetails = () => {
 
             {/* Farmer & Farm Details */}
             <div className="grid md:grid-cols-2 gap-8">
-              <motion.div 
+              <motion.div
                 className="bg-white rounded-3xl p-8 shadow-xl border border-emerald-100"
                 initial={{ y: 20 }}
                 animate={{ y: 0 }}
@@ -276,7 +210,7 @@ const CampaignDetails = () => {
                 </div>
               </motion.div>
 
-              <motion.div 
+              <motion.div
                 className="bg-white rounded-3xl p-8 shadow-xl border border-emerald-100"
                 initial={{ y: 20 }}
                 animate={{ y: 0 }}
@@ -298,7 +232,7 @@ const CampaignDetails = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-8">
             {/* Key Metrics */}
-            <motion.div 
+            <motion.div
               className="bg-white rounded-3xl p-8 shadow-xl border border-emerald-100"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -308,17 +242,17 @@ const CampaignDetails = () => {
                 Key Metrics
               </h3>
               <div className="space-y-4">
-                <MetricItem 
+                <MetricItem
                   title="Expected Returns"
                   value={campaign.expectedReturns}
                   icon={<span className="text-emerald-600">📈</span>}
                 />
-                <MetricItem 
+                <MetricItem
                   title="Fund Usage"
                   value={campaign.fundUsage}
                   icon={<Wallet className="w-5 h-5 text-emerald-600" />}
                 />
-                <MetricItem 
+                <MetricItem
                   title="Impact Metrics"
                   value={campaign.impactMetrics}
                   icon={<span className="text-emerald-600">🌍</span>}
@@ -327,7 +261,7 @@ const CampaignDetails = () => {
             </motion.div>
 
             {/* Timeline */}
-            <motion.div 
+            <motion.div
               className="bg-white rounded-3xl p-8 shadow-xl border border-emerald-100"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -337,12 +271,12 @@ const CampaignDetails = () => {
                 Timeline
               </h3>
               <div className="space-y-4">
-                <TimelineItem 
+                <TimelineItem
                   date={new Date(campaign.startDate)}
                   title="Campaign Launch"
                   isFirst
                 />
-                <TimelineItem 
+                <TimelineItem
                   date={new Date(campaign.endDate)}
                   title="Funding Deadline"
                   isLast

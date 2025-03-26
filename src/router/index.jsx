@@ -17,6 +17,7 @@ import ProductInfoPage from '../pages/ProductInfoPage';
 import OrdersPage from '../pages/OrdersPage';
 import CheckOutOrder from '../pages/CheckOutOrder';
 import GoogleSigninPage from '../pages/GoogleSigninPage';
+import CheckoutFarmInvestment from '../pages/CheckoutFarmInvestment';
 
 const AppRoutes = () => {
   return (
@@ -34,6 +35,7 @@ const AppRoutes = () => {
       <Route path="/shop/itemInfo/:id" element={<ProductInfoPage />} />
       <Route path="/shop/orders" element={<OrdersPage />} />
       <Route path="/shop/cart/checkOut" element={<CheckOutOrder />} />
+      <Route path="/campaign/:id/invest" element={<CheckoutFarmInvestment />} />
 
       {/* Protected Routes */}
       <Route
