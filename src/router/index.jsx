@@ -38,7 +38,7 @@ const AppRoutes = () => {
       <Route path="/shop/cart/checkOut" element={<CheckOutOrder />} />
 
       <Route path="/campaign/:id/invest" element={<CheckoutFarmInvestment />} />
-      <Route path="/invested-farm-details/:id" element={<InvestedFarmDetailsExtended />} />
+      <Route path="/invested-farm-details/:campaignId/:investmentId" element={<InvestedFarmDetailsExtended />} />
 
 
       {/* Protected Routes */}

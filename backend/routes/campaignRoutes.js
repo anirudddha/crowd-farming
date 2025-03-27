@@ -12,7 +12,8 @@ const {
   storeInvestment,
   getFilterOptions,
   refundRequest,
-  getReciept
+  getReciept,
+  getInvestmentDetails
 } = require('../controllers/campaignController');
 
 const auth = require('../middleware/userAuth');
@@ -48,6 +49,6 @@ router.get('/filters/options', getFilterOptions);
 //delete campaign
 router.delete('/deleteCampaign', deleteCampaign);
 
-
+router.get('/:id/investment-details', getInvestmentDetails);
 
 module.exports = router;

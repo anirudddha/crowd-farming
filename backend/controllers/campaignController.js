@@ -240,6 +240,26 @@ exports.storeInvestment = async (req, res) => {
   }
 };
 
+// Fetch investment details for a specific user and campaign
+exports.getInvestmentDetails = async (req, res) => {
+  const userId = req.user; // Assuming authentication middleware sets req.user
+  const id = req.params.id;
+
+  try {
+    const investment = await Investment.findOne({ _id: id });
+
+    if (!investment) {
+      return res.status(404).json({ msg: 'No investment found for this campaign' });
+    }
+
+    res.json(investment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Error fetching investment details' });
+  }
+};
+
+
 // Submit a refund request for an investment
 exports.refundRequest = async (req, res) => {
   const { Reason, investId, campaignId, userId } = req.body;

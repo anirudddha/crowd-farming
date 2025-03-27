@@ -6,24 +6,26 @@ import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 
 const InvestedFarmDetailsById = () => {
-  // Get the campaign ID from the URL
-  const { id } = useParams();
-  const endpoint = useSelector(state => state.endpoint.endpoint);
+  // Get campaignId and investmentId from the URL
+  const { campaignId, investmentId } = useParams();
+  const endpoint = useSelector((state) => state.endpoint.endpoint);
   const navigate = useNavigate();
 
-  // Local state for campaign data, timeline and loading indicator
+  // State for campaign details, timeline data and investment details
   const [campaign, setCampaign] = useState(null);
   const [timeline, setTimeline] = useState([]);
+  const [investmentDetails, setInvestmentDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch campaign details from the backend based on the id
+  // Fetch campaign details using campaignId
   useEffect(() => {
     const fetchCampaignDetails = async () => {
       try {
-        const response = await axios.get(`${endpoint}/campaigns/${id}`);
+        const response = await axios.get(`${endpoint}/campaigns/${campaignId}`);
         setCampaign(response.data);
-        // Assume your backend sends timeline data in a "timeline" field,
-        // otherwise fallback to demo timeline data.
+        console.log(response.data);
+
+        // Use timeline data if provided by backend; otherwise use demo timeline data.
         if (response.data.timeline && response.data.timeline.length > 0) {
           setTimeline(response.data.timeline);
         } else {
@@ -66,13 +68,29 @@ const InvestedFarmDetailsById = () => {
       } catch (error) {
         console.error('Error fetching campaign details:', error);
         toast.error("Failed to load campaign details.");
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchCampaignDetails();
-  }, [id, endpoint]);
+    // Fetch investment details using investmentId
+    const fetchInvestmentDetails = async () => {
+      try {
+        const response = await axios.get(`${endpoint}/campaigns/${investmentId}/investment-details`);
+        // campaigns/:id/investment-details
+        setInvestmentDetails(response.data);
+        // console.log(response.data);
+      } catch (error) {
+        console.error('Error fetching investment details:', error);
+        toast.error("Failed to load investment details.");
+      }
+    };
+
+    const fetchData = async () => {
+      await Promise.all([fetchCampaignDetails(), fetchInvestmentDetails()]);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [campaignId, investmentId, endpoint]);
 
   if (loading) {
     return (
@@ -90,15 +108,14 @@ const InvestedFarmDetailsById = () => {
     );
   }
 
-  // Calculate the share percentage based on your investment.
-  // Assume that your investment amount is stored as campaign.investedAmount.
-  // (Adjust according to your actual data.)
-  const investedAmount = campaign.investedAmount || 0;
-  const sharePercentage = campaign.fundingGoal 
-    ? ((investedAmount / parseInt(campaign.fundingGoal, 10)) * 100).toFixed(2) 
-    : 0;
+  // Determine invested amount and calculate share percentage.
+  const investedAmount = investmentDetails?.amount || 0;
+  const fundingGoal = parseInt(campaign.fundingGoal, 10) || 1;
+  const calculatedShare = ((investedAmount / fundingGoal) * 100).toFixed(2);
+//   let a = investmentDetails.amount*100/ campaign.fundingGoal;
+  const sharePercentage = investmentDetails.amount*100/ campaign.fundingGoal;
 
-  // Helper function to format dates
+  // Helper to format dates
   const formatDate = (dateStr) => {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     return new Date(dateStr).toLocaleDateString('en-US', options);
@@ -111,7 +128,7 @@ const InvestedFarmDetailsById = () => {
         animate={{ opacity: 1 }}
         className="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl border border-emerald-100 p-8"
       >
-        {/* Header: Farm & Investment Details */}
+        {/* Header: Campaign & Farm Details */}
         <div className="flex flex-col md:flex-row items-start justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-emerald-900">{campaign.campaignTitle}</h1>
@@ -125,6 +142,7 @@ const InvestedFarmDetailsById = () => {
               <span className="text-lg font-semibold text-gray-800">{campaign.farmLocation}</span>
             </div>
           </div>
+          {/* Investment Summary */}
           <div className="mt-4 md:mt-0 text-right">
             <div className="bg-emerald-100 rounded-xl p-4">
               <p className="text-sm text-gray-600">Your Investment</p>
@@ -134,6 +152,14 @@ const InvestedFarmDetailsById = () => {
               <p className="text-sm text-gray-600">Your Farm Share</p>
               <p className="text-2xl font-bold text-teal-800">{sharePercentage}%</p>
             </div>
+            {investmentDetails?.investmentDate && (
+              <div className="bg-blue-100 rounded-xl p-4 mt-4">
+                <p className="text-sm text-gray-600">Investment Date</p>
+                <p className="text-xl font-bold text-blue-800">
+                  {new Date(investmentDetails.investmentDate).toLocaleDateString()}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -165,7 +191,7 @@ const InvestedFarmDetailsById = () => {
         {/* Navigation Button */}
         <div className="mt-10 text-center">
           <button 
-            onClick={() => navigate('/investor-dashboard')}
+            onClick={() => navigate('/dashboard')}
             className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all transform hover:scale-[1.02] shadow-lg"
           >
             Back to Dashboard
