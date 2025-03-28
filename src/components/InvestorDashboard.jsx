@@ -231,6 +231,13 @@ const InvestorDashboard = () => {
                           <button onClick={() => handleDeleteCampaign(campaign._id)} className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors">
                             🗑️
                           </button>
+                          <Link
+                            to={`/add-timeline-update/${campaign._id}`}
+                            className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                          >
+                            Add Update
+                          </Link>
+
                         </div>
                       </div>
                     </div>

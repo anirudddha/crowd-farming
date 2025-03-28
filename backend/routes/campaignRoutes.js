@@ -1,6 +1,7 @@
 const express = require('express');
 const Razorpay = require("razorpay");
 
+
 const router = express.Router();
 const {
   getCampaigns,
@@ -13,7 +14,8 @@ const {
   getFilterOptions,
   refundRequest,
   getReciept,
-  getInvestmentDetails
+  getInvestmentDetails,
+  addTimelineUpdate
 } = require('../controllers/campaignController');
 
 const auth = require('../middleware/userAuth');
@@ -50,5 +52,7 @@ router.get('/filters/options', getFilterOptions);
 router.delete('/deleteCampaign', deleteCampaign);
 
 router.get('/:id/investment-details', getInvestmentDetails);
+
+router.post('/:campaignId/timeline-update', addTimelineUpdate);
 
 module.exports = router;

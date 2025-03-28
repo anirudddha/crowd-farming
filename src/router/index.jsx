@@ -19,6 +19,7 @@ import CheckOutOrder from '../pages/CheckOutOrder';
 import GoogleSigninPage from '../pages/GoogleSigninPage';
 import CheckoutFarmInvestment from '../pages/CheckoutFarmInvestment';
 import InvestedFarmDetailsExtended from '../pages/InvestedFarmDetails';
+import AddTimelineUpdate from '../pages/AddTimelineUpdate';
 
 const AppRoutes = () => {
   return (
@@ -39,6 +40,9 @@ const AppRoutes = () => {
 
       <Route path="/campaign/:id/invest" element={<CheckoutFarmInvestment />} />
       <Route path="/invested-farm-details/:campaignId/:investmentId" element={<InvestedFarmDetailsExtended />} />
+
+      <Route path="/add-timeline-update/:id" element={<AddTimelineUpdate />} />
+      
 
 
       {/* Protected Routes */}
