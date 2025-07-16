@@ -1,5 +1,6 @@
 const express = require('express');
 const Razorpay = require("razorpay");
+const upload = require('../middleware/multer'); // Import multer middleware
 
 
 const router = express.Router();
@@ -15,8 +16,9 @@ const {
   refundRequest,
   getReciept,
   getInvestmentDetails,
-  addTimelineUpdate
 } = require('../controllers/campaignController');
+
+const timelineController = require('../controllers/timelineController');
 
 const auth = require('../middleware/userAuth');
 
@@ -53,6 +55,31 @@ router.delete('/deleteCampaign', deleteCampaign);
 
 router.get('/:id/investment-details', getInvestmentDetails);
 
-router.post('/:campaignId/timeline-update', addTimelineUpdate);
+router.post(
+    '/:id/timeline-update',
+    auth, // <-- Protect this route
+    upload.array('images', 5), // 'images' is the field name, 5 is the max count
+    timelineController.addTimelineUpdate
+);
+
+// Delete a specific timeline update
+router.delete(
+    '/:campaignId/timeline-update/:updateId',
+    auth, // <-- Protect this route
+    timelineController.deleteTimelineUpdate
+);
+
+// Update a specific timeline update
+router.put(
+    '/:campaignId/timeline-update/:updateId',
+    auth,
+    timelineController.updateTimelineUpdate
+);
+
+// GET all timeline updates for a campaign
+router.get(
+    '/:id/timeline',
+    timelineController.getTimeline
+);
 
 module.exports = router;
