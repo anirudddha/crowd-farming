@@ -6,7 +6,7 @@ import CampaignDetails from '../pages/campaign/CampaignDetails';
 import CreateCampaign from '../pages/campaign/CreateCampaign';
 import Profile from '../pages/Profile';
 import InvestorDashboard from '../components/InvestorDashboard';
-import HowItWorks from '../pages/HowItWorks';
+import HowItWorks from '../pages/howItWorks/HowItWorks';
 import StorePage from '../pages/store/StorePage';
 
 import Login from '../pages/auth/Login'; // Import Login
