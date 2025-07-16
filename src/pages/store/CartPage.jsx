@@ -3,7 +3,7 @@ import { ShieldCheck, Truck, Sprout, XCircle, Loader } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { decrease, increase } from '../redux/globalStates';
+import { decrease, increase } from '../../redux/globalStates';
 
 // Helper function to return a promise that resolves after a given time (ms)
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));

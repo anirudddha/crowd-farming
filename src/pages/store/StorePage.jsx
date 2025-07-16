@@ -2,8 +2,8 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FaShoppingCart, FaHeart, FaSearch, FaTruck, FaShieldAlt, FaLeaf } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import StoreItemCard from '../components/StoreItemCard';
-import Loader from '../components/Loader'; // Import your loader component
+import StoreItemCard from '../../components/StoreItemCard';
+import Loader from '../../components/Loader'; // Import your loader component
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 

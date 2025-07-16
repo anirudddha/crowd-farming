@@ -3,11 +3,11 @@ import { FiStar, FiShoppingCart, FiClock, FiPackage, FiEdit3 } from 'react-icons
 import { FaLeaf } from 'react-icons/fa';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
-import Loader from '../components/Loader';
+import Loader from '../../components/Loader';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { increase } from '../redux/globalStates';
+import { increase } from '../../redux/globalStates';
 
 const ProductPage = () => {
 

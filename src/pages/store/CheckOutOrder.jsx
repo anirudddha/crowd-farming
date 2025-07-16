@@ -13,7 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import toast, { Toaster } from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
-import {setNumber} from '../redux/globalStates'
+import {setNumber} from '../../redux/globalStates'
 
 const defaultAddressForm = {
   street: '',
