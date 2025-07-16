@@ -11,7 +11,7 @@ import { FaLeaf } from "react-icons/fa";
 
 // Import your API service functions
 // Adjust the path to your service file if it's located elsewhere
-import * as campaignService from '../api/campaignApi';
+import * as campaignService from '../../api/campaignApi';
 
 const InvestedFarmDetailsById = () => {
   const { campaignId, investmentId } = useParams();

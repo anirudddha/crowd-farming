@@ -18,7 +18,7 @@ import {
 // Import your API service functions
 // Adjust the path to your service file as needed
 // import * as campaignService from '../services/campaignService';
-import * as campaignService from '../api/campaignApi'
+import * as campaignService from '../../api/campaignApi'
 
 const AddTimelineUpdate = () => {
   const { id } = useParams(); // This is the Campaign ID

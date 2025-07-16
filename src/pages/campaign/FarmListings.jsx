@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import FarmCard from '../components/FarmCard';
-import '../styles/FarmListings.css';
-import Loader from '../components/Loader';
+import FarmCard from '../../components/FarmCard';
+import '../../styles/FarmListings.css';
+import Loader from '../../components/Loader';
 import { 
   FiSearch, FiFilter, FiChevronDown, FiChevronLeft, FiChevronRight 
 } from 'react-icons/fi';

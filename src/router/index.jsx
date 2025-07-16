@@ -1,9 +1,9 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Home from '../pages/Home';
-import FarmListings from '../pages/FarmListings';
-import CampaignDetails from '../pages/CampaignDetails';
-import CreateCampaign from '../pages/CreateCampaign';
+import Home from '../pages/home/Home';
+import FarmListings from '../pages/campaign/FarmListings';
+import CampaignDetails from '../pages/campaign/CampaignDetails';
+import CreateCampaign from '../pages/campaign/CreateCampaign';
 import Profile from '../pages/Profile';
 import InvestorDashboard from '../components/InvestorDashboard';
 import HowItWorks from '../pages/HowItWorks';
@@ -17,9 +17,9 @@ import ProductInfoPage from '../pages/ProductInfoPage';
 import OrdersPage from '../pages/OrdersPage';
 import CheckOutOrder from '../pages/CheckOutOrder';
 import GoogleSigninPage from '../pages/GoogleSigninPage';
-import CheckoutFarmInvestment from '../pages/CheckoutFarmInvestment';
-import InvestedFarmDetailsExtended from '../pages/InvestedFarmDetails';
-import AddTimelineUpdate from '../pages/AddTimelineUpdate';
+import CheckoutFarmInvestment from '../pages/campaign/CheckoutFarmInvestment';
+import InvestedFarmDetailsExtended from '../pages/campaign/InvestedFarmDetails';
+import AddTimelineUpdate from '../pages/campaign/AddTimelineUpdate';
 
 const AppRoutes = () => {
   return (
