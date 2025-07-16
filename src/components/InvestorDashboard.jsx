@@ -86,17 +86,41 @@ const InvestorDashboard = () => {
   }, []);
 
   // Campaign Handlers
-  const handleDeleteCampaign = useCallback(async (id) => {
+  const handleDeleteCampaign = useCallback(async (campaignId) => {
+    if (!window.confirm('Are you sure you want to permanently delete this campaign?')) {
+      return;
+    }
+
     setIsLoading(true);
+
+    // Get the token directly from localStorage
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      toast.error('Authentication error. Please log in again.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await axios.delete(`${endpoint}/campaigns/deleteCampaign`, { data: { id } });
-      setCampaigns(campaigns.filter(campaign => campaign._id !== id));
+      await axios.delete(`${endpoint}/campaigns/${campaignId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      toast.success('Campaign deleted successfully!');
+      setCampaigns(campaigns.filter(campaign => campaign._id !== campaignId));
+
     } catch (error) {
-      console.error('Error deleting campaign:', error);
+      const errorMessage = error.response?.data?.msg || 'Error deleting campaign.';
+      console.error('Error deleting campaign:', error.response || error);
+      toast.error(errorMessage);
+
     } finally {
       setIsLoading(false);
     }
-  }, [campaigns]);
+  }, [campaigns, endpoint, setIsLoading, setCampaigns]);
 
   const openModal = (campaign, type) => {
     setSelectedCampaign(campaign);

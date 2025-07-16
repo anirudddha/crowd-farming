@@ -46,12 +46,11 @@ router.post('/:id/investment', auth, storeInvestment);
 // Refund
 router.post('/refundRequest', refundRequest);
 
-
 // GET dynamic filter options
 router.get('/filters/options', getFilterOptions);
 
 //delete campaign
-router.delete('/deleteCampaign', deleteCampaign);
+ router.delete('/:id',auth,deleteCampaign);
 
 router.get('/:id/investment-details', getInvestmentDetails);
 

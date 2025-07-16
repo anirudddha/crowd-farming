@@ -156,7 +156,7 @@ exports.updateCampaign = [
       }
 
       // --- AUTHORIZATION CHECK ---
-      if (campaign.userId.toString() !== req.user.id) {
+      if (campaign.userId.toString() !== req.user) {
         return res.status(403).json({ msg: 'User not authorized to update this campaign' });
       }
       
@@ -227,7 +227,7 @@ exports.deleteCampaign = async (req, res) => {
     }
 
     // --- AUTHORIZATION CHECK ---
-    if (campaign.userId.toString() !== req.user.id) {
+    if (campaign.userId.toString() !== req.user) {
         return res.status(403).json({ msg: 'User not authorized to delete this campaign' });
     }
 
