@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const CampaignRequestModel  = require('../models/CampaignRequest');
 const bcrypt = require('bcryptjs');
+const cloudinary = require('../config/cloudinary'); // Import Cloudinary config
 
 exports.createUser = async (req, res) => {
   try {
@@ -42,6 +43,7 @@ exports.updateName = async (req, res) =>{
     // res.json(error);
   }
 };
+
 exports.updateAddress = async (req, res) => {
   const { addresses, _id } = req.body; // Expecting addresses to be an array of address objects
   try {
@@ -131,5 +133,52 @@ exports.editPhone = async (req, res) => {
   } catch (error) {
     console.error("Error updating phone number:", error);
     res.status(500).json({ message: 'Error updating phone number.' });
+  }
+};
+
+
+exports.updateProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: 'No file was uploaded.' });
+    }
+
+    const user = await User.findById(req.user);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found.' });
+    }
+
+    // If the user has an existing picture with a public_id, delete it from Cloudinary
+    if (user.profilePicture && user.profilePicture.public_id) {
+      await cloudinary.uploader.destroy(user.profilePicture.public_id);
+    }
+
+    // Upload the new image to Cloudinary from the buffer provided by multer
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "profile_pictures", resource_type: "image" },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+      uploadStream.end(req.file.buffer);
+    });
+
+    // Update the user's document with the new image URL and public_id
+    user.profilePicture = {
+      url: result.secure_url,
+      public_id: result.public_id,
+    };
+    await user.save();
+
+    res.json({
+      msg: 'Profile picture updated successfully!',
+      profilePicture: user.profilePicture,
+    });
+
+  } catch (error) {
+    console.error('Error updating profile picture:', error);
+    res.status(500).json({ msg: 'Server Error: Could not update profile picture.' });
   }
 };

@@ -10,12 +10,14 @@ const {
     updateAddress,
     campaignRequestSave,
     deleteAddress,
-    editPhone
+    editPhone,
+    updateProfilePicture, // Import the new function
 } = require('../controllers/userController');
 
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const storage = multer.memoryStorage();
 
 // router.post('/', createUser);
 
@@ -45,73 +47,25 @@ router.get('/user-profile', auth, async (req, res) => {
 });
 
 
-// for profile picture 
-
-// Set up storage for Multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = path.join(__dirname, '../uploads');
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath);
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${req.user}_${Date.now()}${path.extname(file.originalname)}`); // unique filename
-    },
-});
-
-// Multer middleware
 const upload = multer({
-    storage,
+    storage: storage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
     fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = filetypes.test(file.mimetype);
-
-        if (mimetype && extname) {
-            return cb(null, true);
+        // Basic image type check
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
         } else {
-            cb(new Error('Only images are allowed!'));
+            cb(new Error('Only image files are allowed!'), false);
         }
     },
 });
 
-// Route to upload profile picture
-router.post('/upload-profile-picture', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.user);
-
-        if (!user) {
-            return res.status(404).json({ msg: 'User not found' });
-        }
-
-        const { profilePicture } = req.body;
-
-        if (!profilePicture) {
-            return res.status(400).json({ msg: 'No profile picture provided' });
-        }
-
-        // Optionally: Validate base64 string format
-        const isBase64 = /^data:image\/[a-z]+;base64,/.test(profilePicture);
-        if (!isBase64) {
-            return res.status(400).json({ msg: 'Invalid image format. Ensure it is a base64 string.' });
-        }
-
-        // Save the new profile picture (base64 string) to the user's profile
-        user.profilePicture = profilePicture;
-        await user.save();
-
-        res.json({
-            msg: 'Profile picture uploaded successfully!',
-            profilePicture: user.profilePicture, // Return the base64 string for immediate use
-        });
-    } catch (error) {
-        console.error('Error uploading profile picture:', error);
-        res.status(500).json({ msg: 'Server error' });
-    }
-});
+router.put(
+    '/profile-picture',
+    auth,
+    upload.single('profilePicture'), // 'profilePicture' must match the FormData key
+    updateProfilePicture
+);
 
 router.put('/editName', updateName);
 router.put('/editAddress', updateAddress);
