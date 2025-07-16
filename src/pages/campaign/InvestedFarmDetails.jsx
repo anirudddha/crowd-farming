@@ -9,17 +9,17 @@ import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import { FiArrowLeft, FiDollarSign, FiPieChart, FiCalendar, FiMapPin } from 'react-icons/fi';
 import { FaLeaf } from "react-icons/fa";
 
-// Import your API service functions
-// Adjust the path to your service file if it's located elsewhere
+// Import your API service functions - This is now required again for the timeline.
+// Adjust the path to your service file if it's located elsewhere.
 import * as campaignService from '../../api/campaignApi';
 
 const InvestedFarmDetailsById = () => {
   const { campaignId, investmentId } = useParams();
-  const endpoint = useSelector((state) => state.endpoint.endpoint); // Keeping for investment details for now
+  const endpoint = useSelector((state) => state.endpoint.endpoint);
   const navigate = useNavigate();
 
   const [campaign, setCampaign] = useState(null);
-  const [timeline, setTimeline] = useState([]);
+  const [timeline, setTimeline] = useState([]); // Re-instated for the separate timeline logic
   const [investmentDetails, setInvestmentDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +38,7 @@ const InvestedFarmDetailsById = () => {
     // Fetches details specific to the user's investment
     const fetchInvestmentDetails = async () => {
       try {
-        // Assuming this endpoint exists. If not, you might get this from a different source.
+        // Assuming this endpoint exists.
         const response = await axios.get(`${endpoint}/campaigns/${investmentId}/investment-details`);
         setInvestmentDetails(response.data);
       } catch (error)
@@ -48,21 +48,20 @@ const InvestedFarmDetailsById = () => {
       }
     };
 
-    // Fetches the timeline updates using our dedicated service function
+    // Fetches the timeline updates using our dedicated service function (Restored Logic)
     const fetchTimeline = async () => {
       try {
         const timelineData = await campaignService.getTimelineForCampaign(campaignId);
         setTimeline(timelineData || []); // Set timeline from our specific endpoint
       } catch (error) {
         console.error('Error fetching timeline data:', error);
-        // Silently fail and show an empty timeline, which is better UX than an error toast here.
-        setTimeline([]);
+        setTimeline([]); // Silently fail and show an empty timeline
       }
     };
 
     const fetchData = async () => {
       setLoading(true);
-      // Run all three data-fetching operations in parallel for faster loading
+      // Run all three data-fetching operations in parallel again.
       await Promise.all([
         fetchCampaignDetails(),
         fetchInvestmentDetails(),
@@ -81,7 +80,26 @@ const InvestedFarmDetailsById = () => {
       day: 'numeric',
       year: 'numeric'
     });
-  }
+  };
+
+  // Helper to format the display string for the new structured returns
+  const getReturnDisplayString = () => {
+    if (!campaign?.expectedReturns) return 'N/A';
+    const { type, min, max } = campaign.expectedReturns;
+    if (type === 'Percentage Range') return `${min}% - ${max}%`;
+    if (type === 'Fixed Multiple') return `${min}x Return`;
+    return `~${min}%`; // Fallback
+  };
+
+  // Helper to calculate estimated return value based on the new structured data
+  const calculateEstimatedReturn = (investedAmount) => {
+    if (!campaign?.expectedReturns || !investedAmount) return 0;
+    const { type, min } = campaign.expectedReturns;
+    if (type === 'Fixed Multiple') {
+      return investedAmount * (min - 1);
+    }
+    return investedAmount * (min / 100);
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50 to-white">
@@ -95,11 +113,10 @@ const InvestedFarmDetailsById = () => {
   );
 
   const investedAmount = investmentDetails?.amount || 0;
-  const fundingGoal = campaign.fundingGoal || 1; // Prevent division by zero
+  const fundingGoal = campaign.fundingGoal || 1;
   const raisedAmount = campaign.raisedAmount || 0;
   const sharePercentage = ((investedAmount / fundingGoal) * 100).toFixed(2);
   const progress = ((raisedAmount / fundingGoal) * 100).toFixed(2);
-  const expectedReturns = campaign.expectedReturns || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-emerald-100">
@@ -146,6 +163,7 @@ const InvestedFarmDetailsById = () => {
                 </div>
               </div>
 
+              {/* THIS SECTION IS NOW REVERTED TO USE THE ORIGINAL `timeline` STATE */}
               <div className="bg-white p-8 rounded-2xl shadow-lg border border-emerald-50">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Project Timeline</h2>
                 {timeline.length > 0 ? (
@@ -190,9 +208,13 @@ const InvestedFarmDetailsById = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl"><div><p className="text-sm text-emerald-600 mb-1">Invested Amount</p><p className="text-2xl font-bold text-gray-900">₹{investedAmount.toLocaleString()}</p></div><FiDollarSign className="text-3xl text-emerald-500" /></div>
                   <div className="flex items-center justify-between p-4 bg-teal-50 rounded-xl"><div><p className="text-sm text-teal-600 mb-1">Farm Ownership</p><p className="text-2xl font-bold text-gray-900">{sharePercentage}%</p></div><FiPieChart className="text-3xl text-teal-500" /></div>
+                  {/* THIS SECTION REMAINS UPDATED FOR THE NEW SCHEMA */}
                   <div className="p-6 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-xl text-white">
                     <p className="text-sm mb-2">Estimated Annual Return</p>
-                    <div className="flex items-center justify-between"><p className="text-3xl font-bold">₹{(investedAmount * (expectedReturns / 100)).toLocaleString()}</p><span className="text-sm bg-white/20 px-3 py-1 rounded-full">+{expectedReturns}%</span></div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-3xl font-bold">₹{calculateEstimatedReturn(investedAmount).toLocaleString()}</p>
+                      <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{getReturnDisplayString()}</span>
+                    </div>
                   </div>
                   <div className="space-y-4 pt-4 border-t border-emerald-100">
                     <div className="flex justify-between items-center"><span className="text-gray-600">Investment Date</span><span className="font-medium text-gray-900">{formatDate(investmentDetails?.date)}</span></div>

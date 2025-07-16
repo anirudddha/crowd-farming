@@ -1,438 +1,241 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Loader from '../../components/Loader';
 import { useSelector } from 'react-redux';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Leaf, DollarSign, Calendar, AlertTriangle, Image, Info, User, Tractor, Sprout, UploadCloud } from 'lucide-react';
+import Loader from '../../components/Loader';
+
+// --- Reusable UI Components (unchanged) ---
+const FormSection = ({ icon, title, subtitle, children }) => (
+  <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+    <div className="flex items-start gap-4 mb-6 border-b border-gray-200 pb-4">
+      <div className="flex-shrink-0 text-emerald-600 mt-1">{icon}</div>
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+        <p className="text-md text-gray-500">{subtitle}</p>
+      </div>
+    </div>
+    <div className="space-y-6">{children}</div>
+  </div>
+);
+
+const InputGroup = ({ label, children }) => (
+  <div>
+    <label className="block text-md font-bold text-gray-800 mb-2">{label}</label>
+    {children}
+  </div>
+);
+
+// --- FIX: Initial state defined as a constant for easy reset ---
+const initialFormData = {
+  campaignTitle: '', story: '', farmName: '', farmLocation: '',
+  farmSize: { value: '', unit: 'Acres' },
+  fundingGoal: '', minInvestment: '',
+  expectedReturns: { type: 'Percentage Range', min: '', max: '', description: '' },
+  cropTypes: '', farmingMethods: 'Organic',
+  startDate: '', endDate: '',
+  fundUsage: '', impactMetrics: '', riskFactors: '',
+  visuals: [],
+};
+
 
 const CreateCampaign = () => {
+  const endpoint = useSelector((state) => state.endpoint.endpoint);
 
-  const endpoint = useSelector((state)=>state.endpoint.endpoint);
+  const inputClasses = "block w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 shadow-sm transition-colors duration-200 ease-in-out placeholder:text-gray-400 hover:border-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200";
 
-  const [loading, setLoading] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: '',
-    email: '',
-    profilePicture: '',
-    address: '',
-  });
+  const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState(null);
+  const [formData, setFormData] = useState(initialFormData);
 
-  // For campaign form
-  const [formData, setFormData] = useState({
-    farmerName: '',
-    phoneNumber: '',
-    email: '',
-    farmName: '',
-    farmLocation: '',
-    farmSize: '',
-    campaignTitle: '',
-    fundingGoal: '',
-    minInvestment: '',
-    expectedReturns: '',
-    cropTypes: '',
-    farmingMethods: '',
-    startDate: '',
-    endDate: '',
-    fundUsage: '',
-    impactMetrics: '',
-    visuals: [], // Will store actual file objects
-  });
-
-  // If user is not active, they must request verification
-  const [pendingPermission, setPendingPermission] = useState(false);
-
-  // Fetch user profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
-      setLoading(true);
       try {
-        const response = await axios.get(`${endpoint}/user-profile`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${endpoint}/user-profile`, { headers: { Authorization: `Bearer ${token}` } });
         setProfileData(response.data);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { toast.error("Could not load your profile data."); }
+      finally { setLoading(false); }
     };
     fetchProfile();
-  }, []);
+  }, [endpoint]);
 
-  // Request verification if account not active
   const handleRequest = async () => {
     setLoading(true);
     try {
-      await axios.post(`${endpoint}/sending-request`, {
-        userId: profileData._id,
-        email: profileData.email,
-      });
-      alert("Request has been sent. We will contact you soon");
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        alert('You already sent a request!');
-      }
-    } finally {
-      setLoading(false);
+      await axios.post(`${endpoint}/sending-request`, { userId: profileData._id, email: profileData.email });
+      toast.success("Request sent successfully! We'll be in touch.");
+    } catch (error) { toast.error(error.response?.data?.message || "An error occurred."); }
+    finally { setLoading(false); }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({ ...prev, [parent]: { ...prev[parent], [child]: value } }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  // Handle form field changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Handle file selection (store file objects)
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setFormData(prev => ({
-      ...prev,
-      visuals: files,  // Store the actual file objects
-    }));
+    setFormData(prev => ({ ...prev, visuals: Array.from(e.target.files) }));
   };
 
-  // Submit form data
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const data = new FormData();
+    data.append('campaignTitle', formData.campaignTitle);
+    data.append('story', formData.story);
+    data.append('farmName', formData.farmName);
+    data.append('farmLocation', formData.farmLocation);
+    data.append('fundingGoal', formData.fundingGoal);
+    data.append('minInvestment', formData.minInvestment);
+    data.append('cropTypes', formData.cropTypes);
+    data.append('farmingMethods', formData.farmingMethods);
+    data.append('startDate', formData.startDate);
+    data.append('endDate', formData.endDate);
+    data.append('fundUsage', formData.fundUsage);
+    data.append('impactMetrics', formData.impactMetrics);
+    data.append('riskFactors', formData.riskFactors);
+    data.append('farmSizeValue', formData.farmSize.value);
+    data.append('farmSizeUnit', formData.farmSize.unit);
+    data.append('returnsType', formData.expectedReturns.type);
+    data.append('returnsMin', formData.expectedReturns.min);
+    data.append('returnsMax', formData.expectedReturns.max);
+    data.append('returnsDescription', formData.expectedReturns.description);
+    formData.visuals.forEach(file => data.append('visuals', file));
 
     try {
-      // Build a FormData object
-      const data = new FormData();
-      // Append all fields except 'visuals'
-      Object.keys(formData).forEach((key) => {
-        if (key !== 'visuals') {
-          data.append(key, formData[key]);
-        }
-      });
-      // Append each file from 'visuals'
-      formData.visuals.forEach((file) => {
-        data.append('visuals', file);
-      });
-
-      // Make POST request with multipart/form-data
-      await axios.post(`${endpoint}/campaigns`, data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      alert('Campaign created!');
-      // Reset form on success
-      setFormData({
-        farmerName: '',
-        phoneNumber: '',
-        email: '',
-        farmName: '',
-        farmLocation: '',
-        farmSize: '',
-        campaignTitle: '',
-        fundingGoal: '',
-        minInvestment: '',
-        expectedReturns: '',
-        cropTypes: '',
-        farmingMethods: '',
-        startDate: '',
-        endDate: '',
-        fundUsage: '',
-        impactMetrics: '',
-        visuals: [],
-      });
+      const token = localStorage.getItem('token');
+      await axios.post(`${endpoint}/campaigns`, data, { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` } });
+      toast.success('Campaign submitted for review!');
+      // --- FIX: Reset form state after successful submission ---
+      setFormData(initialFormData);
     } catch (error) {
-      console.error('Error creating campaign:', error);
-      alert('Failed to create campaign. Please check your inputs.');
+      toast.error(error.response?.data?.message || 'Failed to create campaign. Please check all fields.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading && !profileData) return <div className="fixed inset-0 bg-white z-50 flex items-center justify-center"><Loader /></div>;
+  if (!profileData) return null;
+
   return (
-    <div className="min-h-screen bg-gradient-to-r from-emerald-50 to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
-      {loading && (
-        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
-          <Loader className="w-16 h-16 text-emerald-600" />
-        </div>
-      )}
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} theme="colored" />
+      {loading && <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center"><Loader /></div>}
 
       {profileData.active === "true" ? (
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-500 p-8">
-            <h1 className="text-3xl font-bold text-white text-center">
-              Create Farm Campaign
-            </h1>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-extrabold tracking-tight text-gray-900">Create a New Farm Campaign</h1>
+            <p className="mt-4 text-xl text-gray-600">Bring your agricultural project to life by filling out the details below.</p>
           </div>
+          <form onSubmit={handleSubmit} className="space-y-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              {/* Left Column */}
+              <div className="space-y-12">
+                <FormSection icon={<Leaf size={32} />} title="Campaign Pitch" subtitle="Tell your story and define your project.">
+                  <InputGroup label="Campaign Title"><input type="text" name="campaignTitle" value={formData.campaignTitle} onChange={handleChange} className={inputClasses} required /></InputGroup>
+                  <InputGroup label="Your Story"><textarea name="story" value={formData.story} onChange={handleChange} className={`${inputClasses} min-h-[144px] resize-y`} required placeholder="Describe your mission, your farm, and what makes this project special." /></InputGroup>
+                </FormSection>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-10">
-            {/* Farmer Information */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Farmer Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <input
-                  type="text"
-                  name="farmerName"
-                  placeholder="Farmer's Name"
-                  value={formData.farmerName}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <input
-                  type="text"
-                  name="phoneNumber"
-                  placeholder="Phone Number"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email Address"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+                <FormSection icon={<DollarSign size={32} />} title="Financials" subtitle="Set your funding goals and investor returns.">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <InputGroup label="Funding Goal (₹)"><input type="number" name="fundingGoal" value={formData.fundingGoal} onChange={handleChange} className={inputClasses} required /></InputGroup>
+                    <InputGroup label="Minimum Investment (₹)"><input type="number" name="minInvestment" value={formData.minInvestment} onChange={handleChange} className={inputClasses} required /></InputGroup>
+                  </div>
+                  <InputGroup label="Expected Returns">
+                    <div className="p-4 border rounded-lg space-y-4 bg-white">
+                      <select name="expectedReturns.type" value={formData.expectedReturns.type} onChange={handleChange} className={inputClasses}><option>Percentage Range</option><option>Fixed Multiple</option></select>
+                      <div className="flex items-center gap-4">
+                        <input type="number" name="expectedReturns.min" value={formData.expectedReturns.min} onChange={handleChange} placeholder="Min %" className={inputClasses} required />
+                        <span className="text-gray-500">–</span>
+                        <input type="number" name="expectedReturns.max" value={formData.expectedReturns.max} onChange={handleChange} placeholder="Max %" className={inputClasses} />
+                      </div>
+                      <textarea name="expectedReturns.description" value={formData.expectedReturns.description} onChange={handleChange} className={`${inputClasses} min-h-[80px] resize-y text-sm`} placeholder="Briefly describe how returns are calculated (e.g., based on market price)." required />
+                    </div>
+                  </InputGroup>
+                </FormSection>
               </div>
-            </section>
+              
+              {/* Right Column */}
+              <div className="space-y-12">
+                <FormSection icon={<User size={32} />} title="Farmer & Farm Details" subtitle="Information about you and your land.">
+                   <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                      <h4 className="font-semibold text-gray-700">Farmer Profile (from your account)</h4>
+                      <p className="text-sm text-gray-600">Name: <span className="font-medium">{profileData.name}</span></p>
+                      <p className="text-sm text-gray-600">Email: <span className="font-medium">{profileData.email}</span></p>
+                   </div>
+                  <InputGroup label="Farm Name"><input type="text" name="farmName" value={formData.farmName} onChange={handleChange} className={inputClasses} required /></InputGroup>
+                  <InputGroup label="Farm Location"><input type="text" name="farmLocation" className={inputClasses} value={formData.farmLocation} onChange={handleChange} required placeholder="e.g., Villupuram District, Tamil Nadu" /></InputGroup>
+                  <InputGroup label="Farm Size">
+                    <div className="flex gap-4">
+                      <input type="number" name="farmSize.value" value={formData.farmSize.value} onChange={handleChange} className={`${inputClasses} w-2/3`} required />
+                      <select name="farmSize.unit" value={formData.farmSize.unit} onChange={handleChange} className={`${inputClasses} w-1/3`}><option>Acres</option><option>Hectares</option></select>
+                    </div>
+                  </InputGroup>
+                </FormSection>
 
-            {/* Farm Details */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Farm Details
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <input
-                  type="text"
-                  name="farmName"
-                  placeholder="Farm Name"
-                  value={formData.farmName}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <input
-                  type="text"
-                  name="farmLocation"
-                  placeholder="Farm Location"
-                  value={formData.farmLocation}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <input
-                  type="text"
-                  name="farmSize"
-                  placeholder="Farm Size (acreage or sq ft)"
-                  value={formData.farmSize}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+                <FormSection icon={<Tractor size={32} />} title="Agricultural Practices" subtitle="Details about your crops and methods.">
+                  <InputGroup label="Crop Types (comma-separated)"><input type="text" name="cropTypes" value={formData.cropTypes} onChange={handleChange} className={inputClasses} required placeholder="e.g., Millet, Turmeric, Cotton" /></InputGroup>
+                  <InputGroup label="Farming Methods"><select name="farmingMethods" value={formData.farmingMethods} onChange={handleChange} className={inputClasses}><option>Organic</option><option>Conventional</option><option>Sustainable</option><option>Permaculture</option><option>Biodynamic</option></select></InputGroup>
+                </FormSection>
+
+                <FormSection icon={<Calendar size={32} />} title="Timeline" subtitle="Key dates for your campaign.">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <InputGroup label="Project Start Date"><input type="date" name="startDate" value={formData.startDate} onChange={handleChange} className={inputClasses} required /></InputGroup>
+                    <InputGroup label="Project End Date"><input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className={inputClasses} required /></InputGroup>
+                  </div>
+                </FormSection>
               </div>
-            </section>
+            </div>
 
-            {/* Campaign Information */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Campaign Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input
-                  type="text"
-                  name="campaignTitle"
-                  placeholder="Campaign Title"
-                  value={formData.campaignTitle}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <input
-                  type="number"
-                  name="fundingGoal"
-                  placeholder="Funding Goal ($)"
-                  value={formData.fundingGoal}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input
-                  type="number"
-                  name="minInvestment"
-                  placeholder="Minimum Investment ($)"
-                  value={formData.minInvestment}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <textarea
-                  name="expectedReturns"
-                  placeholder="Expected Returns (%)"
-                  value={formData.expectedReturns}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-                />
-              </div>
-            </section>
+            <div className="space-y-12">
+              <FormSection icon={<Info size={32} />} title="Operational Details" subtitle="Explain where the money goes and the impact it makes.">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                  <InputGroup label="Usage of Funds"><textarea name="fundUsage" value={formData.fundUsage} onChange={handleChange} className={`${inputClasses} min-h-[144px] resize-y`} required placeholder="Detailed breakdown of how funds will be used (e.g., seeds, labor, equipment)." /></InputGroup>
+                  <InputGroup label="Impact Metrics"><textarea name="impactMetrics" value={formData.impactMetrics} onChange={handleChange} className={`${inputClasses} min-h-[144px] resize-y`} required placeholder="e.g., Carbon sequestration, water saved, jobs created, community benefits." /></InputGroup>
+                </div>
+              </FormSection>
 
-            {/* Farming Practices */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Farming Practices
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <textarea
-                  name="cropTypes"
-                  placeholder="Crop Types"
-                  value={formData.cropTypes}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-24"
-                />
-                <select
-                  name="farmingMethods"
-                  value={formData.farmingMethods}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                >
-                  <option value="" disabled>
-                    Select Farming Method
-                  </option>
-                  <option value="Conventional">Conventional</option>
-                  <option value="Organic">Organic</option>
-                  <option value="Sustainable">Sustainable</option>
-                </select>
-              </div>
-            </section>
-
-            {/* Project Timeline */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Project Timeline
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                  required
-                  className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-            </section>
-
-            {/* Usage of Funds */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Usage of Funds
-              </h2>
-              <textarea
-                name="fundUsage"
-                placeholder="Detailed breakdown of fund usage"
-                value={formData.fundUsage}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-24"
-              />
-            </section>
-
-            {/* Impact Metrics */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Impact Metrics
-              </h2>
-              <textarea
-                name="impactMetrics"
-                placeholder="Impact Metrics"
-                value={formData.impactMetrics}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-24"
-              />
-            </section>
-
-            {/* Upload Visuals */}
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">
-                Upload Visuals
-              </h2>
-              <div className="border-2 border-dashed border-emerald-200 rounded-xl p-8 text-center">
-                <input
-                  type="file"
-                  name="visuals"
-                  multiple
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="cursor-pointer inline-block px-8 py-3 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
-                >
-                  Choose Files
-                </label>
-                <p className="mt-4 text-sm text-emerald-600">
-                  {formData.visuals.length} file
-                  {formData.visuals.length !== 1 && "s"} selected
-                </p>
-              </div>
-            </section>
-
-            {/* Submit Button */}
-            <div className="pt-8">
-              <button
-                type="submit"
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105"
-              >
-                Create Campaign
+              <FormSection icon={<AlertTriangle size={32} />} title="Risk Factors" subtitle="Be transparent with your investors.">
+                <InputGroup label="Potential Risks & Mitigation Plan"><textarea name="riskFactors" value={formData.riskFactors} onChange={handleChange} className={`${inputClasses} min-h-[144px] resize-y`} required placeholder="Describe potential risks (weather, pests, market) and the steps you will take to mitigate them." /></InputGroup>
+              </FormSection>
+              
+              <FormSection icon={<Image size={32} />} title="Upload Visuals" subtitle="Showcase your farm with photos or videos.">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
+                  <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="mt-4 flex justify-center text-sm leading-6 text-gray-600">
+                    <label htmlFor="file-upload" className="relative cursor-pointer rounded-md bg-white font-semibold text-emerald-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-emerald-600 focus-within:ring-offset-2 hover:text-emerald-500">
+                      <span>Upload files</span>
+                      <input type="file" name="visuals" multiple onChange={handleFileChange} className="sr-only" id="file-upload" accept="image/*,video/*" />
+                    </label>
+                  </div>
+                  <p className="text-xs leading-5 text-gray-600 mt-2">PNG, JPG, GIF up to 10MB</p>
+                  {formData.visuals.length > 0 && <div className="mt-4 text-sm font-medium text-emerald-700">{formData.visuals.length} file(s) selected.</div>}
+                </div>
+              </FormSection>
+            </div>
+            
+            <div className="pt-6">
+              <button type="submit" className="w-full py-4 text-lg font-bold text-white bg-emerald-600 rounded-xl shadow-md transition-all transform hover:scale-[1.02] hover:shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                Submit Campaign for Review
               </button>
             </div>
           </form>
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8 text-center">
-          <div className="mb-6 text-emerald-600">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-emerald-800 mb-4">
-            Account Verification Required
-          </h2>
-          <p className="text-emerald-600 mb-8">
-            Please verify your farming account with 5 Acre Organics before creating campaigns.
-          </p>
-          <button
-            onClick={handleRequest}
-            disabled={pendingPermission}
-            className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${
-              pendingPermission
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white transform hover:scale-105'
-            }`}
-          >
-            {pendingPermission ? 'Request Pending' : 'Send Verification Request'}
-          </button>
+        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-12 text-center">
+            <Sprout className="w-16 h-16 mx-auto text-emerald-500 mb-6" />
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Account Verification Required</h2>
+            <p className="text-gray-600 mb-8">To ensure the quality and authenticity of our farm projects, we require all farmers to be verified. Please send a request to our team to get started.</p>
+            <button onClick={handleRequest} className="px-8 py-3 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all transform hover:scale-105">Send Verification Request</button>
         </div>
       )}
     </div>

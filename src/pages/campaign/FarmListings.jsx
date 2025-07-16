@@ -78,9 +78,11 @@ const FarmListings = () => {
           ...appliedFilters,
         },
       });
-      const data = Array.isArray(response.data) ? response.data : [];
+      console.log(response);
+      const data = Array.isArray(response.data.campaigns) ? response.data.campaigns : [];
       setFarms(data);
       // Update the cache with fresh data
+      console.log(data);
       localStorage.setItem(cacheKey, JSON.stringify(data));
     } catch (error) {
       console.error('Error fetching campaigns:', error);
