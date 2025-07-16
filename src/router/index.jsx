@@ -9,14 +9,14 @@ import InvestorDashboard from '../components/InvestorDashboard';
 import HowItWorks from '../pages/HowItWorks';
 import StorePage from '../pages/store/StorePage';
 
-import Login from '../components/Login'; // Import Login
-import Signup from '../components/Signup'; // Import Signup
+import Login from '../pages/auth/Login'; // Import Login
+import Signup from '../pages/auth/Signup';
 import ProtectedRoute from '../components/Protected'; // To protect routes
 import CartPage from '../pages/store/CartPage';
 import ProductInfoPage from '../pages/store/ProductInfoPage';
 import OrdersPage from '../pages/store/OrdersPage';
 import CheckOutOrder from '../pages/store/CheckOutOrder';
-import GoogleSigninPage from '../pages/GoogleSigninPage';
+import GoogleSigninPage from '../pages/auth/GoogleSigninPage'
 import CheckoutFarmInvestment from '../pages/campaign/CheckoutFarmInvestment';
 import InvestedFarmDetailsExtended from '../pages/campaign/InvestedFarmDetails';
 import AddTimelineUpdate from '../pages/campaign/AddTimelineUpdate';
