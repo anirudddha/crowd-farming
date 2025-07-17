@@ -4,31 +4,142 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
+import { ArrowLeft, Minus, Plus, ShieldCheck, TrendingUp, Info } from 'lucide-react';
+
+// --- Reusable Sub-components for a Cleaner Structure ---
+
+const CheckoutHeader = ({ onBack }) => (
+  <div className="flex items-center gap-4 mb-8">
+    <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-200 transition-colors">
+      <ArrowLeft size={24} className="text-gray-700" />
+    </button>
+    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Secure Investment Checkout</h1>
+  </div>
+);
+
+const InvestmentCalculator = ({ quantity, minInvestment, onIncrement, onDecrement, maxUnits }) => {
+  const totalInvestment = quantity * minInvestment;
+
+  return (
+    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-gray-200">
+      <h2 className="text-xl font-bold text-gray-800 mb-2">1. Choose Your Investment</h2>
+      <p className="text-sm text-gray-500 mb-6">Select the number of investment units. Each unit costs ₹{minInvestment.toLocaleString()}.</p>
+
+      <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between border">
+        <div className="flex items-center gap-2 md:gap-4">
+          <button onClick={onDecrement} className="p-2 rounded-full bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:opacity-50" disabled={quantity <= 1}>
+            <Minus size={20} />
+          </button>
+          <span className="text-3xl font-bold w-16 text-center">{quantity}</span>
+          <button onClick={onIncrement} className="p-2 rounded-full bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:opacity-50" disabled={quantity >= maxUnits}>
+            <Plus size={20} />
+          </button>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-500">Total Investment</p>
+          <p className="text-3xl md:text-4xl font-extrabold text-emerald-600">
+            ₹{totalInvestment.toLocaleString()}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const InvestmentChecklist = ({ share, returns }) => (
+    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-gray-200">
+      <h2 className="text-xl font-bold text-gray-800 mb-6">2. Final Checklist</h2>
+      <ul className="space-y-5">
+        <li className="flex items-start gap-4">
+            <ShieldCheck className="text-emerald-500 flex-shrink-0 mt-1" size={20} />
+            <div>
+                <h4 className="font-semibold text-gray-800">Your Ownership</h4>
+                <p className="text-sm text-gray-500">Your investment will represent an approximate <strong className="text-gray-700">{share}% share</strong> of the farm's funding goal for this campaign.</p>
+            </div>
+        </li>
+        <li className="flex items-start gap-4">
+            <TrendingUp className="text-emerald-500 flex-shrink-0 mt-1" size={20} />
+            <div>
+                <h4 className="font-semibold text-gray-800">Expected Returns</h4>
+                <p className="text-sm text-gray-500">The projected return is <strong className="text-gray-700">{returns}</strong>. This is an estimate and not a guarantee.</p>
+            </div>
+        </li>
+        <li className="flex items-start gap-4">
+            <Info className="text-emerald-500 flex-shrink-0 mt-1" size={20} />
+            <div>
+                <h4 className="font-semibold text-gray-800">Acknowledge Risk</h4>
+                <p className="text-sm text-gray-500">You understand that agricultural investments carry inherent risks, including market and environmental factors.</p>
+            </div>
+        </li>
+      </ul>
+    </div>
+);
+
+const OrderSummaryCard = ({ campaign, quantity, total, share, onConfirm, investing }) => (
+  <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-200 space-y-6">
+    <h3 className="text-lg font-bold text-gray-800">Order Summary</h3>
+    <div className="flex items-start gap-4 pb-6 border-b">
+      <img src={campaign.visuals?.[0]?.url || 'https://via.placeholder.com/100'} alt={campaign.campaignTitle} className="w-20 h-20 rounded-lg object-cover" />
+      <div>
+        <p className="font-bold text-gray-900">{campaign.campaignTitle}</p>
+        <p className="text-sm text-gray-500">{campaign.farmName}</p>
+      </div>
+    </div>
+    <div className="space-y-2 text-sm">
+        <h4 className="font-semibold text-gray-700 mb-2">Campaign Snapshot</h4>
+        <div className="flex justify-between"><span className="text-gray-600">Funding Goal</span><span className="font-medium text-gray-800">₹{campaign.fundingGoal.toLocaleString()}</span></div>
+        <div className="flex justify-between"><span className="text-gray-600">Currently Raised</span><span className="font-medium text-gray-800">₹{campaign.raisedAmount.toLocaleString()}</span></div>
+        <div className="flex justify-between"><span className="text-gray-600">Days Remaining</span><span className="font-medium text-gray-800">{Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 3600 * 24))}</span></div>
+    </div>
+    <div className="space-y-2 text-sm pt-4 border-t">
+        <h4 className="font-semibold text-gray-700 mb-2">Your Investment</h4>
+        <div className="flex justify-between"><span className="text-gray-600">Investment ({quantity} units)</span><span className="font-medium text-gray-800">₹{total.toLocaleString()}</span></div>
+        <div className="flex justify-between text-green-600"><span className="text-gray-600">Farm Share</span><span className="font-medium text-green-600">{share}%</span></div>
+    </div>
+    <div className="pt-4 border-t">
+      <div className="flex justify-between items-baseline">
+        <span className="text-lg font-bold text-gray-900">Grand Total</span>
+        <span className="text-2xl font-extrabold text-gray-900">₹{total.toLocaleString()}</span>
+      </div>
+    </div>
+    <button
+      onClick={onConfirm}
+      disabled={investing}
+      className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg hover:bg-emerald-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:scale-100 disabled:cursor-not-allowed"
+    >
+      {investing ? (
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="h-6 w-6 mx-auto border-2 border-white border-t-transparent rounded-full" />
+      ) : 'Confirm & Finalize Investment'}
+    </button>
+  </div>
+);
+
+// --- Main Checkout Component ---
 
 const CheckoutFarmInvestment = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const endpoint = useSelector((state) => state.endpoint.endpoint);
   
-  // Campaign data passed from CampaignDetails
   const passedCampaign = location.state?.campaign;
   const [campaign, setCampaign] = useState(passedCampaign || null);
   
-  // Quantity is number of minimum investment units
   const [quantity, setQuantity] = useState(1);
   const [investing, setInvesting] = useState(false);
 
   useEffect(() => {
-    if (campaign) {
-      // Initialize with 1 unit (minimum investment)
+    if (!passedCampaign) {
+      toast.error("Campaign details not found. Redirecting...", { duration: 2000 });
+      setTimeout(() => navigate('/'), 2000);
+    } else {
       setQuantity(1);
     }
-  }, [campaign]);
+  }, [passedCampaign, navigate]);
 
   if (!campaign) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-emerald-50 to-white">
-        <p>Loading campaign details...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-gray-500">Loading...</p>
       </div>
     );
   }
@@ -37,15 +148,12 @@ const CheckoutFarmInvestment = () => {
   const fundingGoal = parseInt(campaign.fundingGoal, 10);
   const raisedAmount = parseInt(campaign.raisedAmount, 10);
   const remainingAmount = fundingGoal - raisedAmount;
-
-  // Calculate the maximum units allowed based on remaining funding
   const maxUnits = Math.floor(remainingAmount / minInvestment);
-  
-  // Total investment amount = quantity * minimum investment
   const totalInvestment = quantity * minInvestment;
-  
-  // Calculate the approximate percentage share
   const percentageShare = ((totalInvestment / fundingGoal) * 100).toFixed(2);
+  const expectedReturnsFormatted = campaign.expectedReturns?.type === 'Fixed Multiple'
+    ? `${campaign.expectedReturns.min}x`
+    : `${campaign.expectedReturns.min}% - ${campaign.expectedReturns.max}%`;
 
   const handleIncrement = () => {
     if (quantity < maxUnits) {
@@ -61,9 +169,10 @@ const CheckoutFarmInvestment = () => {
     }
   };
 
+  // --- LOGIC RESTORED: This is your original investment logic, UNCHANGED. ---
   const handleConfirmInvestment = async () => {
     if (totalInvestment < minInvestment) {
-      toast.error(`Minimum investment of ₹${minInvestment} is required`);
+      toast.error(`Minimum investment of ₹${minInvestment.toLocaleString()} is required`);
       return;
     }
     setInvesting(true);
@@ -71,7 +180,7 @@ const CheckoutFarmInvestment = () => {
       // Update raised amount in the campaign
       await axios.put(`${endpoint}/campaigns/${campaign._id}/raisedAmount`, {
         amount: totalInvestment,
-        userId: campaign._id,
+        userId: campaign._id, // NOTE: This sends campaign ID as userId, per your original code.
         name: campaign.campaignTitle,
       });
       // Log the investment
@@ -93,114 +202,42 @@ const CheckoutFarmInvestment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-8">
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-emerald-100 p-8 space-y-8"
-      >
-        {/* Campaign Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-emerald-900">{campaign.campaignTitle}</h1>
-          <p className="text-emerald-700">{campaign.description || 'No description available.'}</p>
-        </div>
-
-        {/* Order Summary Section */}
-        <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
-          <h2 className="text-xl font-bold text-emerald-800 mb-4">Order Summary</h2>
-          <div className="flex justify-between mb-2">
-            <span className="text-emerald-600">Minimum Investment per Unit:</span>
-            <span className="text-emerald-900 font-semibold">₹{minInvestment}</span>
-          </div>
-          <div className="flex justify-between mb-2">
-            <span className="text-emerald-600">Units Selected:</span>
-            <span className="text-emerald-900 font-semibold">{quantity}</span>
-          </div>
-          <div className="flex justify-between mb-2">
-            <span className="text-emerald-600">Total Investment:</span>
-            <span className="text-emerald-900 font-semibold">₹{totalInvestment}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-emerald-600">Your Farm Share:</span>
-            <span className="text-emerald-900 font-semibold">{percentageShare}%</span>
-          </div>
-        </div>
-
-        {/* Quantity Selector */}
-        <div className="flex items-center justify-center space-x-4">
-          <button
-            onClick={handleDecrement}
-            className="px-3 py-2 bg-emerald-200 text-emerald-800 rounded-full hover:bg-emerald-300 transition"
-          >
-            –
-          </button>
-          <div className="text-xl font-bold text-emerald-900"> {quantity} </div>
-          <button
-            onClick={handleIncrement}
-            className="px-3 py-2 bg-emerald-200 text-emerald-800 rounded-full hover:bg-emerald-300 transition"
-          >
-            +
-          </button>
-        </div>
-
-        {/* Payment Options */}
-        <div className="bg-white p-6 rounded-2xl border border-emerald-200">
-          <h2 className="text-xl font-bold text-emerald-800 mb-4">Payment Options</h2>
-          <div className="flex gap-4">
-            <button className="flex-1 px-4 py-2 bg-white border-2 border-emerald-300 hover:bg-emerald-50 rounded-xl transition">
-              Credit Card
-            </button>
-            <button className="flex-1 px-4 py-2 bg-white border-2 border-emerald-300 hover:bg-emerald-50 rounded-xl transition">
-              UPI
-            </button>
-            <button className="flex-1 px-4 py-2 bg-white border-2 border-emerald-300 hover:bg-emerald-50 rounded-xl transition">
-              Net Banking
-            </button>
-          </div>
-        </div>
-
-        {/* Detailed Campaign Info */}
-        <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
-          <h2 className="text-xl font-bold text-emerald-800 mb-4">Campaign Details</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col">
-              <span className="text-sm text-emerald-600">Funding Goal:</span>
-              <span className="font-semibold text-emerald-900">₹{campaign.fundingGoal}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-emerald-600">Raised Amount:</span>
-              <span className="font-semibold text-emerald-900">₹{campaign.raisedAmount}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-emerald-600">Days Remaining:</span>
-              <span className="font-semibold text-emerald-900">
-                {Math.ceil((new Date(campaign.endDate) - new Date()) / (1000 * 3600 * 24))}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-emerald-600">Farmer Name:</span>
-              <span className="font-semibold text-emerald-900">{campaign.farmerName}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Confirm Investment Button */}
-        <button
-          onClick={handleConfirmInvestment}
-          disabled={investing}
-          className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-semibold rounded-xl transition transform hover:scale-[1.02] shadow-lg"
-        >
-          {investing ? (
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity }}
-              className="h-6 w-6 mx-auto border-2 border-t-transparent border-white rounded-full"
+    <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <CheckoutHeader onBack={() => navigate(-1)} />
+        
+        {/* RESPONSIVE GRID: Stacks on mobile, 2 columns on large screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
+          {/* Left Column: Main Actions */}
+          <div className="lg:col-span-2 space-y-8">
+            <InvestmentCalculator
+              quantity={quantity}
+              minInvestment={minInvestment}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
+              maxUnits={maxUnits}
             />
-          ) : (
-            'Confirm Investment'
-          )}
-        </button>
-      </motion.div>
+            <InvestmentChecklist
+                share={percentageShare}
+                returns={expectedReturnsFormatted}
+            />
+          </div>
+
+          {/* Right Column: Sticky Summary */}
+          <div className="lg:col-span-1">
+            <div className="lg:sticky top-24">
+              <OrderSummaryCard
+                campaign={campaign}
+                quantity={quantity}
+                total={totalInvestment}
+                share={percentageShare}
+                onConfirm={handleConfirmInvestment}
+                investing={investing}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
