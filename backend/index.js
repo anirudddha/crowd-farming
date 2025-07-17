@@ -8,6 +8,7 @@ const userCampaign = require('./routes/userRoutes');
 const { itemRouter } = require('./routes/itemRoutes');
 const { cartRouter } = require('./routes/cartRoutes');
 const { orderRouter } = require('./routes/orderRoutes');
+const paymentRoutes = require('./routes/paymentRoutes'); // <-- IMPORT NEW ROUTES
 
 // const userCampaign = require('./routes/userRoutes')
 const bodyParser = require('body-parser');
@@ -41,6 +42,8 @@ app.use('/api',userCampaign);
 app.use('/api/items',itemRouter);
 app.use('/api/cart',cartRouter);
 app.use('/api/orders',orderRouter);
+
+app.use('/api/payments', paymentRoutes); // <-- USE NEW PAYMENT ROUTES
 
 
 

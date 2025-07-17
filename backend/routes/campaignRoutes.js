@@ -10,8 +10,8 @@ const {
     updateCampaign,
     deleteCampaign,
     getCampaignsById,
-    invest,
-    storeInvestment,
+    // invest,
+    // storeInvestment,
     getFilterOptions,
     refundRequest,
     getReciept,
@@ -29,7 +29,7 @@ router.get('/', getCampaigns);
 router.get('/:id', getCampaignsById);
 
 //Invest amount
-router.put('/:id/raisedAmount', invest);
+// router.put('/:id/raisedAmount', invest);
 
 // POST a new campaign
 router.post('/', auth, createCampaign); // Ensure auth middleware is used here
@@ -44,7 +44,7 @@ router.put('/editCampaign/:id',
 // router.delete('/:id', deleteCampaign);
 
 // Store investment details
-router.post('/:id/investment', auth, storeInvestment);
+// router.post('/:id/investment', auth, storeInvestment);
 
 // Refund
 router.post('/refundRequest', refundRequest);

@@ -119,6 +119,7 @@ const OrderSummaryCard = ({ campaign, quantity, total, share, onConfirm, investi
 const CheckoutFarmInvestment = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // Get backend endpoint from Redux store, as you specified.
   const endpoint = useSelector((state) => state.endpoint.endpoint);
   
   const passedCampaign = location.state?.campaign;
@@ -169,33 +170,89 @@ const CheckoutFarmInvestment = () => {
     }
   };
 
-  // --- LOGIC RESTORED: This is your original investment logic, UNCHANGED. ---
+  // --- NEW, SECURE, AND EFFICIENT RAZORPAY PAYMENT LOGIC ---
   const handleConfirmInvestment = async () => {
     if (totalInvestment < minInvestment) {
       toast.error(`Minimum investment of ₹${minInvestment.toLocaleString()} is required`);
       return;
     }
     setInvesting(true);
+    
     try {
-      // Update raised amount in the campaign
-      await axios.put(`${endpoint}/campaigns/${campaign._id}/raisedAmount`, {
-        amount: totalInvestment,
-        userId: campaign._id, // NOTE: This sends campaign ID as userId, per your original code.
-        name: campaign.campaignTitle,
-      });
-      // Log the investment
-      await axios.post(
-        `${endpoint}/campaigns/${campaign._id}/investment`,
-        { amount: totalInvestment },
+      // Step 1: Create order & get user details from backend in ONE call.
+      const { data } = await axios.post(
+        `${endpoint}/payments/create-order`,
         {
+          amount: totalInvestment,
+          campaignId: campaign._id,
+        },
+        {
+          // Your middleware will use this token to find the user on the backend
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
-      toast.success('Investment successful!');
-      navigate(`/campaign/${campaign._id}`); // redirect to campaign page or confirmation page
+      
+      // Destructure the response from our backend
+      const { order, prefill } = data;
+
+      // Step 2: Configure and open the Razorpay payment modal
+      const options = {
+        key: 'rzp_test_tRT25JXIPqrKtZ',
+        amount: order.amount,
+        currency: order.currency,
+        name: "AgriFund",
+        description: `Investment for ${campaign.campaignTitle}`,
+        order_id: order.id,
+        
+        // Step 3: This handler is called on successful payment
+        handler: async function (response) {
+            const verificationData = {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                campaignId: campaign._id,
+                amount: totalInvestment
+            };
+            
+            try {
+                // Step 4: Verify the payment on the backend
+                const { data } = await axios.post(
+                    `${endpoint}/payments/verify-payment`,
+                    verificationData,
+                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                );
+
+                if (data.success) {
+                    toast.success('Investment Successful! Redirecting...');
+                    navigate(`/campaign/${campaign._id}`);
+                } else {
+                    toast.error('Payment verification failed. Please contact support.');
+                }
+            } catch (error) {
+                console.error('Error verifying payment:', error);
+                toast.error(error.response?.data?.message || 'Payment verification failed.');
+            }
+        },
+        
+        // Use the prefill data we received from our own backend
+        prefill: prefill,
+
+        theme: {
+          color: '#059669',
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+      paymentObject.on('payment.failed', function (response) {
+        console.error(response);
+        toast.error(`Payment Failed: ${response.error.description}`);
+      });
+
     } catch (error) {
-      console.error('Error investing:', error);
-      toast.error(error.response?.data?.message || 'Investment failed');
+      console.error('Error creating Razorpay order:', error);
+      toast.error(error.response?.data?.message || 'Could not initiate payment process.');
     } finally {
       setInvesting(false);
     }
@@ -206,9 +263,7 @@ const CheckoutFarmInvestment = () => {
       <div className="max-w-6xl mx-auto">
         <CheckoutHeader onBack={() => navigate(-1)} />
         
-        {/* RESPONSIVE GRID: Stacks on mobile, 2 columns on large screens */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
-          {/* Left Column: Main Actions */}
           <div className="lg:col-span-2 space-y-8">
             <InvestmentCalculator
               quantity={quantity}
@@ -223,7 +278,6 @@ const CheckoutFarmInvestment = () => {
             />
           </div>
 
-          {/* Right Column: Sticky Summary */}
           <div className="lg:col-span-1">
             <div className="lg:sticky top-24">
               <OrderSummaryCard

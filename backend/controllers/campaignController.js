@@ -251,19 +251,9 @@ exports.deleteCampaign = async (req, res) => {
 // This function is now redundant if you implement a proper investment flow,
 // but is kept here as per your request.
 exports.invest = async (req, res) => {
-  const { amount, userId } = req.body; // userId here represents the campaign ID
-  try {
-    const campaign = await Campaign.findByIdAndUpdate(
-      userId,
-      { $inc: { raisedAmount: amount } },
-      { new: true }
-    );
-    if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
-    res.json({ message: 'Investment successful!', campaign });
-  } catch (error) {
-    console.error('Investment error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
+  res.status(400).json({ 
+    message: 'This endpoint is deprecated. Please use the new payment flow.' 
+  });
 };
 
 exports.getFilterOptions = async (req, res) => {
@@ -284,24 +274,9 @@ exports.getFilterOptions = async (req, res) => {
 };
 
 exports.storeInvestment = async (req, res) => {
-  const { amount } = req.body;
-  const userId = req.user;
-  const campaignId = req.params.id;
-  try {
-    const campaign = await Campaign.findById(campaignId);
-    if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
-    const investment = new Investment({
-      userId,
-      campaignId,
-      farmName: campaign.campaignTitle,
-      amount,
-    });
-    await investment.save();
-    res.json({ msg: 'Investment saved successfully', investment });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: 'Error saving investment details' });
-  }
+  res.status(400).json({ 
+    message: 'This endpoint is deprecated. Please use the new payment flow.'
+  });
 };
 
 exports.getInvestmentDetails = async (req, res) => {
