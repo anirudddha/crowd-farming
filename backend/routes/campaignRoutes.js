@@ -5,17 +5,17 @@ const upload = require('../middleware/multer'); // Import multer middleware
 
 const router = express.Router();
 const {
-  getCampaigns,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
-  getCampaignsById,
-  invest,
-  storeInvestment,
-  getFilterOptions,
-  refundRequest,
-  getReciept,
-  getInvestmentDetails,
+    getCampaigns,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+    getCampaignsById,
+    invest,
+    storeInvestment,
+    getFilterOptions,
+    refundRequest,
+    getReciept,
+    getInvestmentDetails,
 } = require('../controllers/campaignController');
 
 const timelineController = require('../controllers/timelineController');
@@ -35,7 +35,10 @@ router.put('/:id/raisedAmount', invest);
 router.post('/', auth, createCampaign); // Ensure auth middleware is used here
 
 // PUT (update) a campaign
-router.put('/editCampaign/:id', updateCampaign);
+router.put('/editCampaign/:id',
+    upload.array('visuals', 5), // 'images' is the field name, 5 is the max count
+    auth,updateCampaign
+);
 
 // DELETE a campaign
 // router.delete('/:id', deleteCampaign);
@@ -50,7 +53,7 @@ router.post('/refundRequest', refundRequest);
 router.get('/filters/options', getFilterOptions);
 
 //delete campaign
- router.delete('/:id',auth,deleteCampaign);
+router.delete('/:id', auth, deleteCampaign);
 
 router.get('/:id/investment-details', getInvestmentDetails);
 

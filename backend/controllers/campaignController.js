@@ -1,6 +1,6 @@
 // --- MODIFIED IMPORTS ---
 // Assuming cloudinary and multer are configured and exported from these paths
-const cloudinary = require('../config/cloudinary'); 
+const cloudinary = require('../config/cloudinary');
 const upload = require('../middleware/multer');
 
 const Campaign = require('../models/Campaign');
@@ -35,7 +35,7 @@ exports.createCampaign = [
       fundingGoal, minInvestment, returnsType, returnsMin, returnsMax, returnsDescription,
       cropTypes, farmingMethods, startDate, endDate, fundUsage, impactMetrics, riskFactors
     } = req.body;
-    
+
     // Get user ID from authentication middleware
     const userId = req.user;
 
@@ -44,7 +44,7 @@ exports.createCampaign = [
       if (req.files && req.files.length > 0) {
         visuals = await Promise.all(req.files.map(file => uploadToCloudinary(file.buffer)));
       }
-      
+
       const newCampaign = new Campaign({
         userId,
         campaignTitle,
@@ -71,13 +71,13 @@ exports.createCampaign = [
         visuals,
         // raisedAmount and status have defaults in the schema ('0' and 'Draft')
       });
-      
+
       const campaign = await newCampaign.save();
       res.status(201).json(campaign);
     } catch (err) {
       console.error('Error creating campaign:', err.message);
       if (err.name === 'ValidationError') {
-          return res.status(400).json({ message: err.message });
+        return res.status(400).json({ message: err.message });
       }
       res.status(500).send('Server Error');
     }
@@ -91,14 +91,14 @@ exports.createCampaign = [
  */
 exports.getCampaigns = async (req, res) => {
   const { page = 1, limit = 12, farmLocation, cropTypes, farmingMethods } = req.query;
-  
+
   // Build query: Always filter for 'Active' campaigns for public view
   const query = { status: 'Active' };
-  
+
   if (farmLocation) query.farmLocation = { $regex: farmLocation, $options: 'i' };
   if (cropTypes) query.cropTypes = cropTypes;
   if (farmingMethods) query.farmingMethods = farmingMethods;
-  
+
   try {
     const campaigns = await Campaign.find(query)
       .populate('userId', 'name profilePicture') // Populate farmer info for display
@@ -107,7 +107,7 @@ exports.getCampaigns = async (req, res) => {
       .sort({ createdAt: -1 });
 
     const total = await Campaign.countDocuments(query);
-    
+
     res.json({
       campaigns,
       totalPages: Math.ceil(total / limit),
@@ -146,7 +146,6 @@ exports.getCampaignsById = async (req, res) => {
  * @access  Private (Owner of Campaign)
  */
 exports.updateCampaign = [
-  upload.array('visuals'),
   async (req, res) => {
     try {
       const campaign = await Campaign.findById(req.params.id);
@@ -155,14 +154,14 @@ exports.updateCampaign = [
         return res.status(404).json({ msg: 'Campaign not found' });
       }
 
-      // --- AUTHORIZATION CHECK ---
+        // --- AUTHORIZATION CHECK ---
       if (campaign.userId.toString() !== req.user) {
         return res.status(403).json({ msg: 'User not authorized to update this campaign' });
       }
-      
+
       // Dynamically build update object from request body
       const updateData = { ...req.body };
-      
+
       // Handle structured data if provided
       if (req.body.farmSizeValue) {
         updateData.farmSize = { value: req.body.farmSizeValue, unit: req.body.farmSizeUnit };
@@ -170,21 +169,21 @@ exports.updateCampaign = [
       if (req.body.returnsType) {
         updateData.expectedReturns = { type: req.body.returnsType, min: req.body.returnsMin, max: req.body.returnsMax, description: req.body.returnsDescription };
       }
-      if(req.body.cropTypes && !Array.isArray(req.body.cropTypes)){
+      if (req.body.cropTypes && !Array.isArray(req.body.cropTypes)) {
         updateData.cropTypes = req.body.cropTypes.split(',').map(s => s.trim());
       }
-      
+
       // Logic to handle visuals update (preserved from your original code)
       let existingVisuals = [];
       if (req.body.visuals) {
-          try {
-              existingVisuals = JSON.parse(req.body.visuals);
-          } catch(e) {
-              console.error("Error parsing existing visuals", e);
-              existingVisuals = campaign.visuals; // Fallback to current visuals
-          }
+        try {
+          existingVisuals = JSON.parse(req.body.visuals);
+        } catch (e) {
+          console.error("Error parsing existing visuals", e);
+          existingVisuals = campaign.visuals; // Fallback to current visuals
+        }
       } else {
-          existingVisuals = campaign.visuals;
+        existingVisuals = campaign.visuals;
       }
 
       let newVisuals = [];
@@ -193,15 +192,15 @@ exports.updateCampaign = [
           req.files.map(file => uploadToCloudinary(file.buffer))
         );
       }
-      
+
       updateData.visuals = [...existingVisuals, ...newVisuals];
 
       const updatedCampaign = await Campaign.findByIdAndUpdate(
-        req.params.id, 
-        { $set: updateData }, 
+        req.params.id,
+        { $set: updateData },
         { new: true, runValidators: true }
       );
-      
+
       res.status(200).json(updatedCampaign);
     } catch (err) {
       console.error(err.message);
@@ -228,15 +227,15 @@ exports.deleteCampaign = async (req, res) => {
 
     // --- AUTHORIZATION CHECK ---
     if (campaign.userId.toString() !== req.user) {
-        return res.status(403).json({ msg: 'User not authorized to delete this campaign' });
+      return res.status(403).json({ msg: 'User not authorized to delete this campaign' });
     }
 
     // --- BUSINESS RULE ---
     // Prevent deletion if the campaign has received funds.
     if (campaign.raisedAmount > 0) {
-        return res.status(400).json({ msg: 'Cannot delete a campaign with existing investments. Consider closing it instead.' });
+      return res.status(400).json({ msg: 'Cannot delete a campaign with existing investments. Consider closing it instead.' });
     }
-    
+
     await Campaign.findByIdAndDelete(req.params.id);
 
     res.json({ msg: 'Campaign removed' });
@@ -270,9 +269,9 @@ exports.invest = async (req, res) => {
 exports.getFilterOptions = async (req, res) => {
   const { field, term } = req.query;
   console.log(`Fetching options for field: ${field}, with term: ${term}`);
-  
+
   if (!field) return res.status(400).json({ message: 'Field and search term are required' });
-  
+
   try {
     const regex = new RegExp(term, 'i');
     const options = await Campaign.distinct(field, { [field]: { $regex: regex } });

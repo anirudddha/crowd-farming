@@ -134,58 +134,99 @@ const InvestorDashboard = () => {
     setModalType('');
   };
 
-  // Update editedCampaign state for both text fields and new file objects.
   const handleEditChange = (e) => {
-    setEditedCampaign({ ...editedCampaign, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    const [field, subField] = name.split('.'); // e.g., name="expectedReturns.min"
+
+    if (subField) {
+      // It's a nested property
+      setEditedCampaign(prev => ({
+        ...prev,
+        [field]: {
+          ...prev[field],
+          [subField]: type === 'number' ? parseFloat(value) || 0 : value,
+        },
+      }));
+    } else {
+      // It's a flat property
+      setEditedCampaign(prev => ({
+        ...prev,
+        [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      }));
+    }
   };
+
+  // Special handler for new file uploads and visual removals
+  const handleVisualsChange = (visualsUpdate) => {
+    setEditedCampaign(prev => ({ ...prev, ...visualsUpdate }));
+  }
 
   const saveEdits = async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      // Append all text fields
-      formData.append('farmerName', editedCampaign.farmerName);
-      formData.append('phoneNumber', editedCampaign.phoneNumber);
-      formData.append('email', editedCampaign.email);
+
+      // --- Append all fields as expected by the backend ---
+
+      // Append simple text fields
+      formData.append('campaignTitle', editedCampaign.campaignTitle);
       formData.append('farmName', editedCampaign.farmName);
       formData.append('farmLocation', editedCampaign.farmLocation);
-      formData.append('farmSize', editedCampaign.farmSize);
-      formData.append('campaignTitle', editedCampaign.campaignTitle);
       formData.append('fundingGoal', editedCampaign.fundingGoal);
       formData.append('minInvestment', editedCampaign.minInvestment);
-      formData.append('expectedReturns', editedCampaign.expectedReturns);
-      formData.append('cropTypes', editedCampaign.cropTypes);
-      formData.append('farmingMethods', editedCampaign.farmingMethods);
       formData.append('startDate', editedCampaign.startDate);
       formData.append('endDate', editedCampaign.endDate);
       formData.append('fundUsage', editedCampaign.fundUsage);
       formData.append('impactMetrics', editedCampaign.impactMetrics);
+      formData.append('story', editedCampaign.story);
+      formData.append('riskFactors', editedCampaign.riskFactors);
+      formData.append('farmingMethods', editedCampaign.farmingMethods);
 
-      // Append existing visuals as a JSON string (if needed by your backend to preserve removed images)
+      // Append structured data for farmSize
+      formData.append('farmSizeValue', editedCampaign.farmSize.value);
+      formData.append('farmSizeUnit', editedCampaign.farmSize.unit);
+
+      // Append structured data for expectedReturns
+      formData.append('returnsType', editedCampaign.expectedReturns.type);
+      formData.append('returnsMin', editedCampaign.expectedReturns.min);
+      formData.append('returnsMax', editedCampaign.expectedReturns.max || ''); // Send empty string if max is not set
+      formData.append('returnsDescription', editedCampaign.expectedReturns.description);
+
+      // Append cropTypes as a comma-separated string
+      if (Array.isArray(editedCampaign.cropTypes)) {
+        formData.append('cropTypes', editedCampaign.cropTypes.join(', '));
+      } else {
+        formData.append('cropTypes', editedCampaign.cropTypes);
+      }
+
+      // Append existing visuals as a JSON string
       formData.append('visuals', JSON.stringify(editedCampaign.visuals));
 
-      // Append new visuals files, if any.
+      // Append new visuals files, if any
       if (editedCampaign.newVisuals && editedCampaign.newVisuals.length > 0) {
         editedCampaign.newVisuals.forEach(file => {
-          formData.append('visuals', file);
+          formData.append('visuals', file); // Backend expects 'visuals' key for new files
         });
       }
 
-      await axios.put(`${endpoint}/campaigns/editCampaign/${editedCampaign._id}`, formData, {
+      // **FIXED: Correct API endpoint and method**
+      const response = await axios.put(`${endpoint}/campaigns/editCampaign/${editedCampaign._id}`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
         }
       });
-      // Optionally update the local campaigns state with the editedCampaign
+
+      // Update the local campaigns state with the new data from the server
       setCampaigns(campaigns.map(campaign =>
-        campaign._id === editedCampaign._id ? editedCampaign : campaign
+        campaign._id === editedCampaign._id ? response.data : campaign
       ));
       closeModal();
-      toast.info("Your information has been updated");
+      toast.info("Your campaign has been updated successfully!");
+
     } catch (error) {
-      console.error('Error saving edits:', error);
+      console.error('Error saving edits:', error.response?.data || error);
+      toast.error(error.response?.data?.message || 'Failed to update campaign.');
     } finally {
       setIsLoading(false);
     }
@@ -292,8 +333,13 @@ const InvestorDashboard = () => {
                 {modalType === 'view' ? (
                   <DashboardView campaign={selectedCampaign} closeModal={closeModal} />
                 ) : (
-                  <DashboardEdit editedCampaign={editedCampaign} handleEditChange={handleEditChange} saveEdits={saveEdits} closeModal={closeModal} />
-                )}
+                  <DashboardEdit
+                    editedCampaign={editedCampaign}
+                    handleEditChange={handleEditChange}
+                    handleVisualsChange={handleVisualsChange} /* <-- PASS THE PROP HERE */
+                    saveEdits={saveEdits}
+                    closeModal={closeModal}
+                  />)}
               </div>
             </div>
           )}
