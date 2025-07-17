@@ -73,6 +73,7 @@ const ProductPage = () => {
           itemId: id,
           size: selectedVariant ? selectedVariant.size : '',
           quantity: 1,
+          weight: selectedVariant.weight
         },
         {
           headers: { Authorization: `Bearer ${token}` },

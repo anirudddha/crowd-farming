@@ -44,7 +44,7 @@ cartRouter.post("", async (req, res) => {
   try {
     const userId = req.user;
     // console.log(userId);
-    const {itemId, size, quantity} = req.body;
+    const {itemId, size, quantity,weight} = req.body;
     // console.log(req.body);
 
     if (!itemId || !userId || !size || !quantity) {
@@ -91,6 +91,7 @@ cartRouter.post("", async (req, res) => {
         itemId,
         size,
         quantity,
+        weight,
       });
     }
 
@@ -109,14 +110,9 @@ cartRouter.put("", async(req, res)=>{
   try{
     const userId = req.user;
 
-    const {itemId, size, quantity} = req.body;
+    const {itemId, size, quantity,weight} = req.body;
 
     let cart = await Cart.findOne({userId});
-
-    // console.log(itemId);
-    // console.log(size);
-    // console.log(quantity);
-    // console.log(cart);
 
     const existingItemIndex = cart.items?.findIndex(
       (cartItem) => (cartItem.itemId.toString()===itemId && cartItem.size===size)

@@ -35,7 +35,7 @@ const ItemSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     originalPrice: { type: Number },
     farmName: { type: String, required: true },
-    isAvailable: {type: Boolean, require: true},
+    isAvailable: { type: Boolean, require: true },
     isOrganic: { type: Boolean, default: false },
     rating: { type: Number, min: 0, max: 5, default: 0 },
     reviewsCount: { type: Number, default: 0 },
@@ -45,6 +45,7 @@ const ItemSchema = new mongoose.Schema(
       {
         size: { type: String, required: true },
         price: { type: Number, required: true },
+        weight: { type: Number, required: true },
         available: { type: Boolean, required: true },
         originalPrice: { type: Number },
       },

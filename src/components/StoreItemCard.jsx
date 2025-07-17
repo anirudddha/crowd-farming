@@ -37,6 +37,7 @@ const StoreItemCard = ({ item }) => {
           itemId: id,
           size: selectedVariant.size,
           quantity: 1,
+          weight:selectedVariant.weight,
         },
         {
           headers: { Authorization: `Bearer ${token}` },

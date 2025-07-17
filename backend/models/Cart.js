@@ -23,6 +23,10 @@ const CartSchema = new mongoose.Schema(
           required: true,
           min: 1,
         },
+        weight: {
+          type:Number,
+          required: true,
+        }
       },
     ],
   },
