@@ -12,23 +12,23 @@ cartRouter.get("", async (req, res) => {
   try {
     const userId = req.user;
     // console.log(userId);
-    const response = await Cart.find({userId});
+    const response = await Cart.find({ userId });
     const cartResponse = response[0].items;
     // console.log(cartResponse);
     let cartDispArray = [];
 
     cartDispArray = await Promise.all(
-      cartResponse.map(async (eachItem)=>{
+      cartResponse.map(async (eachItem) => {
         // console.log(eachItem);
         let eachItemResponse = await Items.findById(eachItem.itemId);
         eachItemResponse = eachItemResponse.toObject();
-        eachItemResponse.size=eachItem.size;
-        eachItemResponse.quantity=eachItem.quantity;
+        eachItemResponse.size = eachItem.size;
+        eachItemResponse.quantity = eachItem.quantity;
         return eachItemResponse;
       })
     )
-    
-    
+
+
     // console.log(cartDispArray);
 
     res
@@ -44,14 +44,14 @@ cartRouter.post("", async (req, res) => {
   try {
     const userId = req.user;
     // console.log(userId);
-    const {itemId, size, quantity,weight} = req.body;
+    const { itemId, size, quantity, weight } = req.body;
     // console.log(req.body);
 
     if (!itemId || !userId || !size || !quantity) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    
+
 
     // const variant = item.variants.find((v) => v.size === size);
     // if (!variant) {
@@ -106,47 +106,54 @@ cartRouter.post("", async (req, res) => {
   }
 });
 
-cartRouter.put("", async(req, res)=>{
-  try{
+cartRouter.put("", async (req, res) => {
+  try {
     const userId = req.user;
 
-    const {itemId, size, quantity,weight} = req.body;
+    const { itemId, size, quantity, weight } = req.body;
 
-    let cart = await Cart.findOne({userId});
+    let cart = await Cart.findOne({ userId });
 
     const existingItemIndex = cart.items?.findIndex(
-      (cartItem) => (cartItem.itemId.toString()===itemId && cartItem.size===size)
+      (cartItem) => (cartItem.itemId.toString() === itemId && cartItem.size === size)
     );
 
     // console.log(cart.items[existingItemIndex]);
-    cart.items[existingItemIndex].quantity=quantity;
+    cart.items[existingItemIndex].quantity = quantity;
 
     await cart.save();
 
-    return res.status(200).json({message:"Quantity changed succesfully"});
+    return res.status(200).json({ message: "Quantity changed succesfully" });
 
-  }catch(e){
+  } catch (e) {
     console.log(e);
-    res.status(400).json({error:e});
+    res.status(400).json({ error: e });
   }
 })
 
-cartRouter.delete("", async(req, res) =>{
-  try{
+cartRouter.delete("", async (req, res) => {
+  try {
     // console.log(req.body);
-    const {itemId} = req.body;
+    const { itemId,size } = req.body;
     const userId = req.user;
 
     // console.log(itemId);
     // console.log(userId);
     await Cart.updateOne(
-      {userId},
-      {$pull:{items:{itemId}}}
+      { userId },
+      {
+        $pull: {
+          items: {
+            itemId: itemId,
+            size: size
+          }
+        }
+      }
     );
-    res.status(200).json({message:"Item deleted from cart successfully"});
-  }catch(e){
+    res.status(200).json({ message: "Item deleted from cart successfully" });
+  } catch (e) {
     console.log(e);
-    res.status(400).json({message:"Failed to delete item", error:e});
+    res.status(400).json({ message: "Failed to delete item", error: e });
   }
 })
 

@@ -69,16 +69,16 @@ const CartPage = () => {
   }, [fetchCartItems]);
 
   // Handler for removing an item
-  const handleRemove = useCallback(async (id) => {
+  const handleRemove = useCallback(async (product) => {
     try {
-      console.log("Deleting item with id:", id);
+      console.log("Deleting item with id:", product);
       const response = await axios.delete(endPoint, {
         headers: { Authorization: `Bearer ${token}` },
-        data: { itemId: id }
+        data: { itemId: product.id,size: product.size }
       });
       console.log(response);
       dispatch(decrease());
-      setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+      setCartItems(prevItems => prevItems.filter(item => (item.id !== product.id || item.size !==product.size)));
     } catch (e) {
       console.error(e);
     }
@@ -213,7 +213,7 @@ const CartPage = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent redirection when clicking delete
-                              setItemToDelete(item.id);
+                              setItemToDelete(item);
                             }}
                             className="text-gray-400 hover:text-red-500 transition-colors"
                           >
