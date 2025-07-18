@@ -14,7 +14,7 @@ import Signup from '../pages/auth/Signup';
 import ProtectedRoute from '../components/Protected'; // To protect routes
 import CartPage from '../pages/store/CartPage';
 import ProductInfoPage from '../pages/store/ProductInfoPage';
-import OrdersPage from '../pages/store/OrdersPage';
+import OrdersPage from '../pages/store/orderPage/OrdersPage';
 import CheckOutOrder from '../pages/store/checkoutPage/CheckOutOrder';
 import GoogleSigninPage from '../pages/auth/GoogleSigninPage'
 import CheckoutFarmInvestment from '../pages/campaign/CheckoutFarmInvestment';
