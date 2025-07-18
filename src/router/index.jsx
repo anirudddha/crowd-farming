@@ -5,7 +5,7 @@ import FarmListings from '../pages/campaign/FarmListings';
 import CampaignDetails from '../pages/campaign/CampaignDetails';
 import CreateCampaign from '../pages/campaign/CreateCampaign';
 import Profile from '../pages/Profile';
-import InvestorDashboard from '../components/InvestorDashboard';
+import InvestorDashboard from '../pages/campaign/InvestorDashboard/InvestorDashboard';
 import HowItWorks from '../pages/howItWorks/HowItWorks';
 import StorePage from '../pages/store/allProducts/StorePage';
 
