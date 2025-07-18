@@ -24,3 +24,28 @@ export const updateCampaign = async (id, campaignData) => {
 export const deleteCampaign = async (id) => {
   await axios.delete(`${API_URL}/${id}`);
 };
+
+//// timiline 
+export const getTimelineForCampaign = async (campaignId) => {
+  const response = await axios.get(`${API_URL}/${campaignId}/timeline`);
+  return response.data;
+};
+
+export const addTimelineUpdate = async (campaignId, formData) => {
+  const response = await axios.post(`${API_URL}/${campaignId}/timeline-update`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  });
+  return response.data;
+};
+
+export const deleteTimelineUpdate = async (campaignId, updateId) => {
+  await axios.delete(`${API_URL}/${campaignId}/timeline-update/${updateId}`, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  });
+};

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiTarget, FiDollarSign, FiCheckCircle } from 'react-icons/fi';
+import { FaIndianRupeeSign } from "react-icons/fa6";
 
 const FarmCard = ({ farm }) => {
   const isFunded = parseInt(farm.raisedAmount, 10) + parseInt(farm.minInvestment, 10) >= parseInt(farm.fundingGoal, 10);
@@ -41,7 +42,7 @@ const FarmCard = ({ farm }) => {
           </div>
           <div className="flex items-center space-x-2">
             <FiTarget className="w-5 h-5 text-amber-600" />
-            <span className="text-sm text-gray-600">Goal: ${farm.fundingGoal}</span>
+            <span className="text-sm text-gray-600">Goal: ₹{farm.fundingGoal}</span>
           </div>
         </div>
 
@@ -71,7 +72,7 @@ const FarmCard = ({ farm }) => {
             </>
           ) : (
             <>
-              <FiDollarSign className="w-5 h-5" />
+              <FaIndianRupeeSign className="w-5 h-5" />
               <span>Invest Now</span>
             </>
           )}

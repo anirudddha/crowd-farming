@@ -12,6 +12,7 @@ node_modules
 dist
 dist-ssr
 *.local
+backend/config/crowd-farming-firebase-adminsdk-fbsvc-9b2ed210cb.json
 
 # Editor directories and files
 .vscode/*

@@ -3,7 +3,7 @@ import {createSlice,configureStore } from '@reduxjs/toolkit';
 const endpoint = createSlice({
     name: 'endpoint',
     initialState: {
-        endpoint: 'http://localhost:5000/api',
+        endpoint: 'https://crowd-farming-backend.onrender.com/api',
     },
     reducers: {
 
@@ -21,11 +21,14 @@ const cartNumber = createSlice({
         },
         setNumber :(state,action)=>{
             state.count = action.payload;
+        },
+        decrease :(state)=>{
+            state.count --;
         }
     }
     
 })
-export const {increase,setNumber} = cartNumber.actions;
+export const {increase,setNumber,decrease} = cartNumber.actions;
 
 const store = configureStore({
     reducer: {
