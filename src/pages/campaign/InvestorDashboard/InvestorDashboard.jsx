@@ -21,7 +21,7 @@ const InvestorDashboard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); // For modal submissions
   const [campaigns, setCampaigns] = useState([]);
   const [investments, setInvestments] = useState([]);
-  
+
   // Modal State
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [modalType, setModalType] = useState(''); // 'view' or 'edit'
@@ -87,15 +87,23 @@ const InvestorDashboard = () => {
 
   const handleEditChange = (e) => {
     const { name, value, type } = e.target;
-    const [field, subField] = name.split('.');
+    const [field, subField] = name.split('.'); // e.g., name="expectedReturns.min"
 
     if (subField) {
+      // It's a nested property
       setEditedCampaign(prev => ({
         ...prev,
-        [field]: { ...prev[field], [subField]: type === 'number' ? parseFloat(value) || 0 : value },
+        [field]: {
+          ...prev[field],
+          [subField]: type === 'number' ? parseFloat(value) || 0 : value,
+        },
       }));
     } else {
-      setEditedCampaign(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) || 0 : value }));
+      // It's a flat property
+      setEditedCampaign(prev => ({
+        ...prev,
+        [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      }));
     }
   };
 
@@ -104,41 +112,76 @@ const InvestorDashboard = () => {
   };
 
   const saveEdits = async () => {
-    setIsSubmitting(true);
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      
-      // Simplified form data appending
-      Object.keys(editedCampaign).forEach(key => {
-        if (key === 'farmSize' || key === 'expectedReturns') {
-            Object.keys(editedCampaign[key]).forEach(subKey => {
-                formData.append(`${key}${subKey.charAt(0).toUpperCase() + subKey.slice(1)}`, editedCampaign[key][subKey]);
-            });
-        } else if (key === 'cropTypes' && Array.isArray(editedCampaign[key])) {
-            formData.append(key, editedCampaign[key].join(', '));
-        } else if (key === 'visuals' && Array.isArray(editedCampaign[key])) {
-            formData.append(key, JSON.stringify(editedCampaign[key]));
-        } else if (key === 'newVisuals' && editedCampaign.newVisuals.length > 0) {
-            editedCampaign.newVisuals.forEach(file => formData.append('visuals', file));
-        } else if (key !== '_id' && key !== '__v' && key !== 'newVisuals') {
-            formData.append(key, editedCampaign[key]);
+
+      // --- Append all fields as expected by the backend ---
+
+      // Append simple text fields
+      formData.append('campaignTitle', editedCampaign.campaignTitle);
+      formData.append('farmName', editedCampaign.farmName);
+      formData.append('farmLocation', editedCampaign.farmLocation);
+      formData.append('fundingGoal', editedCampaign.fundingGoal);
+      formData.append('minInvestment', editedCampaign.minInvestment);
+      formData.append('startDate', editedCampaign.startDate);
+      formData.append('endDate', editedCampaign.endDate);
+      formData.append('fundUsage', editedCampaign.fundUsage);
+      formData.append('impactMetrics', editedCampaign.impactMetrics);
+      formData.append('story', editedCampaign.story);
+      formData.append('riskFactors', editedCampaign.riskFactors);
+      formData.append('farmingMethods', editedCampaign.farmingMethods);
+
+      // Append structured data for farmSize
+      formData.append('farmSizeValue', editedCampaign.farmSize.value);
+      formData.append('farmSizeUnit', editedCampaign.farmSize.unit);
+
+      // Append structured data for expectedReturns
+      formData.append('returnsType', editedCampaign.expectedReturns.type);
+      formData.append('returnsMin', editedCampaign.expectedReturns.min);
+      formData.append('returnsMax', editedCampaign.expectedReturns.max || ''); // Send empty string if max is not set
+      formData.append('returnsDescription', editedCampaign.expectedReturns.description);
+
+      // Append cropTypes as a comma-separated string
+      if (Array.isArray(editedCampaign.cropTypes)) {
+        formData.append('cropTypes', editedCampaign.cropTypes.join(', '));
+      } else {
+        formData.append('cropTypes', editedCampaign.cropTypes);
+      }
+
+      // Append existing visuals as a JSON string
+      formData.append('visuals', JSON.stringify(editedCampaign.visuals));
+
+      // Append new visuals files, if any
+      if (editedCampaign.newVisuals && editedCampaign.newVisuals.length > 0) {
+        editedCampaign.newVisuals.forEach(file => {
+          formData.append('visuals', file); // Backend expects 'visuals' key for new files
+        });
+      }
+
+      // **FIXED: Correct API endpoint and method**
+      const response = await axios.put(`${endpoint}/campaigns/editCampaign/${editedCampaign._id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       });
 
-      const response = await axios.put(`${endpoint}/campaigns/editCampaign/${editedCampaign._id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setCampaigns(campaigns.map(c => c._id === editedCampaign._id ? response.data : c));
+      // Update the local campaigns state with the new data from the server
+      setCampaigns(campaigns.map(campaign =>
+        campaign._id === editedCampaign._id ? response.data : campaign
+      ));
       closeModal();
-      toast.info("Campaign updated successfully!");
+      toast.info("Your campaign has been updated successfully!");
+
     } catch (error) {
+      console.error('Error saving edits:', error.response?.data || error);
       toast.error(error.response?.data?.message || 'Failed to update campaign.');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
+
 
   // Refund Modal Handlers
   const openRefundModal = (investmentId) => {
@@ -183,11 +226,11 @@ const InvestorDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      
+
       <div className="max-w-7xl mx-auto">
         <header className="mb-10">
-            <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-2 text-lg text-gray-600">Manage your campaigns and track your investments.</p>
+          <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-2 text-lg text-gray-600">Manage your campaigns and track your investments.</p>
         </header>
 
         {/* Campaigns Section */}
@@ -215,7 +258,7 @@ const InvestorDashboard = () => {
           {investments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {investments.map(investment => (
-                <InvestmentCard 
+                <InvestmentCard
                   key={investment._id}
                   investment={investment}
                   onOpenRefundModal={openRefundModal}
@@ -255,7 +298,7 @@ const InvestorDashboard = () => {
       )}
 
       {/* Refund Modal */}
-      <RefundModal 
+      <RefundModal
         isVisible={isRefundModalVisible}
         onClose={closeRefundModal}
         onSubmit={submitRefundRequest}

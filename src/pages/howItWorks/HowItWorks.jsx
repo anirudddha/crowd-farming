@@ -21,7 +21,7 @@ const HowItWorks = () => {
           Empower farmers, grow communities, and harvest returns through ethical agricultural investments
         </p>
         <Link 
-          to="/campaigns" 
+          to="/farms" 
           className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition-colors text-lg"
         >
           Explore Farms

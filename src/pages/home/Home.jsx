@@ -1,16 +1,94 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useSelector } from 'react-redux'; // Assuming you use Redux for the endpoint
 import { FaHandshake, FaChartLine, FaLeaf, FaSeedling, FaTractor } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import CountUp from 'react-countup';
+// import CountUp from 'react-countup'; // You can re-enable this if you use the metrics section
+
+// A reusable card component for the spotlight section
+const ProjectCard = ({ project }) => {
+  const raisedPercentage = Math.round((project.raisedAmount / project.fundingGoal) * 100);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="group relative overflow-hidden rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300"
+    >
+      <img 
+        src={project.visuals[0]?.url || 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=1920&q=80'} // Fallback image
+        alt={project.campaignTitle}
+        className="h-96 w-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-6 flex flex-col justify-end">
+        <div className="space-y-4">
+          <h3 className="text-2xl font-bold text-white drop-shadow-md">{project.campaignTitle}</h3>
+          <div className="grid grid-cols-2 gap-4 text-emerald-100">
+            <div>
+              <p className="text-sm">Funding Goal</p>
+              <p className="font-semibold">
+                ₹{new Intl.NumberFormat('en-IN').format(project.fundingGoal)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm">Annual Return</p>
+              <p className="font-semibold">{project.expectedReturns.min}-{project.expectedReturns.max}%</p>
+            </div>
+          </div>
+          <div className="pt-2">
+            <div className="h-2.5 bg-white/20 rounded-full">
+              <div 
+                className="h-full bg-amber-400 rounded-full transition-all duration-500" 
+                style={{ width: `${raisedPercentage}%` }}
+              />
+            </div>
+            <p className="text-right text-sm text-amber-300 mt-2">
+              {raisedPercentage}% Funded
+            </p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 
 const Home = () => {
   const navigate = useNavigate();
+  const endpoint = useSelector(state => state.endpoint.endpoint); // Get endpoint from Redux
 
-  const fadeIn = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.8 } },
-  };
+  const [spotlightFarms, setSpotlightFarms] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch only the top 3 farms sorted by amount raised
+  const fetchSpotlightFarms = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${endpoint}/campaigns`, {
+        params: {
+          limit: 3,
+          sortBy: 'raisedAmount', // Key to sort by
+          sortOrder: 'desc',     // Sort in descending order
+        },
+      });
+      const data = Array.isArray(response.data.campaigns) ? response.data.campaigns : [];
+      setSpotlightFarms(data);
+    } catch (error)
+    {
+      console.error('Error fetching spotlight campaigns:', error);
+      // You could set an error state here if needed
+    } finally {
+      setLoading(false);
+    }
+  }, [endpoint]);
+
+  useEffect(() => {
+    fetchSpotlightFarms();
+  }, [fetchSpotlightFarms]);
+
 
   const slideUp = {
     hidden: { y: 50, opacity: 0 },
@@ -19,7 +97,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with Animated Gradient */}
+      {/* Hero Section */}
       <section className="relative py-24 px-6 bg-gradient-to-br from-green-700 to-emerald-800 text-white overflow-hidden">
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <motion.div
@@ -57,7 +135,6 @@ const Home = () => {
           </motion.div>
         </div>
         
-        {/* Animated Background Elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute w-96 h-96 bg-amber-300/30 rounded-full blur-3xl -top-48 -left-48 animate-pulse"></div>
           <div className="absolute w-96 h-96 bg-green-400/30 rounded-full blur-3xl -bottom-48 -right-48 animate-pulse delay-1000"></div>
@@ -78,7 +155,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Value Grid with Animation */}
+      {/* Value Grid */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -89,30 +166,11 @@ const Home = () => {
             className="grid md:grid-cols-3 gap-12"
           >
             {[
-              {
-                icon: FaHandshake,
-                title: "Fair Partnerships",
-                content: "Equitable profit-sharing models with built-in farmer protections",
-                color: "text-green-600",
-              },
-              {
-                icon: FaChartLine,
-                title: "Smart Returns",
-                content: "7-12% annual returns with real-time impact tracking",
-                color: "text-amber-600",
-              },
-              {
-                icon: FaLeaf,
-                title: "Ecosystem Impact",
-                content: "Verified biodiversity enhancement metrics across all projects",
-                color: "text-emerald-600",
-              },
+              { icon: FaHandshake, title: "Fair Partnerships", content: "Equitable profit-sharing models with built-in farmer protections", color: "text-green-600" },
+              { icon: FaChartLine, title: "Smart Returns", content: "7-12% annual returns with real-time impact tracking", color: "text-amber-600" },
+              { icon: FaLeaf, title: "Ecosystem Impact", content: "Verified biodiversity enhancement metrics across all projects", color: "text-emerald-600" },
             ].map((item, i) => (
-              <motion.div
-                key={i}
-                variants={slideUp}
-                className="p-8 bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-shadow duration-300 border border-gray-100"
-              >
+              <motion.div key={i} variants={slideUp} className="p-8 bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-shadow duration-300 border border-gray-100">
                 <item.icon className={`text-5xl mb-6 ${item.color}`} />
                 <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
                 <p className="text-gray-600 leading-relaxed">{item.content}</p>
@@ -122,114 +180,29 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Projects */}
+      {/* DYNAMIC Featured Projects Section */}
       <section className="py-24 px-6 bg-emerald-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Spotlight Investments</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Curated opportunities with verified impact potential</p>
+            <p className="text-gray-600 max-w-xl mx-auto">Curated opportunities with the highest investor backing</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Costa Rican Coffee Revival",
-                image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
-                target: "$2.5M",
-                raised: "82%",
-                term: "5 Years",
-                return: "9.5%",
-              },
-              {
-                name: "Canadian Organic Wheat Expansion",
-                image: "https://images.unsplash.com/photo-1550645612-83f5d594b671?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
-                target: "$4.2M",
-                raised: "65%",
-                term: "7 Years",
-                return: "11.2%",
-              },
-              {
-                name: "Kenyan Avocado Cooperative",
-                image: "https://images.unsplash.com/photo-1582564286939-400a311013a6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
-                target: "$1.8M",
-                raised: "93%",
-                term: "4 Years",
-                return: "8.7%",
-              },
-            ].map((project, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="group relative overflow-hidden rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300"
-              >
-                <img 
-                  src={project.image} 
-                  alt={project.name}
-                  className="h-96 w-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent p-8 flex flex-col justify-end">
-                  <div className="space-y-4">
-                    <h3 className="text-2xl font-bold text-white">{project.name}</h3>
-                    <div className="grid grid-cols-2 gap-4 text-emerald-100">
-                      <div>
-                        <p className="text-sm">Target</p>
-                        <p className="font-semibold">{project.target}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm">Annual Return</p>
-                        <p className="font-semibold">{project.return}</p>
-                      </div>
-                    </div>
-                    <div className="relative pt-4">
-                      <div className="h-2 bg-white/20 rounded-full">
-                        <div 
-                          className="h-full bg-amber-400 rounded-full transition-all duration-500" 
-                          style={{ width: project.raised }}
-                        />
-                      </div>
-                      <p className="text-right text-sm text-amber-300 mt-2">
-                        {project.raised} Funded
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Dynamic Impact Metrics */}
-      <section className="py-24 px-6 bg-gradient-to-br from-green-700 to-emerald-800 text-white">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            className="grid md:grid-cols-4 gap-8"
-          >
-            {[
-              { number: 120, suffix: 'M', label: 'Capital Deployed', duration: 3 },
-              { number: 2800, label: 'Jobs Created', duration: 2.5 },
-              { number: 42, suffix: 'k', label: 'Carbon Offset (tons)', duration: 3.5 },
-              { number: 95, suffix: '%', label: 'Investor Satisfaction', duration: 2 },
-            ].map((metric, i) => (
-              <div key={i} className="p-6">
-                <div className="text-5xl font-bold mb-4">
-                  <CountUp
-                    end={metric.number}
-                    suffix={metric.suffix}
-                    duration={metric.duration}
-                    enableScrollSpy
-                  />
-                </div>
-                <p className="text-emerald-200">{metric.label}</p>
-              </div>
-            ))}
-          </motion.div>
+          {loading ? (
+            <div className="text-center">
+              <p className="text-gray-500">Loading top farms...</p>
+            </div>
+          ) : spotlightFarms.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {spotlightFarms.map((project) => (
+                <ProjectCard key={project._id} project={project} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center bg-white p-8 rounded-xl shadow-md">
+              <p className="text-gray-600">No active investment opportunities at the moment. Please check back soon!</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -243,7 +216,7 @@ const Home = () => {
                 Join 25,000+ impact investors building sustainable wealth through regenerative agriculture
               </p>
               <button
-                onClick={() => navigate('/signup')}
+                onClick={() => navigate('/farms')}
                 className="bg-amber-400 hover:bg-amber-500 text-green-900 px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
               >
                 Start Investing Today
