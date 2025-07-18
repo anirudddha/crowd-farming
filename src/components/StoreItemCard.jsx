@@ -225,9 +225,6 @@ StoreItemCard.propTypes = {
       })
     ),
     farmName: PropTypes.string.isRequired,
-    price: PropTypes.number.isRequired,
-    originalPrice: PropTypes.number,
-    weights: PropTypes.arrayOf(PropTypes.number),
     isOrganic: PropTypes.bool,
     rating: PropTypes.number,
     tags: PropTypes.arrayOf(PropTypes.string),
@@ -237,6 +234,7 @@ StoreItemCard.propTypes = {
         size: PropTypes.string.isRequired,
         price: PropTypes.number.isRequired,
         available: PropTypes.bool.isRequired,
+        weight:PropTypes.number.isRequired,
       })
     ).isRequired,
   }).isRequired,
