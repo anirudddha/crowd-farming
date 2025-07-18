@@ -13,9 +13,10 @@ import {
 } from '@heroicons/react/24/outline';
 import toast, { Toaster } from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
-import {setNumber} from '../../redux/globalStates'
+import { setNumber } from '../../redux/globalStates';
 
 const defaultAddressForm = {
+  name: '', // Added name field
   street: '',
   city: '',
   state: '',
@@ -41,23 +42,26 @@ const CheckoutPage = () => {
       const response = await axios.get(cartEndpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log(response);
       // Transform the fetched data to match our UI
-      const transformedItems = response.data.data.map(item => ({
-        id: item._id,
+      const transformedItems = response.data.data.items.map(item => ({
+        id: item.id,
         title: item.name,
         size: item.size,
         description: `${item.farmName} - ${item.category}`,
         price: item.price,
         quantity: item.quantity,
-        image: item.images[0],
+        image: item.image,
         origin: item.origin || "",
+        weight:item.weight,
         harvestDate: item.harvestDate || ""
       }));
+      console.log(transformedItems);
       setCartItems(transformedItems);
     } catch (error) {
       console.error("Error fetching cart items", error);
     }
-  }, [token]);
+  }, [token, endpoint]);
 
   useEffect(() => {
     fetchCartItems();
@@ -66,6 +70,7 @@ const CheckoutPage = () => {
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = 5.99;
   const taxes = parseFloat((total * 0.075).toFixed(2));
+  const finalTotal = total + shipping + taxes;
 
   // --- Profile & Address State & Fetching ---
   const [profileData, setProfileData] = useState({ addresses: [] });
@@ -83,7 +88,7 @@ const CheckoutPage = () => {
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
-  }, [token]);
+  }, [token, endpoint]);
 
   useEffect(() => {
     fetchProfile();
@@ -97,7 +102,7 @@ const CheckoutPage = () => {
 
   const validateForm = () => {
     const errors = {};
-    const requiredFields = ['street', 'city', 'state', 'zipcode', 'country', 'phone'];
+    const requiredFields = ['name', 'street', 'city', 'state', 'zipcode', 'country', 'phone'];
     requiredFields.forEach(field => {
       if (!addressForm[field]) errors[field] = 'This field is required';
     });
@@ -132,7 +137,7 @@ const CheckoutPage = () => {
       console.error('Error saving address:', error);
       toast.error('Failed to save address.');
     }
-  }, [addressForm, editingAddressIndex, profileData, token]);
+  }, [addressForm, editingAddressIndex, profileData, token, endpoint]);
 
   const handleAddNewAddress = () => {
     setEditingAddressIndex(-1);
@@ -153,59 +158,143 @@ const CheckoutPage = () => {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const handleConfirmOrder = async () => {
-    // Validate that we have cart items and a shipping address selected
     if (cartItems.length === 0) {
       toast.error("Your cart is empty.");
       return;
     }
     if (selectedAddressIndex === null) {
-      toast.error("Please select a shipping address.");
+      toast.error("Please select or add a shipping address.");
       return;
     }
-    // Build the order object
+
+    setIsPlacingOrder(true);
+
+    if (paymentOption === 'COD') {
+        await handleCashOnDelivery();
+    } else if (paymentOption === 'Razorpay') {
+        await handleRazorpayPayment();
+    } else {
+        toast.error("Please select a valid payment method.");
+        setIsPlacingOrder(false);
+    }
+  };
+
+  const handleCashOnDelivery = async () => {
     const order = {
-      items: cartItems.map(item => ({
-        itemId: item.id,
-        quantity: item.quantity,
-        price: item.price,
-        // weight can be provided if available; here we assume a placeholder value
-        weight: 1
-      })),
-      totalPrice: total + shipping + taxes,
-      shippingAddress: profileData.addresses[selectedAddressIndex],
-      paymentMethod: paymentOption,
-      // Payment status remains "Pending" until processed
-      paymentStatus: "Pending"
+        items: cartItems.map(item => ({
+            itemId: item.id,
+            name: item.title,
+            quantity: item.quantity,
+            price: item.price,
+            weight:item.weight,
+        })),
+        totalPrice: finalTotal,
+        shippingAddress: profileData.addresses[selectedAddressIndex],
+        paymentMethod: 'COD',
+        paymentStatus: 'Pending'
     };
 
     try {
-      setIsPlacingOrder(true);
-      const response = await axios.post(
-        `${endpoint}/orders`,
-        { order },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Order placed successfully!");
-      console.log(response.data);
-      // Remove all items from the cart backend using the DELETE endpoint for each item
-      await Promise.all(
-        cartItems.map(item =>
-          axios.delete(cartEndpoint, {
-            headers: { Authorization: `Bearer ${token}` },
-            data: { itemId: item.id }
-          })
-        )
-      );
-      // Clear the cart state
-      setCartItems([]);
-      // Redirect to the orders page
-      dispatch(setNumber(0));
-      navigate('/shop/orders');
+        await axios.post(`${endpoint}/orders`, { order }, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success("Order placed successfully with Cash on Delivery!");
+        await clearCartAndRedirect();
     } catch (error) {
-      console.error("Error placing order:", error);
-      toast.error("Failed to place order. Please try again.");
+        console.error("Error placing COD order:", error);
+        toast.error("Failed to place order. Please try again.");
     } finally {
-      setIsPlacingOrder(false);
+        setIsPlacingOrder(false);
+    }
+  };
+
+  const handleRazorpayPayment = async () => {
+    const orderPayload = {
+        items: cartItems.map(item => ({
+            itemId: item.id,
+            name: item.title,
+            quantity: item.quantity,
+            price: item.price,
+            weight:item.weight,
+        })),
+        totalPrice: finalTotal,
+        shippingAddress: profileData.addresses[selectedAddressIndex],
+    };
+
+    try {
+        const { data } = await axios.post(
+            `${endpoint}/payments/create-product-order`,
+            { amount: finalTotal },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const { order, prefill } = data;
+
+        const options = {
+            key: 'rzp_test_tRT25JXIPqrKtZ',
+            amount: order.amount,
+            currency: order.currency,
+            name: "Your Store Name", // Replace with your actual store name
+            description: "Product Purchase",
+            order_id: order.id,
+            handler: async function (response) {
+                try {
+                    const verificationData = {
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        orderPayload: orderPayload,
+                    };
+                    const { data } = await axios.post(
+                        `${endpoint}/payments/verify-product-payment`,
+                        verificationData,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+
+                    if (data.success) {
+                        toast.success("Payment successful! Order placed.");
+                        await clearCartAndRedirect();
+                    } else {
+                        toast.error("Payment verification failed. Please contact support.");
+                    }
+                } catch (verifyError) {
+                    toast.error("Failed to verify payment. Please contact support.");
+                    console.error("Verification error", verifyError);
+                }
+            },
+            prefill: prefill,
+            theme: { color: '#10B981' }, // Emerald color
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.open();
+        paymentObject.on('payment.failed', (response) => {
+            toast.error(`Payment Failed: ${response.error.description}`);
+        });
+
+    } catch (error) {
+        console.error("Error initiating Razorpay payment:", error);
+        toast.error("Could not start payment process. Please try again.");
+    } finally {
+        setIsPlacingOrder(false);
+    }
+  };
+  
+  const clearCartAndRedirect = async () => {
+    try {
+        await Promise.all(
+            cartItems.map(item =>
+                axios.delete(`${endpoint}/cart`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    data: { itemId: item.id }
+                })
+            )
+        );
+        setCartItems([]);
+        dispatch(setNumber(0));
+        navigate('/shop/orders');
+    } catch(error) {
+        console.error("Failed to clear cart after order placement", error);
+        dispatch(setNumber(0));
+        navigate('/shop/orders');
     }
   };
 
@@ -249,7 +338,7 @@ const CheckoutPage = () => {
                       className="group flex items-start p-4 border border-gray-100 rounded-xl hover:border-emerald-100 transition-colors"
                     >
                       <img
-                        src={item.image.url}
+                        src={item.image}
                         alt={item.title}
                         className="w-20 h-20 object-cover rounded-lg shadow-sm"
                       />
@@ -308,7 +397,8 @@ const CheckoutPage = () => {
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900">{addr.name}</p>
+                          <p className="text-gray-600 text-sm mt-1">
                             {addr.street}, {addr.city}, {addr.state} {addr.zipcode}
                           </p>
                           <p className="text-gray-500 text-sm mt-1">{addr.country}</p>
@@ -332,7 +422,7 @@ const CheckoutPage = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No saved addresses found</p>
+                  <p className="text-gray-500 mb-4">No saved addresses found. Please add one.</p>
                 </div>
               )}
             </div>
@@ -366,7 +456,7 @@ const CheckoutPage = () => {
                   <div className="flex items-center space-x-4">
                     <CreditCardIcon className="h-6 w-6 text-emerald-600" />
                     <div>
-                      <h3 className="font-medium text-gray-900">Credit/Debit Card</h3>
+                      <h3 className="font-medium text-gray-900">Credit/Debit Card & UPI</h3>
                       <p className="text-sm text-gray-500">Secure online payment via Razorpay</p>
                     </div>
                   </div>
@@ -377,7 +467,7 @@ const CheckoutPage = () => {
 
           {/* Right Column – Order Summary */}
           <div className="mt-8 lg:mt-0 lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-25">
+            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
               <div className="space-y-4">
                 <div className="flex justify-between">
@@ -403,7 +493,7 @@ const CheckoutPage = () => {
               <button
                 onClick={handleConfirmOrder}
                 disabled={isPlacingOrder}
-                className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2"
+                className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2 disabled:bg-emerald-400 disabled:cursor-not-allowed"
               >
                 {isPlacingOrder ? (
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -413,7 +503,7 @@ const CheckoutPage = () => {
                 ) : (
                   <ShieldCheckIcon className="h-5 w-5" />
                 )}
-                <span>{isPlacingOrder ? 'Placing Order...' : 'Confirm Order'}</span>
+                <span>{isPlacingOrder ? 'Processing...' : 'Place Order'}</span>
               </button>
 
               <div className="mt-6 text-center">
@@ -437,17 +527,17 @@ const CheckoutPage = () => {
               </h3>
               <button
                 onClick={() => setIsEditingAddress(false)}
-                className="text-gray-400 hover:text-gray-500 rounded-lg"
+                className="text-gray-400 hover:text-gray-500 rounded-lg p-1"
               >
                 <span className="sr-only">Close</span>
-                ×
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
 
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name *
+                  Full Name *
                   {formErrors.name && (
                     <span className="ml-2 text-xs text-red-500">{formErrors.name}</span>
                   )}
@@ -557,16 +647,16 @@ const CheckoutPage = () => {
                 />
               </div>
 
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3 pt-4">
                 <button
                   onClick={() => setIsEditingAddress(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="px-5 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddressSave}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
                 >
                   Save Address
                 </button>

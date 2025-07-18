@@ -31,9 +31,8 @@ const Header = () => {
           const response = await axios.get(`${endpoint}/cart`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          // console.log(response.data.data)
           let count = 0;
-          response.data.data.map((a) => {
+          response.data.data.items.map((a) => {
             count += a.quantity;
           })
           dispatch(setNumber(count));

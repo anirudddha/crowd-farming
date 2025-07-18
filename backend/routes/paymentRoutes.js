@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createOrder, verifyPayment } = require('../controllers/paymentController');
+const { createOrder, verifyPayment, createProductOrder, verifyProductPayment } = require('../controllers/paymentController');
 const auth = require('../middleware/userAuth');
 
 // @route   POST api/payments/create-order
@@ -12,5 +12,11 @@ router.post('/create-order', auth, createOrder);
 // @desc    Verify the payment signature and finalize the investment
 // @access  Private
 router.post('/verify-payment', auth, verifyPayment);
+
+
+// --- Product Order Routes (NEW) ---
+router.post('/create-product-order', auth, createProductOrder);
+router.post('/verify-product-payment', auth, verifyProductPayment);
+
 
 module.exports = router;

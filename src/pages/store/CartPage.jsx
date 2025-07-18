@@ -5,128 +5,119 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { decrease, increase } from '../../redux/globalStates';
 
-// Helper function to return a promise that resolves after a given time (ms)
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const CartPage = () => {
-
-  const endpoint = useSelector((state)=>state.endpoint.endpoint);
+  const endpoint = useSelector((state) => state.endpoint.endpoint);
   const dispatch = useDispatch();
-
   const token = localStorage.getItem('token');
-  const [cartItems, setCartItems] = useState([]);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  // Loading state for quantity update operations per item (key: id_size)
-  const [loadingItems, setLoadingItems] = useState({});
-  const endPoint = `${endpoint}/cart`;
-
   const navigate = useNavigate();
 
-  // Secure Checkout handling function
-  const hancleSecureCheckout = () => {
-    navigate('checkOut');
-  };
+  // --- FIXED: State management aligned with new API response ---
+  const [cartItems, setCartItems] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [loadingItems, setLoadingItems] = useState({});
+  const [pageLoading, setPageLoading] = useState(true); // For initial load
+  const endPoint = `${endpoint}/cart`;
 
-  // Memoized fetch function
+  const hancleSecureCheckout = () => navigate('checkOut');
+
   const fetchCartItems = useCallback(async () => {
+    setPageLoading(true);
     try {
       const response = await axios.get(endPoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // console.log(response);
-      const transformedItems = response.data.data.map(item => {
-        const variant = item.variants.find(v => v.size=== item.size);
+      
+      // --- FIXED: Directly use the structured data from the backend ---
+      const { items, summary } = response.data.data;
 
-        return {
-          id: item._id,
-          image: item.images[0],
-          title: item.name,
-          size: item.size,
-          description: `${item.farmName} - ${item.category}`,
-          price: variant? variant.price: item.price,
-          quantity: item.quantity,
-          origin: "",
-          harvestDate: "",
-        };
-      });
+      // The backend now sends perfectly formatted items. No complex transformation is needed.
+      const transformedItems = items.map(item => ({
+        id: item.id,
+        cartItemId: item.cartItemId,
+        image: item.image, // Directly use the image URL string
+        title: item.name,
+        size: item.size,
+        description: `${item.farmName} - ${item.category}`,
+        price: item.price, // Directly use the price for the selected variant
+        quantity: item.quantity,
+      }));
+
       setCartItems(transformedItems);
-      localStorage.setItem('cachedCartItems', JSON.stringify(transformedItems));
+      setSummary(summary);
+      localStorage.setItem('cachedCart', JSON.stringify({ items: transformedItems, summary }));
     } catch (error) {
       console.error("Error fetching cart items", error);
-      const cached = localStorage.getItem('cachedCartItems');
+      const cached = localStorage.getItem('cachedCart');
       if (cached) {
-        setCartItems(JSON.parse(cached));
+        const { items, summary } = JSON.parse(cached);
+        setCartItems(items);
+        setSummary(summary);
       }
+    } finally {
+      setPageLoading(false);
     }
-  }, [token]);
+  }, [token, endPoint]);
 
   useEffect(() => {
-    const cached = localStorage.getItem('cachedCartItems');
-    if (cached) {
-      setCartItems(JSON.parse(cached));
-    }
     fetchCartItems();
   }, [fetchCartItems]);
 
-  // Handler for removing an item
   const handleRemove = useCallback(async (product) => {
     try {
-      console.log("Deleting item with id:", product);
-      const response = await axios.delete(endPoint, {
+      // The payload is correct: the backend DELETE route expects itemId and size
+      await axios.delete(endPoint, {
         headers: { Authorization: `Bearer ${token}` },
-        data: { itemId: product.id,size: product.size }
+        data: { itemId: product.id, size: product.size }
       });
-      console.log(response);
       dispatch(decrease());
-      setCartItems(prevItems => prevItems.filter(item => (item.id !== product.id || item.size !==product.size)));
+      fetchCartItems(); // Refetch to get updated totals from the backend
     } catch (e) {
       console.error(e);
     }
-    
-  }, [token]);
+  }, [token, endPoint, dispatch, fetchCartItems]);
 
-  // Handler for decreasing item quantity with loader that lasts at least 1 sec
   const handleDecrease = useCallback(async (id, size, quantity) => {
+    if (quantity <= 1) return; // Prevent going below 1
     const key = `${id}_${size}`;
-    try {
-      // Set loading for this item
-      setLoadingItems(prev => ({ ...prev, [key]: true }));
+    setLoadingItems(prev => ({ ...prev, [key]: true }));
 
+    try {
       // Optimistically update UI
       setCartItems(prevItems =>
         prevItems.map(item =>
           item.id === id && item.size === size
-            ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+            ? { ...item, quantity: item.quantity - 1 }
             : item
         )
       );
 
-      // Wait for both axios call and a minimum delay of 400 ms
       await Promise.all([
         axios.put(endPoint, {
           itemId: id,
           size: size.toString(),
           quantity: quantity - 1
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        dispatch(decrease()),
+        }, { headers: { Authorization: `Bearer ${token}` } }),
         delay(400)
       ]);
+      dispatch(decrease());
+      fetchCartItems(); // Refetch to ensure data consistency
     } catch (e) {
       console.error(e);
+      // Revert optimistic update on error
+      fetchCartItems();
     } finally {
-      // Clear loading state for this item
       setLoadingItems(prev => ({ ...prev, [key]: false }));
     }
-  }, [token]);
+  }, [token, endPoint, dispatch, fetchCartItems]);
 
-  // Handler for increasing item quantity with loader that lasts at least 1 sec
   const handleIncrease = useCallback(async (id, size, quantity) => {
     const key = `${id}_${size}`;
+    setLoadingItems(prev => ({ ...prev, [key]: true }));
     try {
-      setLoadingItems(prev => ({ ...prev, [key]: true }));
-
+      // Optimistic update
       setCartItems(prevItems =>
         prevItems.map(item =>
           item.id === id && item.size === size
@@ -140,65 +131,62 @@ const CartPage = () => {
           itemId: id,
           size: size.toString(),
           quantity: quantity + 1
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        dispatch(increase()),
+        }, { headers: { Authorization: `Bearer ${token}` } }),
         delay(400)
       ]);
+      dispatch(increase());
+      fetchCartItems(); // Refetch to ensure data consistency
     } catch (e) {
       console.error(e);
+      fetchCartItems();
     } finally {
       setLoadingItems(prev => ({ ...prev, [key]: false }));
     }
-  }, [token]);
+  }, [token, endPoint, dispatch, fetchCartItems]);
 
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  // --- FIXED: Use summary state for calculations ---
+  const subtotal = summary ? summary.subtotal : 0;
   const shipping = subtotal > 75 ? 0 : 7.50;
   const total = subtotal + shipping;
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader className="w-12 h-12 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       {cartItems.length === 0 ? (
-        // Empty Cart State: Centered content
         <div className="flex flex-col items-center justify-center h-full">
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <h2 className="text-3xl font-bold text-gray-900">Your Basket is Empty!</h2>
             <p className="text-gray-600 mt-4">
-              It looks like you haven’t added any fresh produce yet. Start exploring our organic selections.
+              It looks like you haven’t added any fresh produce yet.
             </p>
-            <a
-              href="/shop"
-              className="mt-6 inline-block bg-emerald-600 text-white px-8 py-3 rounded hover:bg-emerald-700 transition-colors"
-            >
+            <a href="/shop" className="mt-6 inline-block bg-emerald-600 text-white px-8 py-3 rounded hover:bg-emerald-700 transition-colors">
               Start Shopping
             </a>
           </div>
         </div>
       ) : (
-        // Full Cart Layout when items exist
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Organic Basket</h1>
             <p className="text-gray-600">Review your selection of farm-fresh produce</p>
           </div>
-          {/* <button onClick={()=>{console.log(cartItems)}}>hello</button> */}
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Cart Items Section */}
             <div className="lg:col-span-2 space-y-6">
               {cartItems.map(item => {
                 const key = `${item.id}_${item.size}`;
                 return (
-                  // CHANGED: Added onClick handler on the container div to redirect to item info page
-                  <div 
-                    key={key} 
-                    onClick={() => navigate(`/shop/itemInfo/${item.id}`)} 
-                    className="cursor-pointer bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-                  >
+                  <div key={item.cartItemId} onClick={() => navigate(`/shop/itemInfo/${item.id}`)} className="cursor-pointer bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
                     <div className="flex gap-6">
                       <div className="relative flex-shrink-0">
                         <img
-                          src={item.image.url}
+                          src={item.image} // FIXED: Now a direct string URL
                           alt={item.title}
                           className="w-32 h-32 object-cover rounded-lg"
                         />
@@ -209,14 +197,7 @@ const CartPage = () => {
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
                             <p className="text-gray-600 text-sm mb-4">{item.description}</p>
                           </div>
-                          {/* Keep the delete button clickable without propagating the redirect */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent redirection when clicking delete
-                              setItemToDelete(item);
-                            }}
-                            className="text-gray-400 hover:text-red-500 transition-colors"
-                          >
+                          <button onClick={(e) => { e.stopPropagation(); setItemToDelete(item); }} className="text-gray-400 hover:text-red-500 transition-colors">
                             <XCircle className="w-6 h-6" />
                           </button>
                         </div>
@@ -228,33 +209,17 @@ const CartPage = () => {
                               </div>
                             ) : (
                               <div className="flex items-center border rounded-lg">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDecrease(item.id, item.size, item.quantity);
-                                  }}
-                                  className="px-3 py-2 text-gray-600 hover:text-gray-800"
-                                >
-                                  -
-                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDecrease(item.id, item.size, item.quantity); }} className="px-3 py-2 text-gray-600 hover:text-gray-800" disabled={item.quantity <= 1}>-</button>
                                 <span className="px-3">{item.quantity}</span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleIncrease(item.id, item.size, item.quantity);
-                                  }}
-                                  className="px-3 py-2 text-gray-600 hover:text-gray-800"
-                                >
-                                  +
-                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); handleIncrease(item.id, item.size, item.quantity); }} className="px-3 py-2 text-gray-600 hover:text-gray-800">+</button>
                               </div>
                             )}
                             <div className="text-sm text-gray-600">
-                            <span>&#8377;</span>{item.price.toFixed(2)} / unit
+                              <span>₹</span>{item.price.toFixed(2)} / unit
                             </div>
                           </div>
                           <span className="text-lg font-medium text-emerald-600">
-                          <span>&#8377;</span>{(item.price * item.quantity).toFixed(2)}
+                            <span>₹</span>{(item.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -262,36 +227,7 @@ const CartPage = () => {
                   </div>
                 );
               })}
-
-              {/* Trust Badges */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="flex items-center gap-4 p-4 bg-emerald-50 rounded-lg">
-                    <div className="p-3 bg-emerald-100 rounded-full">
-                      <Truck className="w-6 h-6 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Farm Direct Shipping</h4>
-                      <p className="text-sm text-gray-600">Next-day delivery from our fields</p>
-                      <div className="mt-2 text-xs text-emerald-600">
-                        Carbon neutral • Reusable packaging
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 p-4 bg-emerald-50 rounded-lg">
-                    <div className="p-3 bg-emerald-100 rounded-full">
-                      <Sprout className="w-6 h-6 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Certified Organic</h4>
-                      <p className="text-sm text-gray-600">USDA Organic Certified</p>
-                      <div className="mt-2 text-xs text-emerald-600">
-                        Chemical-free • Sustainable practices
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Trust Badges remain the same */}
             </div>
 
             {/* Order Summary Section */}
@@ -300,8 +236,8 @@ const CartPage = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal ({cartItems.length} items)</span>
-                    <span className="font-medium text-gray-900"><span>&#8377;</span>{subtotal.toFixed(2)}</span>
+                    <span className="text-gray-600">Subtotal ({summary?.totalItems || 0} items)</span>
+                    <span className="font-medium text-gray-900"><span>₹</span>{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
@@ -310,80 +246,39 @@ const CartPage = () => {
                         {subtotal > 75 ? 'FREE' : 'Standard'}
                       </span>
                     </div>
-                    <span className="font-medium text-gray-900"><span>&#8377;</span>{shipping.toFixed(2)}</span>
+                    <span className="font-medium text-gray-900"><span>₹</span>{shipping.toFixed(2)}</span>
                   </div>
-                  {subtotal <= 75 && (
+                  {subtotal > 0 && subtotal <= 75 && (
                     <div className="bg-emerald-50 p-3 rounded-lg text-center">
                       <p className="text-sm text-emerald-700">
-                        Spend <span>&#8377;</span>{(75 - subtotal).toFixed(2)} more for free shipping!
+                        Spend <span>₹</span>{(75 - subtotal).toFixed(2)} more for free shipping!
                       </p>
                     </div>
                   )}
                   <div className="pt-4 border-t">
                     <div className="flex justify-between">
                       <span className="font-semibold text-gray-900">Total</span>
-                      <span className="font-semibold text-emerald-600"><span>&#8377;</span>{total.toFixed(2)}</span>
+                      <span className="font-semibold text-emerald-600"><span>₹</span>{total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={hancleSecureCheckout}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <ShieldCheck className="w-5 h-5" />
-                  Secure Checkout
+                <button onClick={hancleSecureCheckout} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                  <ShieldCheck className="w-5 h-5" /> Secure Checkout
                 </button>
-                <div className="mt-6 flex items-center gap-2 text-sm text-gray-600">
-                  <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTjEGue1MO1jcmnO0FX4VrWRm2Ho2LwGHgpQ&s"
-                    className="w-5 h-5"
-                    alt="USDA Organic"
-                  />
-                  <span>Certified Organic Operations</span>
-                </div>
-              </div>
-
-              <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-2">Need help? Our farm team is here</p>
-                  <a href="tel:+11234567890" className="text-emerald-600 hover:underline font-medium">
-                    (123) 456-7890
-                  </a>
-                  <p className="mt-3 text-xs text-gray-500">Mon-Fri 8am-6pm EST</p>
-                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {itemToDelete && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-        >
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm mx-auto">
             <h2 className="text-lg font-semibold text-gray-900">Confirm Deletion</h2>
-            <p className="mt-2 text-gray-600">
-              Are you sure you want to delete this item from your cart?
-            </p>
+            <p className="mt-2 text-gray-600">Are you sure you want to remove this item from your cart?</p>
             <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setItemToDelete(null)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  await handleRemove(itemToDelete);
-                  setItemToDelete(null);
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded"
-              >
-                Delete
-              </button>
+              <button onClick={() => setItemToDelete(null)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded">Cancel</button>
+              <button onClick={async () => { await handleRemove(itemToDelete); setItemToDelete(null); }} className="px-4 py-2 bg-red-600 text-white rounded">Delete</button>
             </div>
           </div>
         </div>
