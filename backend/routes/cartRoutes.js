@@ -159,4 +159,17 @@ cartRouter.delete("", async (req, res) => {
   }
 });
 
+
+cartRouter.delete("/clear", async (req, res) => {
+  try {
+    const userId = req.user;
+    // Remove the whole cart document, or just empty the items array:
+    await Cart.updateOne({ userId }, { $set: { items: [] } });
+    return res.json({ message: "Cart has been cleared." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Failed to clear cart", error: err.message });
+  }
+});
+
 module.exports = { cartRouter };
