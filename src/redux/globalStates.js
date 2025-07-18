@@ -3,7 +3,7 @@ import {createSlice,configureStore } from '@reduxjs/toolkit';
 const endpoint = createSlice({
     name: 'endpoint',
     initialState: {
-        endpoint: 'http://localhost:5000/api',
+        endpoint: 'https://crowd-farming-backend.onrender.com/api',
     },
     reducers: {
 
