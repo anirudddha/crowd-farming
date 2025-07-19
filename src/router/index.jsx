@@ -20,11 +20,13 @@ import GoogleSigninPage from '../pages/auth/GoogleSigninPage'
 import CheckoutFarmInvestment from '../pages/campaign/CheckoutFarmInvestment';
 import InvestedFarmDetailsExtended from '../pages/campaign/InvestedFarmDetails';
 import AddTimelineUpdate from '../pages/campaign/AddTimelineUpdate';
+import About from '../pages/aboutUs/About';
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
       <Route path="/google-login" element={<GoogleSigninPage />} />
       <Route path="/farms" element={<FarmListings />} />
       <Route path="/campaign/:id" element={<CampaignDetails />} />
