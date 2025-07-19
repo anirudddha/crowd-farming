@@ -98,7 +98,7 @@ const SignInPage = () => {
         >
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold text-zinc-800">Welcome Back</h2>
-            <p className="text-zinc-500">Sign in to continue to 5 Acre Organics</p>
+            <p className="text-zinc-500">Sign in to continue to GenHarvest</p>
           </div>
 
           <div className="space-y-6">

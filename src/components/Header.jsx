@@ -62,14 +62,14 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo Section (Reverted to Font Awesome for consistency) */}
-            <Link to="/" className="flex items-center space-x-3 group" aria-label="5 Acre Organics Home">
+            <Link to="/" className="flex items-center space-x-3 group" aria-label="GenHarvest Home">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-700 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
                 {/* HYBRID: Original FA icon for desktop view */}
                 <i className="fas fa-leaf text-white text-xl"></i>
               </div>
               <span className="text-xl sm:text-2xl font-bold text-gray-900 font-sans">
-                <span className="bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">5 Acre</span>
-                <span className="text-gray-600 ml-1.5 hidden sm:inline">Organics</span>
+                <span className="bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">Gen</span>
+                <span className="text-gray-600 ml-1.5 hidden sm:inline">Harvest</span>
               </span>
             </Link>
 
