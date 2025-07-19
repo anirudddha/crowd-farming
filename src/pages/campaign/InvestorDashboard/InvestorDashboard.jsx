@@ -248,7 +248,7 @@ const InvestorDashboard = () => {
               ))}
             </div>
           ) : (
-            <EmptyState message="You haven't created any campaigns yet." ctaText="Create First Campaign" ctaLink="/create-campaign" />
+            <EmptyState message="You haven't created any campaigns yet." ctaText="Create First Campaign" ctaLink="/create" />
           )}
         </section>
 
@@ -266,7 +266,7 @@ const InvestorDashboard = () => {
               ))}
             </div>
           ) : (
-            <EmptyState message="You haven't made any investments yet." ctaText="Explore Campaigns" ctaLink="/campaigns" />
+            <EmptyState message="You haven't made any investments yet." ctaText="Explore Campaigns" ctaLink="/farms" />
           )}
         </section>
       </div>
