@@ -127,6 +127,9 @@ const CheckoutPage = () => {
   }, [token, endpoint]);
 
   useEffect(() => {
+    console.log(import.meta.env);
+    console.log(import.meta.env.VITE_RAZORPAY_KEY_ID)
+
     fetchCartItems();
     fetchProfile();
   }, [fetchCartItems, fetchProfile]);
@@ -237,7 +240,7 @@ const CheckoutPage = () => {
       const { data } = await axios.post(`${endpoint}/payments/create-product-order`, { amount: finalTotal }, { headers: { Authorization: `Bearer ${token}` } });
       const { order, prefill } = data;
       const options = {
-        key: 'rzp_test_tRT25JXIPqrKtZ',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: order.amount, currency: order.currency, name: "Your Store Name",
         description: "Product Purchase", order_id: order.id,
         handler: async (response) => {

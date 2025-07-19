@@ -197,7 +197,7 @@ const CheckoutFarmInvestment = () => {
 
       // Step 2: Configure and open the Razorpay payment modal
       const options = {
-        key: 'rzp_test_tRT25JXIPqrKtZ',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: "AgriFund",
