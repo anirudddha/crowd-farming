@@ -3,7 +3,7 @@ import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-green-800 to-green-900 text-white">
+    <footer className="bg-[#007e5c] text-white">
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Branding & Social */}

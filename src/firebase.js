@@ -2,15 +2,14 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBbpSRmBF1jmYfZe0nsSGxRXXBtlVgHMUE",
-    authDomain: "crowd-farming.firebaseapp.com",
-    projectId: "crowd-farming",
-    storageBucket: "crowd-farming.firebasestorage.app",
-    messagingSenderId: "46943241274",
-    appId: "1:46943241274:web:cf469090cd0435bd30a103",
-    measurementId: "G-7B5LVWZRGK"
-  };
-  
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
