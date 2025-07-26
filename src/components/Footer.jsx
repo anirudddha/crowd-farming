@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Branding & Social */}
           <div>
-            <h2 className="text-2xl font-bold mb-4">5 Acre Organic Farm</h2>
+            <h2 className="text-2xl font-bold mb-4">GenHarvest</h2>
             <p className="text-sm mb-4">
               Nurturing nature, naturally. We cultivate organic produce with passion and care,
               ensuring sustainable farming for a healthier tomorrow.
@@ -59,7 +59,7 @@ const Footer = () => {
 
         {/* Bottom Legal Links */}
         <div className="mt-12 border-t border-green-700 pt-4 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-sm">&copy; 2024 5 Acre Organic Farm. All rights reserved.</p>
+          <p className="text-sm">&copy; 2024 GenHarvest Farm. All rights reserved.</p>
           <div className="mt-2 md:mt-0 space-x-4">
             <a href="#privacy" className="text-sm hover:text-green-300 transition-colors">Privacy Policy</a>
             <a href="#terms" className="text-sm hover:text-green-300 transition-colors">Terms of Service</a>
