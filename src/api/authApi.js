@@ -1,6 +1,8 @@
 import axios from 'axios';
+import { useSelector } from 'react-redux';
 
-const API_URL = 'http://localhost:5000/api/auth'; // Adjust if your API URL is different
+// const API_URL = 'http://localhost:5000/api/auth'; // Adjust if your API URL is different
+const API_URL = useSelector(state => state.endpoint.endpoint);
 
 export const signup = async (userData) => {
   try {

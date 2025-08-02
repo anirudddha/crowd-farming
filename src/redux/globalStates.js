@@ -4,6 +4,7 @@ const endpoint = createSlice({
     name: 'endpoint',
     initialState: {
         endpoint: 'https://crowd-farming-backend.onrender.com/api',
+        // endpoint: 'http://localhost:5000/api',
     },
     reducers: {
 
