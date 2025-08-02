@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
-const API_URL = 'https://crowd-farming-backend.onrender.com/api'; // Update this URL if your backend is hosted differently
+const API_URL = 'https://crowd-farming-backend.onrender.com/api/campaigns'; // Update this URL if your backend is hosted differently
+
 
 // const API_URL = useSelector(state => state.endpoint.endpoint);
 
